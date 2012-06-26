@@ -10,7 +10,7 @@ require 'nokogiri'
 require 'set'
 require 'json'
 
-require 'omf-common/lobject'
+require 'omf_common/lobject'
 #require 'omf-sfa/am/am_default_manager'
 
 

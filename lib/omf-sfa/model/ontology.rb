@@ -3,7 +3,7 @@
 # modesl from it.
 #
 require 'nokogiri'   
-require "omf-common/lobject"
+require "omf_common/lobject"
 
 
 module OMF; module SFA; end end
