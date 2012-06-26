@@ -1,0 +1,147 @@
+body{
+    font: 13.34px/1.4 helvetica,arial,freesans,clean,sans-serif;
+    font-size: 14px;
+    line-height: 1.4;
+    margin:20px;
+    margin-top: 40px;
+}
+p {
+    margin: 1em 0;
+}
+a.absent {
+    color: #CC0000;
+}
+h1, h2, h3, h4, h5, h6 {
+    margin: 0;
+    padding: 0;
+}
+h1 {
+    font-size: 22px;
+    line-height: normal;
+    margin: 22px 0 0;
+    padding: 7px 0 0;
+}
+h2 {
+    font-size: 16px;
+    line-height: 26px;
+    padding: 26px 0 0;
+}
+h3 {
+    font-size: 14px;
+    font-weight: bold;
+    line-height: 26px;
+    padding: 18px 0 4px;
+    text-transform: uppercase;
+}
+h4 {
+    font-size: 13px;
+    font-weight: bold;
+    line-height: 26px;
+    padding: 14px 0 0;
+    text-transform: uppercase;
+}
+h5 {
+    color: #666666;
+    font-size: 14px;
+    font-weight: normal;
+    line-height: 26px;
+    padding: 18px 0 0;
+}
+hr {
+    background-color: #CCCCCC;
+    border: 2px solid #CCCCCC;
+    color: #CCCCCC;
+    margin: 20px 0;
+    padding: 0;
+}
+> h2:first-child, > h1:first-child, > h1:first-child + h2 {
+    border: 0 none;
+    margin: 12px 0 0;
+    padding: 10px 0 0;
+}
+> h3:first-child, > h4:first-child, > h5:first-child, > h6:first-child {
+    margin: 13px 0 0;
+    padding: 0;
+}
+h4 + p, h5 + p, h6 + p {
+    margin-top: 0;
+}
+ul, ol {
+    margin-left: 0.5em;
+    margin-top: 0.5em;
+}
+ul li, ol li {
+    margin: 0.2em 0;
+}
+li ul, li ol {
+    margin: 0;
+    padding: 0;
+    padding-left: 2em;
+    margin: 0.2em 0;
+}
+dl {
+    margin: 0;
+    padding: 20px 0 0;
+}
+dl dt {
+    font-size: 14px;
+    font-weight: bold;
+    line-height: normal;
+    margin: 0;
+    padding: 20px 0 0;
+}
+dl dt:first-child {
+    padding: 0;
+}
+dl dd {
+    font-size: 13px;
+    margin: 0;
+    padding: 3px 0 0;
+}
+blockquote {
+    border-left: 4px solid #DDDDDD;
+    color: #555555;
+    margin: 1em 0;
+    padding-left: 0.8em;
+}
+table {
+    border-collapse: collapse;
+    margin: 20px 0 0;
+    padding: 0;
+}
+table * tr {
+    background-color: #FFFFFF;
+    border-top: 1px solid #CCCCCC;
+    margin: 0;
+    padding: 0;
+}
+table * tr:nth-child(2n) {
+    background-color: #F8F8F8;
+}
+table * tr th, table * tr td {
+    border: 1px solid #CCCCCC;
+    margin: 0;
+    padding: 6px 13px;
+    text-align: left;
+}
+img {
+    max-width: 100%;
+}
+code, tt {
+    background-color: #F8F8F8;
+    /*
+    border: 1px solid #DEDEDE;
+    border-radius: 3px 3px 3px 3px;
+    */
+    font-size: 14px;
+    padding: 0;
+}
+pre {
+    border: 1px solid #DEDEDE;
+    border-radius: 3px 3px 3px 3px;
+    padding: 1em;
+}
+pre code, pre tt {
+    background-color: transparent;
+    border: medium none;
+}

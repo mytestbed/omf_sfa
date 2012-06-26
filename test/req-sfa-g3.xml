@@ -1,0 +1,14 @@
+<?xml version="1.0"?>
+<rspec xmlns="http://www.protogeni.net/resources/rspec/2" xmlns:omf="http://schema.mytestbed.net/sfa/rspec/1" type="request">
+  <group component_id="urn:publicid:IDN+mytestbed.net+group+g1" component_manager_id="authority+am" component_name="g1">
+    <group component_id="urn:publicid:IDN+mytestbed.net+group+g2" component_manager_id="authority+am" component_name="g2">
+  	  <node id="70dce487-582e-5e56-a3ed-a1541ed73826" omf:href="/resources/70dce487-582e-5e56-a3ed-a1541ed73826" component_id="urn:publicid:IDN+mytestbed.net+node+n1" component_manager_id="authority+am" component_name="n1">
+		    <available now="true"/>
+	    </node>
+    </group>
+  </group>
+  <group component_id="urn:publicid:IDN+mytestbed.net+group+g3" component_manager_id="authority+am" component_name="g3">
+    <node idref="70dce487-582e-5e56-a3ed-a1541ed73826" />
+  </group>
+  
+</rspec>

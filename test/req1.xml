@@ -1,0 +1,22 @@
+
+<components xmlns="http://schema.mytestbed.net/am_rest/0.1">
+  <node component_id="urn:publicid:IDN+mytestbed.net+node+r0">
+    <interface_ref component_id="urn:publicid:IDN+mytestbed.net+interface+interface0"/>
+    <interface_ref component_id="urn:publicid:IDN+mytestbed.net+interface+interface2"/>
+  </node>
+  <node component_id="urn:publicid:IDN+mytestbed.net+node+c0_0">
+    <interface_ref component_id="urn:publicid:IDN+mytestbed.net+interface+interface1"/>
+  </node>
+  <node component_id="urn:publicid:IDN+mytestbed.net+node+c0_1">
+    <interface_ref component_id="urn:publicid:IDN+mytestbed.net+interface+interface3"/>
+  </node>
+  <link component_id="urn:publicid:IDN+mytestbed.net+link+la0_0">
+    <interface_ref component_id="urn:publicid:IDN+mytestbed.net+interface+interface0"/>
+    <interface_ref component_id="urn:publicid:IDN+mytestbed.net+interface+interface1"/>
+  </link>
+  <link component_id="urn:publicid:IDN+mytestbed.net+link+la0_1">
+    <interface_ref component_id="urn:publicid:IDN+mytestbed.net+interface+interface2"/>
+    <interface_ref component_id="urn:publicid:IDN+mytestbed.net+interface+interface3"/>
+  </link>
+</components>
+

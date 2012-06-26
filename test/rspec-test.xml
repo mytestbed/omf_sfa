@@ -1,0 +1,1867 @@
+<?xml version="1.0" ?>
+<!-- Resources at AM:
+	URN: unspecified_AM_URN
+	URL: https://www.emulab.net/protogeni/xmlrpc/am
+ -->
+<rspec expires="2011-09-13T09:07:09Z" generated="2011-09-13T09:07:09Z" type="advertisement" xmlns="http://www.protogeni.net/resources/rspec/2" xmlns:emulab="http://www.protogeni.net/resources/rspec/ext/emulab/1" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.protogeni.net/resources/rspec/2 http://www.protogeni.net/resources/rspec/2/ad.xsd http://www.protogeni.net/resources/rspec/ext/emulab/1 http://www.protogeni.net/resources/rspec/ext/emulab/1/ptop_extension.xsd http://company.com/rspec/ext/stitch/1 http://company.com/rspec/ext/stitch/1/ad.xsd ">  
+  <node component_id="urn:publicid:IDN+emulab.net+node+cisco3" component_manager_id="urn:publicid:IDN+emulab.net+authority+cm" component_name="cisco3" exclusive="true">    
+      <hardware_type name="switch">      
+          <emulab:node_type type_slots="1"/>      
+      </hardware_type>    
+      <hardware_type name="lan">      
+          <emulab:node_type static="true" type_slots="unlimited"/>      
+      </hardware_type>    
+      <available now="true"/>    
+      <location country="US" latitude="40.768652" longitude="-111.84581"/>    
+      <interface component_id="urn:publicid:IDN+emulab.net+interface+cisco3:(null)">      
+          <emulab:interface name="(null)"/>      
+      </interface>    
+      <emulab:fd name="real-switch" weight="0"/>    
+  </node>  
+  <node component_id="urn:publicid:IDN+emulab.net+node+cisco1" component_manager_id="urn:publicid:IDN+emulab.net+authority+cm" component_name="cisco1" exclusive="true">    
+      <hardware_type name="switch">      
+          <emulab:node_type type_slots="1"/>      
+      </hardware_type>    
+      <hardware_type name="lan">      
+          <emulab:node_type static="true" type_slots="unlimited"/>      
+      </hardware_type>    
+      <available now="true"/>    
+      <location country="US" latitude="40.768652" longitude="-111.84581"/>    
+      <interface component_id="urn:publicid:IDN+emulab.net+interface+cisco1:(null)">      
+          <emulab:interface name="(null)"/>      
+      </interface>    
+      <emulab:fd name="real-switch" weight="0"/>    
+  </node>  
+  <node component_id="urn:publicid:IDN+emulab.net+node+cisco4" component_manager_id="urn:publicid:IDN+emulab.net+authority+cm" component_name="cisco4" exclusive="true">    
+      <hardware_type name="switch">      
+          <emulab:node_type type_slots="1"/>      
+      </hardware_type>    
+      <hardware_type name="lan">      
+          <emulab:node_type static="true" type_slots="unlimited"/>      
+      </hardware_type>    
+      <available now="true"/>    
+      <location country="US" latitude="40.768652" longitude="-111.84581"/>    
+      <interface component_id="urn:publicid:IDN+emulab.net+interface+cisco4:(null)">      
+          <emulab:interface name="(null)"/>      
+      </interface>    
+      <emulab:fd name="real-switch" weight="0"/>    
+  </node>  
+  <node component_id="urn:publicid:IDN+emulab.net+node+cisco5" component_manager_id="urn:publicid:IDN+emulab.net+authority+cm" component_name="cisco5" exclusive="true">    
+      <hardware_type name="switch">      
+          <emulab:node_type type_slots="1"/>      
+      </hardware_type>    
+      <hardware_type name="lan">      
+          <emulab:node_type static="true" type_slots="unlimited"/>      
+      </hardware_type>    
+      <available now="true"/>    
+      <location country="US" latitude="40.768652" longitude="-111.84581"/>    
+      <interface component_id="urn:publicid:IDN+emulab.net+interface+cisco5:(null)">      
+          <emulab:interface name="(null)"/>      
+      </interface>    
+      <emulab:fd name="real-switch" weight="0"/>    
+  </node>  
+  <node component_id="urn:publicid:IDN+emulab.net+node+cisco8" component_manager_id="urn:publicid:IDN+emulab.net+authority+cm" component_name="cisco8" exclusive="true">    
+      <hardware_type name="switch">      
+          <emulab:node_type type_slots="1"/>      
+      </hardware_type>    
+      <hardware_type name="lan">      
+          <emulab:node_type static="true" type_slots="unlimited"/>      
+      </hardware_type>    
+      <available now="true"/>    
+      <location country="US" latitude="40.768652" longitude="-111.84581"/>    
+      <interface component_id="urn:publicid:IDN+emulab.net+interface+cisco8:(null)">      
+          <emulab:interface name="(null)"/>      
+      </interface>    
+      <emulab:fd name="real-switch" weight="0"/>    
+  </node>  
+  <node component_id="urn:publicid:IDN+emulab.net+node+cisco9" component_manager_id="urn:publicid:IDN+emulab.net+authority+cm" component_name="cisco9" exclusive="true">    
+      <hardware_type name="switch">      
+          <emulab:node_type type_slots="1"/>      
+      </hardware_type>    
+      <hardware_type name="lan">      
+          <emulab:node_type static="true" type_slots="unlimited"/>      
+      </hardware_type>    
+      <available now="true"/>    
+      <location country="US" latitude="40.768652" longitude="-111.84581"/>    
+      <interface component_id="urn:publicid:IDN+emulab.net+interface+cisco9:(null)">      
+          <emulab:interface name="(null)"/>      
+      </interface>    
+      <emulab:fd name="real-switch" weight="0"/>    
+  </node>  
+  <node component_id="urn:publicid:IDN+emulab.net+node+pg45" component_manager_id="urn:publicid:IDN+emulab.net+authority+cm" component_name="pg45" exclusive="true">    
+      <hardware_type name="pcpg-i2">      
+          <emulab:node_type type_slots="1"/>      
+      </hardware_type>    
+      <hardware_type name="pcRemote">      
+          <emulab:node_type type_slots="1"/>      
+      </hardware_type>    
+      <hardware_type name="pcvmpg-i2">      
+          <emulab:node_type type_slots="100"/>      
+      </hardware_type>    
+      <available now="true"/>    
+      <location country="USA" latitude="40.7562" longitude="-111.954"/>    
+      <interface component_id="urn:publicid:IDN+emulab.net+interface+pg45:eth4" role="experimental">      
+          <emulab:interface name="eth4"/>      
+      </interface>    
+      <interface component_id="urn:publicid:IDN+emulab.net+interface+pg45:drac5">      
+          <emulab:interface name="drac5"/>      
+      </interface>    
+      <interface component_id="urn:publicid:IDN+emulab.net+interface+pg45:eth3" role="experimental">      
+          <emulab:interface name="eth3"/>      
+      </interface>    
+      <interface component_id="urn:publicid:IDN+emulab.net+interface+pg45:eth0" public_ipv4="64.57.23.150" role="control">      
+          <emulab:interface name="eth0"/>      
+      </interface>    
+      <interface component_id="urn:publicid:IDN+emulab.net+interface+pg45:eth1" role="experimental">      
+          <emulab:interface name="eth1"/>      
+      </interface>    
+      <interface component_id="urn:publicid:IDN+emulab.net+interface+pg45:eth5" role="experimental">      
+          <emulab:interface name="eth5"/>      
+      </interface>    
+      <interface component_id="urn:publicid:IDN+emulab.net+interface+pg45:eth2" role="experimental">      
+          <emulab:interface name="eth2"/>      
+      </interface>    
+      <emulab:fd name="hosts-netfpga2" weight="0.7"/>    
+      <emulab:fd name="i2-POP-SALT" weight="0"/>    
+      <emulab:fd name="OS-1477" weight="0"/>    
+      <emulab:fd name="OS-1937" weight="0"/>    
+      <emulab:fd name="OS-2329" weight="0"/>    
+      <emulab:fd name="OS-2721" weight="0"/>    
+      <emulab:fd name="OS-1937" weight="0"/>    
+      <emulab:fd name="connected-to-procurve-pgeni-salt" weight="0.0"/>    
+  </node>  
+  <node component_id="urn:publicid:IDN+emulab.net+node+pc499" component_manager_id="urn:publicid:IDN+emulab.net+authority+cm" component_name="pc499" exclusive="true">    
+      <hardware_type name="d710">      
+          <emulab:node_type type_slots="1"/>      
+      </hardware_type>    
+      <sliver_type name="raw-pc">      
+      <disk_image default="true" description="Standard 32-bit Fedora 10 image" name="urn:publicid:IDN+emulab.net+image+emulab-ops:FEDORA10-STD" os="Fedora" version="10"/>      
+      <disk_image description="FreeBSD 7.2" name="urn:publicid:IDN+emulab.net+image+emulab-ops:FBSD72-STD" os="FreeBSD" version="7.2"/>      
+      <disk_image description="Ubuntu 10 32-bit" name="urn:publicid:IDN+emulab.net+image+emulab-ops:UBUNTU10-STD" os="Linux" version="10"/>      
+      <disk_image description="UBUNTU10 with LAMP for protogeni" name="urn:publicid:IDN+emulab.net+image+emulab-ops:UBUNTU10-LAMP" os="Linux" version="10.04"/>      
+      <disk_image default="true" description="Standard 32-bit Fedora 10 image" name="urn:publicid:IDN+emulab.net+image+emulab-ops:FEDORA10-STD" os="Fedora" version="10"/>      
+      </sliver_type>    
+      <hardware_type name="pc">      
+          <emulab:node_type type_slots="1"/>      
+      </hardware_type>    
+      <hardware_type name="delay">      
+          <emulab:node_type type_slots="2"/>      
+      </hardware_type>    
+      <hardware_type name="delay-d710">      
+          <emulab:node_type type_slots="2"/>      
+      </hardware_type>    
+      <hardware_type name="d710-vm">      
+          <emulab:node_type type_slots="100"/>      
+      </hardware_type>    
+      <sliver_type name="emulab-openvz"/>    
+      <hardware_type name="pcvm">      
+          <emulab:node_type type_slots="100"/>      
+      </hardware_type>    
+      <hardware_type name="lan">      
+          <emulab:node_type static="true" type_slots="unlimited"/>      
+      </hardware_type>    
+      <available now="false"/>    
+      <location country="US" latitude="40.768652" longitude="-111.84581"/>    
+      <emulab:trivial_bandwidth value="10000000"/>    
+      <interface component_id="urn:publicid:IDN+emulab.net+interface+pc499:eth4" role="experimental">      
+          <emulab:interface name="eth4"/>      
+      </interface>    
+      <interface component_id="urn:publicid:IDN+emulab.net+interface+pc499:eth1" role="experimental">      
+          <emulab:interface name="eth1"/>      
+      </interface>    
+      <interface component_id="urn:publicid:IDN+emulab.net+interface+pc499:eth3" role="experimental">      
+          <emulab:interface name="eth3"/>      
+      </interface>    
+      <interface component_id="urn:publicid:IDN+emulab.net+interface+pc499:eth0" public_ipv4="155.98.38.99" role="control">      
+          <emulab:interface name="eth0"/>      
+      </interface>    
+      <interface component_id="urn:publicid:IDN+emulab.net+interface+pc499:eth2" role="experimental">      
+          <emulab:interface name="eth2"/>      
+      </interface>    
+      <interface component_id="urn:publicid:IDN+emulab.net+interface+pc499:eth5" role="experimental">      
+          <emulab:interface name="eth5"/>      
+      </interface>    
+      <emulab:fd local_operator="+" name="virtpercent" violatable="true" weight="100"/>    
+      <emulab:fd local_operator="+" name="cpu" violatable="true" weight="2400"/>    
+      <emulab:fd local_operator="+" name="ram" violatable="true" weight="12288"/>    
+      <emulab:fd local_operator="+" name="cpupercent" violatable="true" weight="92"/>    
+      <emulab:fd local_operator="+" name="rampercent" violatable="true" weight="80"/>    
+      <emulab:fd name="OS-2653" weight="0"/>    
+      <emulab:fd name="OS-2652" weight="0"/>    
+      <emulab:fd name="OS-1478" weight="0"/>    
+      <emulab:fd name="OS-1761" weight="0"/>    
+      <emulab:fd name="OS-1761-1996" weight="0"/>    
+      <emulab:fd name="OS-1761-1998" weight="0"/>    
+      <emulab:fd name="OS-1761-2017" weight="0"/>    
+      <emulab:fd name="OS-2179" weight="0"/>    
+      <emulab:fd name="OS-1937" weight="0"/>    
+      <emulab:fd name="OS-1952" weight="0"/>    
+      <emulab:fd name="OS-1961" weight="0"/>    
+      <emulab:fd name="OS-1971" weight="0"/>    
+      <emulab:fd name="OS-1971-1995" weight="0"/>    
+      <emulab:fd name="OS-1971-1996" weight="0"/>    
+      <emulab:fd name="OS-1971-1997" weight="0"/>    
+      <emulab:fd name="OS-1971-1998" weight="0"/>    
+      <emulab:fd name="OS-1971-2016" weight="0"/>    
+      <emulab:fd name="OS-1971-2017" weight="0"/>    
+      <emulab:fd name="OS-2071" weight="0"/>    
+      <emulab:fd name="OS-2071-2088" weight="0"/>    
+      <emulab:fd name="OS-2071-2096" weight="0"/>    
+      <emulab:fd name="OS-2098" weight="0"/>    
+      <emulab:fd name="OS-2111" weight="0"/>    
+      <emulab:fd name="OS-2141" weight="0"/>    
+      <emulab:fd name="OS-2147" weight="0"/>    
+      <emulab:fd name="OS-2254" weight="0"/>    
+      <emulab:fd name="OS-2260" weight="0"/>    
+      <emulab:fd name="OS-2281" weight="0"/>    
+      <emulab:fd name="OS-2286" weight="0"/>    
+      <emulab:fd name="OS-2287" weight="0"/>    
+      <emulab:fd name="OS-2329" weight="0"/>    
+      <emulab:fd name="OS-2343" weight="0"/>    
+      <emulab:fd name="OS-2351" weight="0"/>    
+      <emulab:fd name="OS-2401" weight="0"/>    
+      <emulab:fd name="OS-2401-1995" weight="0"/>    
+      <emulab:fd name="OS-2401-1996" weight="0"/>    
+      <emulab:fd name="OS-2401-1997" weight="0"/>    
+      <emulab:fd name="OS-2401-1998" weight="0"/>    
+      <emulab:fd name="OS-2401-2016" weight="0"/>    
+      <emulab:fd name="OS-2401-2017" weight="0"/>    
+      <emulab:fd name="OS-2471" weight="0"/>    
+      <emulab:fd name="OS-2492" weight="0"/>    
+      <emulab:fd name="OS-2690" weight="0"/>    
+      <emulab:fd name="OS-2585" weight="0"/>    
+      <emulab:fd name="OS-2588" weight="0"/>    
+      <emulab:fd name="OS-2691" weight="0"/>    
+      <emulab:fd name="OS-2693" weight="0"/>    
+      <emulab:fd name="OS-2721" weight="0"/>    
+      <emulab:fd name="OS-2788" weight="0"/>    
+      <emulab:fd name="OS-2790" weight="0"/>    
+      <emulab:fd name="OS-2794" weight="0"/>    
+      <emulab:fd name="OS-2795" weight="0"/>    
+      <emulab:fd name="OS-2796" weight="0"/>    
+      <emulab:fd name="OS-2799" weight="0"/>    
+      <emulab:fd name="OS-1937" weight="0"/>    
+      <emulab:fd name="OS-1762" weight="0"/>    
+      <emulab:fd name="OS-1972" weight="0"/>    
+      <emulab:fd name="OS-2072" weight="0"/>    
+      <emulab:fd name="connected-to-procurve3" weight="0.0"/>    
+      <emulab:fd name="connected-to-procurve4" weight="0.0"/>    
+      <emulab:fd name="connected-to-procurve5" weight="0.0"/>    
+      <emulab:fd name="connected-to-procurve2" weight="0.0"/>    
+  </node>  
+  <node component_id="urn:publicid:IDN+emulab.net+node+pc236" component_manager_id="urn:publicid:IDN+emulab.net+authority+cm" component_name="pc236" exclusive="true">    
+      <hardware_type name="pc3000">      
+          <emulab:node_type type_slots="1"/>      
+      </hardware_type>    
+      <sliver_type name="raw-pc">      
+      <disk_image description="Standard 32-bit Fedora 10 image" name="urn:publicid:IDN+emulab.net+image+emulab-ops:FEDORA10-STD" os="Fedora" version="10"/>      
+      <disk_image description="FreeBSD 7.2" name="urn:publicid:IDN+emulab.net+image+emulab-ops:FBSD72-STD" os="FreeBSD" version="7.2"/>      
+      <disk_image description="Ubuntu 10 32-bit" name="urn:publicid:IDN+emulab.net+image+emulab-ops:UBUNTU10-STD" os="Linux" version="10"/>      
+      <disk_image description="UBUNTU10 with LAMP for protogeni" name="urn:publicid:IDN+emulab.net+image+emulab-ops:UBUNTU10-LAMP" os="Linux" version="10.04"/>      
+      <disk_image default="true" description="Any of RedHat Linux" name="urn:publicid:IDN+emulab.net+image+emulab-ops:RHL-STD" os="Linux" version=""/>      
+      </sliver_type>    
+      <hardware_type name="pc">      
+          <emulab:node_type type_slots="1"/>      
+      </hardware_type>    
+      <hardware_type name="delay">      
+          <emulab:node_type type_slots="2"/>      
+      </hardware_type>    
+      <hardware_type name="delay-pc3000">      
+          <emulab:node_type type_slots="2"/>      
+      </hardware_type>    
+      <hardware_type name="pc3000-vm">      
+          <emulab:node_type type_slots="50"/>      
+      </hardware_type>    
+      <hardware_type name="pcvm3000">      
+          <emulab:node_type type_slots="50"/>      
+      </hardware_type>    
+      <sliver_type name="emulab-openvz"/>    
+      <hardware_type name="pcvm">      
+          <emulab:node_type type_slots="50"/>      
+      </hardware_type>    
+      <hardware_type name="lan">      
+          <emulab:node_type static="true" type_slots="unlimited"/>      
+      </hardware_type>    
+      <available now="false"/>    
+      <location country="US" latitude="40.768652" longitude="-111.84581"/>    
+      <emulab:trivial_bandwidth value="10000000"/>    
+      <interface component_id="urn:publicid:IDN+emulab.net+interface+pc236:eth4" role="experimental">      
+          <emulab:interface name="eth4"/>      
+      </interface>    
+      <interface component_id="urn:publicid:IDN+emulab.net+interface+pc236:eth0" public_ipv4="155.98.39.36" role="control">      
+          <emulab:interface name="eth0"/>      
+      </interface>    
+      <interface component_id="urn:publicid:IDN+emulab.net+interface+pc236:eth5" role="experimental">      
+          <emulab:interface name="eth5"/>      
+      </interface>    
+      <interface component_id="urn:publicid:IDN+emulab.net+interface+pc236:eth3" role="experimental">      
+          <emulab:interface name="eth3"/>      
+      </interface>    
+      <interface component_id="urn:publicid:IDN+emulab.net+interface+pc236:eth2" role="experimental">      
+          <emulab:interface name="eth2"/>      
+      </interface>    
+      <interface component_id="urn:publicid:IDN+emulab.net+interface+pc236:eth1" role="experimental">      
+          <emulab:interface name="eth1"/>      
+      </interface>    
+      <emulab:fd local_operator="+" name="virtpercent" violatable="true" weight="100"/>    
+      <emulab:fd local_operator="+" name="cpu" violatable="true" weight="3000"/>    
+      <emulab:fd local_operator="+" name="ram" violatable="true" weight="2048"/>    
+      <emulab:fd local_operator="+" name="cpupercent" violatable="true" weight="92"/>    
+      <emulab:fd local_operator="+" name="rampercent" violatable="true" weight="80"/>    
+      <emulab:fd name="firewallable" weight="0"/>    
+      <emulab:fd name="gigEx4" weight="0.5"/>    
+      <emulab:fd name="OS-988" weight="0"/>    
+      <emulab:fd name="OS-989" weight="0"/>    
+      <emulab:fd name="OS-331" weight="0"/>    
+      <emulab:fd name="OS-332" weight="0"/>    
+      <emulab:fd name="OS-340" weight="0"/>    
+      <emulab:fd name="OS-977" weight="0"/>    
+      <emulab:fd name="OS-285" weight="0"/>    
+      <emulab:fd name="OS-336" weight="0"/>    
+      <emulab:fd name="OS-286" weight="0"/>    
+      <emulab:fd name="OS-337" weight="0"/>    
+      <emulab:fd name="OS-299" weight="0"/>    
+      <emulab:fd name="OS-347" weight="0"/>    
+      <emulab:fd name="OS-1685" weight="0"/>    
+      <emulab:fd name="OS-2653" weight="0"/>    
+      <emulab:fd name="OS-357" weight="0"/>    
+      <emulab:fd name="OS-355" weight="0"/>    
+      <emulab:fd name="OS-296" weight="0"/>    
+      <emulab:fd name="OS-339" weight="0"/>    
+      <emulab:fd name="OS-351" weight="0"/>    
+      <emulab:fd name="OS-306" weight="0"/>    
+      <emulab:fd name="OS-349" weight="0"/>    
+      <emulab:fd name="OS-326" weight="0"/>    
+      <emulab:fd name="OS-298" weight="0"/>    
+      <emulab:fd name="OS-354" weight="0"/>    
+      <emulab:fd name="OS-348" weight="0"/>    
+      <emulab:fd name="OS-356" weight="0"/>    
+      <emulab:fd name="OS-308" weight="0"/>    
+      <emulab:fd name="OS-352" weight="0"/>    
+      <emulab:fd name="OS-353" weight="0"/>    
+      <emulab:fd name="OS-307" weight="0"/>    
+      <emulab:fd name="OS-338" weight="0"/>    
+      <emulab:fd name="OS-305" weight="0"/>    
+      <emulab:fd name="OS-320" weight="0"/>    
+      <emulab:fd name="OS-321" weight="0"/>    
+      <emulab:fd name="OS-301" weight="0"/>    
+      <emulab:fd name="OS-302" weight="0"/>    
+      <emulab:fd name="OS-304" weight="0"/>    
+      <emulab:fd name="OS-303" weight="0"/>    
+      <emulab:fd name="OS-310" weight="0"/>    
+      <emulab:fd name="OS-323" weight="0"/>    
+      <emulab:fd name="OS-876" weight="0"/>    
+      <emulab:fd name="OS-878" weight="0"/>    
+      <emulab:fd name="OS-879" weight="0"/>    
+      <emulab:fd name="OS-926" weight="0"/>    
+      <emulab:fd name="OS-982" weight="0"/>    
+      <emulab:fd name="OS-1686" weight="0"/>    
+      <emulab:fd name="OS-940" weight="0"/>    
+      <emulab:fd name="OS-991" weight="0"/>    
+      <emulab:fd name="OS-990" weight="0"/>    
+      <emulab:fd name="OS-992" weight="0"/>    
+      <emulab:fd name="OS-1006" weight="0"/>    
+      <emulab:fd name="OS-1033" weight="0"/>    
+      <emulab:fd name="OS-2652" weight="0"/>    
+      <emulab:fd name="OS-1172" weight="0"/>    
+      <emulab:fd name="OS-1174" weight="0"/>    
+      <emulab:fd name="OS-1232" weight="0"/>    
+      <emulab:fd name="OS-1668" weight="0"/>    
+      <emulab:fd name="OS-1664" weight="0"/>    
+      <emulab:fd name="OS-1325" weight="0"/>    
+      <emulab:fd name="OS-1346" weight="0"/>    
+      <emulab:fd name="OS-1351" weight="0"/>    
+      <emulab:fd name="OS-1701" weight="0"/>    
+      <emulab:fd name="OS-1412" weight="0"/>    
+      <emulab:fd name="OS-1576" weight="0"/>    
+      <emulab:fd name="OS-1477" weight="0"/>    
+      <emulab:fd name="OS-1478" weight="0"/>    
+      <emulab:fd name="OS-1554" weight="0"/>    
+      <emulab:fd name="OS-1761" weight="0"/>    
+      <emulab:fd name="OS-1761-1996" weight="0"/>    
+      <emulab:fd name="OS-1761-1998" weight="0"/>    
+      <emulab:fd name="OS-1761-2017" weight="0"/>    
+      <emulab:fd name="OS-1828" weight="0"/>    
+      <emulab:fd name="OS-1863" weight="0"/>    
+      <emulab:fd name="OS-2179" weight="0"/>    
+      <emulab:fd name="OS-1937" weight="0"/>    
+      <emulab:fd name="OS-1952" weight="0"/>    
+      <emulab:fd name="OS-1961" weight="0"/>    
+      <emulab:fd name="OS-1971" weight="0"/>    
+      <emulab:fd name="OS-1971-1995" weight="0"/>    
+      <emulab:fd name="OS-1971-1996" weight="0"/>    
+      <emulab:fd name="OS-1971-1997" weight="0"/>    
+      <emulab:fd name="OS-1971-1998" weight="0"/>    
+      <emulab:fd name="OS-1971-2016" weight="0"/>    
+      <emulab:fd name="OS-1971-2017" weight="0"/>    
+      <emulab:fd name="OS-2071" weight="0"/>    
+      <emulab:fd name="OS-2071-2088" weight="0"/>    
+      <emulab:fd name="OS-2071-2096" weight="0"/>    
+      <emulab:fd name="OS-2098" weight="0"/>    
+      <emulab:fd name="OS-2111" weight="0"/>    
+      <emulab:fd name="OS-2141" weight="0"/>    
+      <emulab:fd name="OS-2147" weight="0"/>    
+      <emulab:fd name="OS-2254" weight="0"/>    
+      <emulab:fd name="OS-2260" weight="0"/>    
+      <emulab:fd name="OS-2281" weight="0"/>    
+      <emulab:fd name="OS-2283" weight="0"/>    
+      <emulab:fd name="OS-2286" weight="0"/>    
+      <emulab:fd name="OS-2287" weight="0"/>    
+      <emulab:fd name="OS-2329" weight="0"/>    
+      <emulab:fd name="OS-2343" weight="0"/>    
+      <emulab:fd name="OS-2351" weight="0"/>    
+      <emulab:fd name="OS-2401" weight="0"/>    
+      <emulab:fd name="OS-2401-1995" weight="0"/>    
+      <emulab:fd name="OS-2401-1996" weight="0"/>    
+      <emulab:fd name="OS-2401-1997" weight="0"/>    
+      <emulab:fd name="OS-2401-1998" weight="0"/>    
+      <emulab:fd name="OS-2401-2016" weight="0"/>    
+      <emulab:fd name="OS-2401-2017" weight="0"/>    
+      <emulab:fd name="OS-2471" weight="0"/>    
+      <emulab:fd name="OS-2492" weight="0"/>    
+      <emulab:fd name="OS-2547" weight="0"/>    
+      <emulab:fd name="OS-2585" weight="0"/>    
+      <emulab:fd name="OS-2588" weight="0"/>    
+      <emulab:fd name="OS-2693" weight="0"/>    
+      <emulab:fd name="OS-2721" weight="0"/>    
+      <emulab:fd name="OS-2788" weight="0"/>    
+      <emulab:fd name="OS-2790" weight="0"/>    
+      <emulab:fd name="OS-2794" weight="0"/>    
+      <emulab:fd name="OS-2795" weight="0"/>    
+      <emulab:fd name="OS-2796" weight="0"/>    
+      <emulab:fd name="OS-2799" weight="0"/>    
+      <emulab:fd name="OS-526" weight="0"/>    
+      <emulab:fd name="OS-526" weight="0"/>    
+      <emulab:fd name="OS-362" weight="0"/>    
+      <emulab:fd name="OS-278" weight="0"/>    
+      <emulab:fd name="OS-361" weight="0"/>    
+      <emulab:fd name="OS-406" weight="0"/>    
+      <emulab:fd name="OS-407" weight="0"/>    
+      <emulab:fd name="OS-1762" weight="0"/>    
+      <emulab:fd name="OS-1906" weight="0"/>    
+      <emulab:fd name="OS-1972" weight="0"/>    
+      <emulab:fd name="OS-2072" weight="0"/>    
+      <emulab:fd name="connected-to-cisco8" weight="0.0"/>    
+      <emulab:fd name="connected-to-cisco6" weight="0.0"/>    
+  </node>  
+  <node component_id="urn:publicid:IDN+emulab.net+node+pc345" component_manager_id="urn:publicid:IDN+emulab.net+authority+cm" component_name="pc345" exclusive="true">    
+      <hardware_type name="pc3000">      
+          <emulab:node_type type_slots="1"/>      
+      </hardware_type>    
+      <sliver_type name="raw-pc">      
+      <disk_image description="Standard 32-bit Fedora 10 image" name="urn:publicid:IDN+emulab.net+image+emulab-ops:FEDORA10-STD" os="Fedora" version="10"/>      
+      <disk_image description="FreeBSD 7.2" name="urn:publicid:IDN+emulab.net+image+emulab-ops:FBSD72-STD" os="FreeBSD" version="7.2"/>      
+      <disk_image description="Ubuntu 10 32-bit" name="urn:publicid:IDN+emulab.net+image+emulab-ops:UBUNTU10-STD" os="Linux" version="10"/>      
+      <disk_image description="UBUNTU10 with LAMP for protogeni" name="urn:publicid:IDN+emulab.net+image+emulab-ops:UBUNTU10-LAMP" os="Linux" version="10.04"/>      
+      <disk_image default="true" description="Any of RedHat Linux" name="urn:publicid:IDN+emulab.net+image+emulab-ops:RHL-STD" os="Linux" version=""/>      
+      </sliver_type>    
+      <hardware_type name="pc">      
+          <emulab:node_type type_slots="1"/>      
+      </hardware_type>    
+      <hardware_type name="delay">      
+          <emulab:node_type type_slots="2"/>      
+      </hardware_type>    
+      <hardware_type name="delay-pc3000">      
+          <emulab:node_type type_slots="2"/>      
+      </hardware_type>    
+      <hardware_type name="pc3000-vm">      
+          <emulab:node_type type_slots="50"/>      
+      </hardware_type>    
+      <hardware_type name="pcvm3000">      
+          <emulab:node_type type_slots="50"/>      
+      </hardware_type>    
+      <sliver_type name="emulab-openvz"/>    
+      <hardware_type name="pcvm">      
+          <emulab:node_type type_slots="50"/>      
+      </hardware_type>    
+      <hardware_type name="lan">      
+          <emulab:node_type static="true" type_slots="unlimited"/>      
+      </hardware_type>    
+      <available now="false"/>    
+      <location country="US" latitude="40.768652" longitude="-111.84581"/>    
+      <emulab:trivial_bandwidth value="10000000"/>    
+      <interface component_id="urn:publicid:IDN+emulab.net+interface+pc345:eth0" public_ipv4="155.98.39.145" role="control">      
+          <emulab:interface name="eth0"/>      
+      </interface>    
+      <interface component_id="urn:publicid:IDN+emulab.net+interface+pc345:eth1" role="experimental">      
+          <emulab:interface name="eth1"/>      
+      </interface>    
+      <interface component_id="urn:publicid:IDN+emulab.net+interface+pc345:eth2" role="experimental">      
+          <emulab:interface name="eth2"/>      
+      </interface>    
+      <interface component_id="urn:publicid:IDN+emulab.net+interface+pc345:eth3" role="experimental">      
+          <emulab:interface name="eth3"/>      
+      </interface>    
+      <interface component_id="urn:publicid:IDN+emulab.net+interface+pc345:eth4" role="experimental">      
+          <emulab:interface name="eth4"/>      
+      </interface>    
+      <interface component_id="urn:publicid:IDN+emulab.net+interface+pc345:eth5" role="experimental">      
+          <emulab:interface name="eth5"/>      
+      </interface>    
+      <emulab:fd local_operator="+" name="virtpercent" violatable="true" weight="100"/>    
+      <emulab:fd local_operator="+" name="cpu" violatable="true" weight="3000"/>    
+      <emulab:fd local_operator="+" name="ram" violatable="true" weight="2048"/>    
+      <emulab:fd local_operator="+" name="cpupercent" violatable="true" weight="92"/>    
+      <emulab:fd local_operator="+" name="rampercent" violatable="true" weight="80"/>    
+      <emulab:fd name="firewallable" weight="0"/>    
+      <emulab:fd name="OS-988" weight="0"/>    
+      <emulab:fd name="OS-989" weight="0"/>    
+      <emulab:fd name="OS-331" weight="0"/>    
+      <emulab:fd name="OS-332" weight="0"/>    
+      <emulab:fd name="OS-340" weight="0"/>    
+      <emulab:fd name="OS-977" weight="0"/>    
+      <emulab:fd name="OS-285" weight="0"/>    
+      <emulab:fd name="OS-336" weight="0"/>    
+      <emulab:fd name="OS-286" weight="0"/>    
+      <emulab:fd name="OS-337" weight="0"/>    
+      <emulab:fd name="OS-299" weight="0"/>    
+      <emulab:fd name="OS-347" weight="0"/>    
+      <emulab:fd name="OS-1685" weight="0"/>    
+      <emulab:fd name="OS-2653" weight="0"/>    
+      <emulab:fd name="OS-357" weight="0"/>    
+      <emulab:fd name="OS-355" weight="0"/>    
+      <emulab:fd name="OS-296" weight="0"/>    
+      <emulab:fd name="OS-339" weight="0"/>    
+      <emulab:fd name="OS-351" weight="0"/>    
+      <emulab:fd name="OS-306" weight="0"/>    
+      <emulab:fd name="OS-349" weight="0"/>    
+      <emulab:fd name="OS-326" weight="0"/>    
+      <emulab:fd name="OS-298" weight="0"/>    
+      <emulab:fd name="OS-354" weight="0"/>    
+      <emulab:fd name="OS-348" weight="0"/>    
+      <emulab:fd name="OS-356" weight="0"/>    
+      <emulab:fd name="OS-308" weight="0"/>    
+      <emulab:fd name="OS-352" weight="0"/>    
+      <emulab:fd name="OS-353" weight="0"/>    
+      <emulab:fd name="OS-307" weight="0"/>    
+      <emulab:fd name="OS-338" weight="0"/>    
+      <emulab:fd name="OS-305" weight="0"/>    
+      <emulab:fd name="OS-320" weight="0"/>    
+      <emulab:fd name="OS-321" weight="0"/>    
+      <emulab:fd name="OS-301" weight="0"/>    
+      <emulab:fd name="OS-302" weight="0"/>    
+      <emulab:fd name="OS-304" weight="0"/>    
+      <emulab:fd name="OS-303" weight="0"/>    
+      <emulab:fd name="OS-310" weight="0"/>    
+      <emulab:fd name="OS-323" weight="0"/>    
+      <emulab:fd name="OS-876" weight="0"/>    
+      <emulab:fd name="OS-878" weight="0"/>    
+      <emulab:fd name="OS-879" weight="0"/>    
+      <emulab:fd name="OS-926" weight="0"/>    
+      <emulab:fd name="OS-982" weight="0"/>    
+      <emulab:fd name="OS-1686" weight="0"/>    
+      <emulab:fd name="OS-940" weight="0"/>    
+      <emulab:fd name="OS-991" weight="0"/>    
+      <emulab:fd name="OS-990" weight="0"/>    
+      <emulab:fd name="OS-992" weight="0"/>    
+      <emulab:fd name="OS-1006" weight="0"/>    
+      <emulab:fd name="OS-1033" weight="0"/>    
+      <emulab:fd name="OS-2652" weight="0"/>    
+      <emulab:fd name="OS-1172" weight="0"/>    
+      <emulab:fd name="OS-1174" weight="0"/>    
+      <emulab:fd name="OS-1232" weight="0"/>    
+      <emulab:fd name="OS-1668" weight="0"/>    
+      <emulab:fd name="OS-1664" weight="0"/>    
+      <emulab:fd name="OS-1325" weight="0"/>    
+      <emulab:fd name="OS-1346" weight="0"/>    
+      <emulab:fd name="OS-1351" weight="0"/>    
+      <emulab:fd name="OS-1701" weight="0"/>    
+      <emulab:fd name="OS-1412" weight="0"/>    
+      <emulab:fd name="OS-1576" weight="0"/>    
+      <emulab:fd name="OS-1477" weight="0"/>    
+      <emulab:fd name="OS-1478" weight="0"/>    
+      <emulab:fd name="OS-1554" weight="0"/>    
+      <emulab:fd name="OS-1761" weight="0"/>    
+      <emulab:fd name="OS-1761-1996" weight="0"/>    
+      <emulab:fd name="OS-1761-1998" weight="0"/>    
+      <emulab:fd name="OS-1761-2017" weight="0"/>    
+      <emulab:fd name="OS-1828" weight="0"/>    
+      <emulab:fd name="OS-1863" weight="0"/>    
+      <emulab:fd name="OS-2179" weight="0"/>    
+      <emulab:fd name="OS-1937" weight="0"/>    
+      <emulab:fd name="OS-1952" weight="0"/>    
+      <emulab:fd name="OS-1961" weight="0"/>    
+      <emulab:fd name="OS-1971" weight="0"/>    
+      <emulab:fd name="OS-1971-1995" weight="0"/>    
+      <emulab:fd name="OS-1971-1996" weight="0"/>    
+      <emulab:fd name="OS-1971-1997" weight="0"/>    
+      <emulab:fd name="OS-1971-1998" weight="0"/>    
+      <emulab:fd name="OS-1971-2016" weight="0"/>    
+      <emulab:fd name="OS-1971-2017" weight="0"/>    
+      <emulab:fd name="OS-2071" weight="0"/>    
+      <emulab:fd name="OS-2071-2088" weight="0"/>    
+      <emulab:fd name="OS-2071-2096" weight="0"/>    
+      <emulab:fd name="OS-2098" weight="0"/>    
+      <emulab:fd name="OS-2111" weight="0"/>    
+      <emulab:fd name="OS-2141" weight="0"/>    
+      <emulab:fd name="OS-2147" weight="0"/>    
+      <emulab:fd name="OS-2254" weight="0"/>    
+      <emulab:fd name="OS-2260" weight="0"/>    
+      <emulab:fd name="OS-2281" weight="0"/>    
+      <emulab:fd name="OS-2283" weight="0"/>    
+      <emulab:fd name="OS-2286" weight="0"/>    
+      <emulab:fd name="OS-2287" weight="0"/>    
+      <emulab:fd name="OS-2329" weight="0"/>    
+      <emulab:fd name="OS-2343" weight="0"/>    
+      <emulab:fd name="OS-2351" weight="0"/>    
+      <emulab:fd name="OS-2401" weight="0"/>    
+      <emulab:fd name="OS-2401-1995" weight="0"/>    
+      <emulab:fd name="OS-2401-1996" weight="0"/>    
+      <emulab:fd name="OS-2401-1997" weight="0"/>    
+      <emulab:fd name="OS-2401-1998" weight="0"/>    
+      <emulab:fd name="OS-2401-2016" weight="0"/>    
+      <emulab:fd name="OS-2401-2017" weight="0"/>    
+      <emulab:fd name="OS-2471" weight="0"/>    
+      <emulab:fd name="OS-2492" weight="0"/>    
+      <emulab:fd name="OS-2547" weight="0"/>    
+      <emulab:fd name="OS-2585" weight="0"/>    
+      <emulab:fd name="OS-2588" weight="0"/>    
+      <emulab:fd name="OS-2693" weight="0"/>    
+      <emulab:fd name="OS-2721" weight="0"/>    
+      <emulab:fd name="OS-2788" weight="0"/>    
+      <emulab:fd name="OS-2790" weight="0"/>    
+      <emulab:fd name="OS-2794" weight="0"/>    
+      <emulab:fd name="OS-2795" weight="0"/>    
+      <emulab:fd name="OS-2796" weight="0"/>    
+      <emulab:fd name="OS-2799" weight="0"/>    
+      <emulab:fd name="OS-526" weight="0"/>    
+      <emulab:fd name="OS-526" weight="0"/>    
+      <emulab:fd name="OS-362" weight="0"/>    
+      <emulab:fd name="OS-278" weight="0"/>    
+      <emulab:fd name="OS-361" weight="0"/>    
+      <emulab:fd name="OS-406" weight="0"/>    
+      <emulab:fd name="OS-407" weight="0"/>    
+      <emulab:fd name="OS-1762" weight="0"/>    
+      <emulab:fd name="OS-1906" weight="0"/>    
+      <emulab:fd name="OS-1972" weight="0"/>    
+      <emulab:fd name="OS-2072" weight="0"/>    
+      <emulab:fd name="connected-to-cisco6" weight="0.0"/>    
+      <emulab:fd name="connected-to-cisco5" weight="0.0"/>    
+      <emulab:fd name="connected-to-cisco8" weight="0.0"/>    
+  </node>  
+  <node component_id="urn:publicid:IDN+emulab.net+node+pcwf3" component_manager_id="urn:publicid:IDN+emulab.net+authority+cm" component_name="pcwf3" exclusive="true">    
+      <hardware_type name="pc3000w">      
+          <emulab:node_type type_slots="1"/>      
+      </hardware_type>    
+      <sliver_type name="raw-pc">      
+      <disk_image default="true" description="An RHL90-based image with wifi support for Emulab's wireless nodes." name="urn:publicid:IDN+emulab.net+image+emulab-ops:RHL90-WIRELESS" os="Linux" version="9.0"/>      
+      <disk_image description="Standard 32-bit Fedora 10 image" name="urn:publicid:IDN+emulab.net+image+emulab-ops:FEDORA10-STD" os="Fedora" version="10"/>      
+      <disk_image description="FreeBSD 7.2" name="urn:publicid:IDN+emulab.net+image+emulab-ops:FBSD72-STD" os="FreeBSD" version="7.2"/>      
+      <disk_image description="UBUNTU10 with LAMP for protogeni" name="urn:publicid:IDN+emulab.net+image+emulab-ops:UBUNTU10-LAMP" os="Linux" version="10.04"/>      
+      <disk_image default="true" description="An RHL90-based image with wifi support for Emulab's wireless nodes." name="urn:publicid:IDN+emulab.net+image+emulab-ops:RHL90-WIRELESS" os="Linux" version="9.0"/>      
+      </sliver_type>    
+      <hardware_type name="pc">      
+          <emulab:node_type type_slots="1"/>      
+      </hardware_type>    
+      <sliver_type name="emulab-openvz"/>    
+      <hardware_type name="pcvm">      
+          <emulab:node_type type_slots="0"/>      
+      </hardware_type>    
+      <available now="false"/>    
+      <location country="US" latitude="40.768652" longitude="-111.84581"/>    
+      <interface component_id="urn:publicid:IDN+emulab.net+interface+pcwf3:eth0" role="experimental">      
+          <emulab:interface name="eth0"/>      
+      </interface>    
+      <interface component_id="urn:publicid:IDN+emulab.net+interface+pcwf3:eth1" role="experimental">      
+          <emulab:interface name="eth1"/>      
+      </interface>    
+      <interface component_id="urn:publicid:IDN+emulab.net+interface+pcwf3:eth2" public_ipv4="155.98.37.3" role="control">      
+          <emulab:interface name="eth2"/>      
+      </interface>    
+      <interface component_id="urn:publicid:IDN+emulab.net+interface+pcwf3:eth3" role="experimental">      
+          <emulab:interface name="eth3"/>      
+      </interface>    
+      <emulab:fd name="haswifi" weight="0.9"/>    
+      <emulab:fd name="OS-340" weight="0"/>    
+      <emulab:fd name="OS-977" weight="0"/>    
+      <emulab:fd name="OS-337" weight="0"/>    
+      <emulab:fd name="OS-347" weight="0"/>    
+      <emulab:fd name="OS-1685" weight="0"/>    
+      <emulab:fd name="OS-2653" weight="0"/>    
+      <emulab:fd name="OS-355" weight="0"/>    
+      <emulab:fd name="OS-349" weight="0"/>    
+      <emulab:fd name="OS-326" weight="0"/>    
+      <emulab:fd name="OS-298" weight="0"/>    
+      <emulab:fd name="OS-353" weight="0"/>    
+      <emulab:fd name="OS-300" weight="0"/>    
+      <emulab:fd name="OS-305" weight="0"/>    
+      <emulab:fd name="OS-301" weight="0"/>    
+      <emulab:fd name="OS-302" weight="0"/>    
+      <emulab:fd name="OS-303" weight="0"/>    
+      <emulab:fd name="OS-309" weight="0"/>    
+      <emulab:fd name="OS-310" weight="0"/>    
+      <emulab:fd name="OS-926" weight="0"/>    
+      <emulab:fd name="OS-982" weight="0"/>    
+      <emulab:fd name="OS-1686" weight="0"/>    
+      <emulab:fd name="OS-940" weight="0"/>    
+      <emulab:fd name="OS-991" weight="0"/>    
+      <emulab:fd name="OS-990" weight="0"/>    
+      <emulab:fd name="OS-992" weight="0"/>    
+      <emulab:fd name="OS-1005" weight="0"/>    
+      <emulab:fd name="OS-1006" weight="0"/>    
+      <emulab:fd name="OS-1033" weight="0"/>    
+      <emulab:fd name="OS-2652" weight="0"/>    
+      <emulab:fd name="OS-1172" weight="0"/>    
+      <emulab:fd name="OS-1174" weight="0"/>    
+      <emulab:fd name="OS-1232" weight="0"/>    
+      <emulab:fd name="OS-1325" weight="0"/>    
+      <emulab:fd name="OS-1346" weight="0"/>    
+      <emulab:fd name="OS-1351" weight="0"/>    
+      <emulab:fd name="OS-1701" weight="0"/>    
+      <emulab:fd name="OS-1412" weight="0"/>    
+      <emulab:fd name="OS-1554" weight="0"/>    
+      <emulab:fd name="OS-1761" weight="0"/>    
+      <emulab:fd name="OS-1761-1996" weight="0"/>    
+      <emulab:fd name="OS-1761-1998" weight="0"/>    
+      <emulab:fd name="OS-1761-2017" weight="0"/>    
+      <emulab:fd name="OS-1828" weight="0"/>    
+      <emulab:fd name="OS-1937" weight="0"/>    
+      <emulab:fd name="OS-1952" weight="0"/>    
+      <emulab:fd name="OS-1961" weight="0"/>    
+      <emulab:fd name="OS-1971" weight="0"/>    
+      <emulab:fd name="OS-1971-1995" weight="0"/>    
+      <emulab:fd name="OS-1971-1996" weight="0"/>    
+      <emulab:fd name="OS-1971-1997" weight="0"/>    
+      <emulab:fd name="OS-1971-1998" weight="0"/>    
+      <emulab:fd name="OS-1971-2016" weight="0"/>    
+      <emulab:fd name="OS-1971-2017" weight="0"/>    
+      <emulab:fd name="OS-2098" weight="0"/>    
+      <emulab:fd name="OS-2111" weight="0"/>    
+      <emulab:fd name="OS-2254" weight="0"/>    
+      <emulab:fd name="OS-2260" weight="0"/>    
+      <emulab:fd name="OS-2281" weight="0"/>    
+      <emulab:fd name="OS-2283" weight="0"/>    
+      <emulab:fd name="OS-2343" weight="0"/>    
+      <emulab:fd name="OS-2401" weight="0"/>    
+      <emulab:fd name="OS-2401-1995" weight="0"/>    
+      <emulab:fd name="OS-2401-1996" weight="0"/>    
+      <emulab:fd name="OS-2401-1997" weight="0"/>    
+      <emulab:fd name="OS-2401-1998" weight="0"/>    
+      <emulab:fd name="OS-2401-2016" weight="0"/>    
+      <emulab:fd name="OS-2401-2017" weight="0"/>    
+      <emulab:fd name="OS-2471" weight="0"/>    
+      <emulab:fd name="OS-2547" weight="0"/>    
+      <emulab:fd name="OS-2693" weight="0"/>    
+      <emulab:fd name="OS-2721" weight="0"/>    
+      <emulab:fd name="OS-2788" weight="0"/>    
+      <emulab:fd name="OS-2790" weight="0"/>    
+      <emulab:fd name="OS-2794" weight="0"/>    
+      <emulab:fd name="OS-2795" weight="0"/>    
+      <emulab:fd name="OS-2796" weight="0"/>    
+      <emulab:fd name="OS-340" weight="0"/>    
+      <emulab:fd name="OS-1762" weight="0"/>    
+      <emulab:fd name="OS-1972" weight="0"/>    
+      <emulab:fd name="connected-to-cisco9" weight="0.0"/>    
+      <emulab:fd name="connected-to-cisco7" weight="0.0"/>    
+  </node>  
+  <node component_id="urn:publicid:IDN+emulab.net+node+pc73" component_manager_id="urn:publicid:IDN+emulab.net+authority+cm" component_name="pc73" exclusive="true">    
+      <hardware_type name="pc850">      
+          <emulab:node_type type_slots="1"/>      
+      </hardware_type>    
+      <sliver_type name="raw-pc">      
+      <disk_image description="Standard 32-bit Fedora 10 image" name="urn:publicid:IDN+emulab.net+image+emulab-ops:FEDORA10-STD" os="Fedora" version="10"/>      
+      <disk_image description="FreeBSD 7.2" name="urn:publicid:IDN+emulab.net+image+emulab-ops:FBSD72-STD" os="FreeBSD" version="7.2"/>      
+      <disk_image description="Ubuntu 10 32-bit" name="urn:publicid:IDN+emulab.net+image+emulab-ops:UBUNTU10-STD" os="Linux" version="10"/>      
+      <disk_image description="UBUNTU10 with LAMP for protogeni" name="urn:publicid:IDN+emulab.net+image+emulab-ops:UBUNTU10-LAMP" os="Linux" version="10.04"/>      
+      <disk_image default="true" description="Any of RedHat Linux" name="urn:publicid:IDN+emulab.net+image+emulab-ops:RHL-STD" os="Linux" version=""/>      
+      </sliver_type>    
+      <hardware_type name="pc">      
+          <emulab:node_type type_slots="1"/>      
+      </hardware_type>    
+      <hardware_type name="delay">      
+          <emulab:node_type type_slots="2"/>      
+      </hardware_type>    
+      <hardware_type name="delay-pc850">      
+          <emulab:node_type type_slots="2"/>      
+      </hardware_type>    
+      <hardware_type name="pc850-vm">      
+          <emulab:node_type type_slots="20"/>      
+      </hardware_type>    
+      <hardware_type name="pcvm850">      
+          <emulab:node_type type_slots="20"/>      
+      </hardware_type>    
+      <sliver_type name="emulab-openvz"/>    
+      <hardware_type name="pcvm">      
+          <emulab:node_type type_slots="20"/>      
+      </hardware_type>    
+      <hardware_type name="lan">      
+          <emulab:node_type static="true" type_slots="unlimited"/>      
+      </hardware_type>    
+      <available now="false"/>    
+      <location country="US" latitude="40.768652" longitude="-111.84581"/>    
+      <emulab:trivial_bandwidth value="400000"/>    
+      <interface component_id="urn:publicid:IDN+emulab.net+interface+pc73:eth1" role="experimental">      
+          <emulab:interface name="eth1"/>      
+      </interface>    
+      <interface component_id="urn:publicid:IDN+emulab.net+interface+pc73:eth0" role="experimental">      
+          <emulab:interface name="eth0"/>      
+      </interface>    
+      <interface component_id="urn:publicid:IDN+emulab.net+interface+pc73:eth4" role="experimental">      
+          <emulab:interface name="eth4"/>      
+      </interface>    
+      <interface component_id="urn:publicid:IDN+emulab.net+interface+pc73:eth3" role="experimental">      
+          <emulab:interface name="eth3"/>      
+      </interface>    
+      <interface component_id="urn:publicid:IDN+emulab.net+interface+pc73:eth2" public_ipv4="155.98.36.73" role="control">      
+          <emulab:interface name="eth2"/>      
+      </interface>    
+      <emulab:fd local_operator="+" name="virtpercent" violatable="true" weight="100"/>    
+      <emulab:fd local_operator="+" name="cpu" violatable="true" weight="850"/>    
+      <emulab:fd local_operator="+" name="ram" violatable="true" weight="256"/>    
+      <emulab:fd local_operator="+" name="cpupercent" violatable="true" weight="92"/>    
+      <emulab:fd local_operator="+" name="rampercent" violatable="true" weight="80"/>    
+      <emulab:fd name="firewallable" weight="0"/>    
+      <emulab:fd name="OS-527" weight="0"/>    
+      <emulab:fd name="OS-988" weight="0"/>    
+      <emulab:fd name="OS-989" weight="0"/>    
+      <emulab:fd name="OS-363" weight="0"/>    
+      <emulab:fd name="OS-528" weight="0"/>    
+      <emulab:fd name="OS-365" weight="0"/>    
+      <emulab:fd name="OS-287" weight="0"/>    
+      <emulab:fd name="OS-328" weight="0"/>    
+      <emulab:fd name="OS-290" weight="0"/>    
+      <emulab:fd name="OS-279" weight="0"/>    
+      <emulab:fd name="OS-331" weight="0"/>    
+      <emulab:fd name="OS-332" weight="0"/>    
+      <emulab:fd name="OS-340" weight="0"/>    
+      <emulab:fd name="OS-294" weight="0"/>    
+      <emulab:fd name="OS-329" weight="0"/>    
+      <emulab:fd name="OS-281" weight="0"/>    
+      <emulab:fd name="OS-295" weight="0"/>    
+      <emulab:fd name="OS-293" weight="0"/>    
+      <emulab:fd name="OS-334" weight="0"/>    
+      <emulab:fd name="OS-283" weight="0"/>    
+      <emulab:fd name="OS-977" weight="0"/>    
+      <emulab:fd name="OS-285" weight="0"/>    
+      <emulab:fd name="OS-292" weight="0"/>    
+      <emulab:fd name="OS-330" weight="0"/>    
+      <emulab:fd name="OS-336" weight="0"/>    
+      <emulab:fd name="OS-286" weight="0"/>    
+      <emulab:fd name="OS-284" weight="0"/>    
+      <emulab:fd name="OS-297" weight="0"/>    
+      <emulab:fd name="OS-337" weight="0"/>    
+      <emulab:fd name="OS-312" weight="0"/>    
+      <emulab:fd name="OS-346" weight="0"/>    
+      <emulab:fd name="OS-299" weight="0"/>    
+      <emulab:fd name="OS-347" weight="0"/>    
+      <emulab:fd name="OS-341" weight="0"/>    
+      <emulab:fd name="OS-1685" weight="0"/>    
+      <emulab:fd name="OS-2653" weight="0"/>    
+      <emulab:fd name="OS-355" weight="0"/>    
+      <emulab:fd name="OS-296" weight="0"/>    
+      <emulab:fd name="OS-339" weight="0"/>    
+      <emulab:fd name="OS-306" weight="0"/>    
+      <emulab:fd name="OS-349" weight="0"/>    
+      <emulab:fd name="OS-326" weight="0"/>    
+      <emulab:fd name="OS-298" weight="0"/>    
+      <emulab:fd name="OS-308" weight="0"/>    
+      <emulab:fd name="OS-353" weight="0"/>    
+      <emulab:fd name="OS-350" weight="0"/>    
+      <emulab:fd name="OS-335" weight="0"/>    
+      <emulab:fd name="OS-300" weight="0"/>    
+      <emulab:fd name="OS-307" weight="0"/>    
+      <emulab:fd name="OS-338" weight="0"/>    
+      <emulab:fd name="OS-305" weight="0"/>    
+      <emulab:fd name="OS-320" weight="0"/>    
+      <emulab:fd name="OS-321" weight="0"/>    
+      <emulab:fd name="OS-301" weight="0"/>    
+      <emulab:fd name="OS-302" weight="0"/>    
+      <emulab:fd name="OS-304" weight="0"/>    
+      <emulab:fd name="OS-303" weight="0"/>    
+      <emulab:fd name="OS-310" weight="0"/>    
+      <emulab:fd name="OS-323" weight="0"/>    
+      <emulab:fd name="OS-876" weight="0"/>    
+      <emulab:fd name="OS-878" weight="0"/>    
+      <emulab:fd name="OS-879" weight="0"/>    
+      <emulab:fd name="OS-926" weight="0"/>    
+      <emulab:fd name="OS-982" weight="0"/>    
+      <emulab:fd name="OS-1686" weight="0"/>    
+      <emulab:fd name="OS-940" weight="0"/>    
+      <emulab:fd name="OS-991" weight="0"/>    
+      <emulab:fd name="OS-990" weight="0"/>    
+      <emulab:fd name="OS-992" weight="0"/>    
+      <emulab:fd name="OS-1006" weight="0"/>    
+      <emulab:fd name="OS-1033" weight="0"/>    
+      <emulab:fd name="OS-1172" weight="0"/>    
+      <emulab:fd name="OS-1174" weight="0"/>    
+      <emulab:fd name="OS-1232" weight="0"/>    
+      <emulab:fd name="OS-1668" weight="0"/>    
+      <emulab:fd name="OS-1664" weight="0"/>    
+      <emulab:fd name="OS-1325" weight="0"/>    
+      <emulab:fd name="OS-1346" weight="0"/>    
+      <emulab:fd name="OS-1351" weight="0"/>    
+      <emulab:fd name="OS-1701" weight="0"/>    
+      <emulab:fd name="OS-1412" weight="0"/>    
+      <emulab:fd name="OS-1576" weight="0"/>    
+      <emulab:fd name="OS-1477" weight="0"/>    
+      <emulab:fd name="OS-1761" weight="0"/>    
+      <emulab:fd name="OS-1761-1996" weight="0"/>    
+      <emulab:fd name="OS-1761-1998" weight="0"/>    
+      <emulab:fd name="OS-1761-2017" weight="0"/>    
+      <emulab:fd name="OS-1828" weight="0"/>    
+      <emulab:fd name="OS-2179" weight="0"/>    
+      <emulab:fd name="OS-1937" weight="0"/>    
+      <emulab:fd name="OS-1952" weight="0"/>    
+      <emulab:fd name="OS-2098" weight="0"/>    
+      <emulab:fd name="OS-2111" weight="0"/>    
+      <emulab:fd name="OS-2260" weight="0"/>    
+      <emulab:fd name="OS-2281" weight="0"/>    
+      <emulab:fd name="OS-2283" weight="0"/>    
+      <emulab:fd name="OS-2286" weight="0"/>    
+      <emulab:fd name="OS-2329" weight="0"/>    
+      <emulab:fd name="OS-2343" weight="0"/>    
+      <emulab:fd name="OS-2471" weight="0"/>    
+      <emulab:fd name="OS-2492" weight="0"/>    
+      <emulab:fd name="OS-2547" weight="0"/>    
+      <emulab:fd name="OS-2693" weight="0"/>    
+      <emulab:fd name="OS-2721" weight="0"/>    
+      <emulab:fd name="OS-2788" weight="0"/>    
+      <emulab:fd name="OS-2794" weight="0"/>    
+      <emulab:fd name="OS-2795" weight="0"/>    
+      <emulab:fd name="OS-526" weight="0"/>    
+      <emulab:fd name="OS-526" weight="0"/>    
+      <emulab:fd name="OS-362" weight="0"/>    
+      <emulab:fd name="OS-278" weight="0"/>    
+      <emulab:fd name="OS-361" weight="0"/>    
+      <emulab:fd name="OS-406" weight="0"/>    
+      <emulab:fd name="OS-407" weight="0"/>    
+      <emulab:fd name="OS-1762" weight="0"/>    
+      <emulab:fd name="connected-to-cisco1" weight="0.0"/>    
+      <emulab:fd name="connected-to-cisco2" weight="0.0"/>    
+      <emulab:fd name="prereserved" weight="0.9"/>    
+  </node>  
+  <node component_id="urn:publicid:IDN+emulab.net+node+pc72" component_manager_id="urn:publicid:IDN+emulab.net+authority+cm" component_name="pc72" exclusive="true">    
+      <hardware_type name="pc850">      
+          <emulab:node_type type_slots="1"/>      
+      </hardware_type>    
+      <sliver_type name="raw-pc">      
+      <disk_image description="Standard 32-bit Fedora 10 image" name="urn:publicid:IDN+emulab.net+image+emulab-ops:FEDORA10-STD" os="Fedora" version="10"/>      
+      <disk_image description="FreeBSD 7.2" name="urn:publicid:IDN+emulab.net+image+emulab-ops:FBSD72-STD" os="FreeBSD" version="7.2"/>      
+      <disk_image description="Ubuntu 10 32-bit" name="urn:publicid:IDN+emulab.net+image+emulab-ops:UBUNTU10-STD" os="Linux" version="10"/>      
+      <disk_image description="UBUNTU10 with LAMP for protogeni" name="urn:publicid:IDN+emulab.net+image+emulab-ops:UBUNTU10-LAMP" os="Linux" version="10.04"/>      
+      <disk_image default="true" description="Any of RedHat Linux" name="urn:publicid:IDN+emulab.net+image+emulab-ops:RHL-STD" os="Linux" version=""/>      
+      </sliver_type>    
+      <hardware_type name="pc">      
+          <emulab:node_type type_slots="1"/>      
+      </hardware_type>    
+      <hardware_type name="delay">      
+          <emulab:node_type type_slots="2"/>      
+      </hardware_type>    
+      <hardware_type name="delay-pc850">      
+          <emulab:node_type type_slots="2"/>      
+      </hardware_type>    
+      <hardware_type name="pc850-vm">      
+          <emulab:node_type type_slots="20"/>      
+      </hardware_type>    
+      <hardware_type name="pcvm850">      
+          <emulab:node_type type_slots="20"/>      
+      </hardware_type>    
+      <sliver_type name="emulab-openvz"/>    
+      <hardware_type name="pcvm">      
+          <emulab:node_type type_slots="20"/>      
+      </hardware_type>    
+      <hardware_type name="lan">      
+          <emulab:node_type static="true" type_slots="unlimited"/>      
+      </hardware_type>    
+      <available now="false"/>    
+      <location country="US" latitude="40.768652" longitude="-111.84581"/>    
+      <emulab:trivial_bandwidth value="400000"/>    
+      <interface component_id="urn:publicid:IDN+emulab.net+interface+pc72:eth1" role="experimental">      
+          <emulab:interface name="eth1"/>      
+      </interface>    
+      <interface component_id="urn:publicid:IDN+emulab.net+interface+pc72:eth0" role="experimental">      
+          <emulab:interface name="eth0"/>      
+      </interface>    
+      <interface component_id="urn:publicid:IDN+emulab.net+interface+pc72:eth4" role="experimental">      
+          <emulab:interface name="eth4"/>      
+      </interface>    
+      <interface component_id="urn:publicid:IDN+emulab.net+interface+pc72:eth3" role="experimental">      
+          <emulab:interface name="eth3"/>      
+      </interface>    
+      <interface component_id="urn:publicid:IDN+emulab.net+interface+pc72:eth2" public_ipv4="155.98.36.72" role="control">      
+          <emulab:interface name="eth2"/>      
+      </interface>    
+      <emulab:fd local_operator="+" name="virtpercent" violatable="true" weight="100"/>    
+      <emulab:fd local_operator="+" name="cpu" violatable="true" weight="850"/>    
+      <emulab:fd local_operator="+" name="ram" violatable="true" weight="256"/>    
+      <emulab:fd local_operator="+" name="cpupercent" violatable="true" weight="92"/>    
+      <emulab:fd local_operator="+" name="rampercent" violatable="true" weight="80"/>    
+      <emulab:fd name="firewallable" weight="0"/>    
+      <emulab:fd name="OS-527" weight="0"/>    
+      <emulab:fd name="OS-988" weight="0"/>    
+      <emulab:fd name="OS-989" weight="0"/>    
+      <emulab:fd name="OS-363" weight="0"/>    
+      <emulab:fd name="OS-528" weight="0"/>    
+      <emulab:fd name="OS-365" weight="0"/>    
+      <emulab:fd name="OS-287" weight="0"/>    
+      <emulab:fd name="OS-328" weight="0"/>    
+      <emulab:fd name="OS-290" weight="0"/>    
+      <emulab:fd name="OS-279" weight="0"/>    
+      <emulab:fd name="OS-331" weight="0"/>    
+      <emulab:fd name="OS-332" weight="0"/>    
+      <emulab:fd name="OS-340" weight="0"/>    
+      <emulab:fd name="OS-294" weight="0"/>    
+      <emulab:fd name="OS-329" weight="0"/>    
+      <emulab:fd name="OS-281" weight="0"/>    
+      <emulab:fd name="OS-295" weight="0"/>    
+      <emulab:fd name="OS-293" weight="0"/>    
+      <emulab:fd name="OS-334" weight="0"/>    
+      <emulab:fd name="OS-283" weight="0"/>    
+      <emulab:fd name="OS-977" weight="0"/>    
+      <emulab:fd name="OS-285" weight="0"/>    
+      <emulab:fd name="OS-292" weight="0"/>    
+      <emulab:fd name="OS-330" weight="0"/>    
+      <emulab:fd name="OS-336" weight="0"/>    
+      <emulab:fd name="OS-286" weight="0"/>    
+      <emulab:fd name="OS-284" weight="0"/>    
+      <emulab:fd name="OS-297" weight="0"/>    
+      <emulab:fd name="OS-337" weight="0"/>    
+      <emulab:fd name="OS-312" weight="0"/>    
+      <emulab:fd name="OS-346" weight="0"/>    
+      <emulab:fd name="OS-299" weight="0"/>    
+      <emulab:fd name="OS-347" weight="0"/>    
+      <emulab:fd name="OS-341" weight="0"/>    
+      <emulab:fd name="OS-1685" weight="0"/>    
+      <emulab:fd name="OS-2653" weight="0"/>    
+      <emulab:fd name="OS-355" weight="0"/>    
+      <emulab:fd name="OS-296" weight="0"/>    
+      <emulab:fd name="OS-339" weight="0"/>    
+      <emulab:fd name="OS-306" weight="0"/>    
+      <emulab:fd name="OS-349" weight="0"/>    
+      <emulab:fd name="OS-326" weight="0"/>    
+      <emulab:fd name="OS-298" weight="0"/>    
+      <emulab:fd name="OS-308" weight="0"/>    
+      <emulab:fd name="OS-353" weight="0"/>    
+      <emulab:fd name="OS-350" weight="0"/>    
+      <emulab:fd name="OS-335" weight="0"/>    
+      <emulab:fd name="OS-300" weight="0"/>    
+      <emulab:fd name="OS-307" weight="0"/>    
+      <emulab:fd name="OS-338" weight="0"/>    
+      <emulab:fd name="OS-305" weight="0"/>    
+      <emulab:fd name="OS-320" weight="0"/>    
+      <emulab:fd name="OS-321" weight="0"/>    
+      <emulab:fd name="OS-301" weight="0"/>    
+      <emulab:fd name="OS-302" weight="0"/>    
+      <emulab:fd name="OS-304" weight="0"/>    
+      <emulab:fd name="OS-303" weight="0"/>    
+      <emulab:fd name="OS-310" weight="0"/>    
+      <emulab:fd name="OS-323" weight="0"/>    
+      <emulab:fd name="OS-876" weight="0"/>    
+      <emulab:fd name="OS-878" weight="0"/>    
+      <emulab:fd name="OS-879" weight="0"/>    
+      <emulab:fd name="OS-926" weight="0"/>    
+      <emulab:fd name="OS-982" weight="0"/>    
+      <emulab:fd name="OS-1686" weight="0"/>    
+      <emulab:fd name="OS-940" weight="0"/>    
+      <emulab:fd name="OS-991" weight="0"/>    
+      <emulab:fd name="OS-990" weight="0"/>    
+      <emulab:fd name="OS-992" weight="0"/>    
+      <emulab:fd name="OS-1006" weight="0"/>    
+      <emulab:fd name="OS-1033" weight="0"/>    
+      <emulab:fd name="OS-1172" weight="0"/>    
+      <emulab:fd name="OS-1174" weight="0"/>    
+      <emulab:fd name="OS-1232" weight="0"/>    
+      <emulab:fd name="OS-1668" weight="0"/>    
+      <emulab:fd name="OS-1664" weight="0"/>    
+      <emulab:fd name="OS-1325" weight="0"/>    
+      <emulab:fd name="OS-1346" weight="0"/>    
+      <emulab:fd name="OS-1351" weight="0"/>    
+      <emulab:fd name="OS-1701" weight="0"/>    
+      <emulab:fd name="OS-1412" weight="0"/>    
+      <emulab:fd name="OS-1576" weight="0"/>    
+      <emulab:fd name="OS-1477" weight="0"/>    
+      <emulab:fd name="OS-1761" weight="0"/>    
+      <emulab:fd name="OS-1761-1996" weight="0"/>    
+      <emulab:fd name="OS-1761-1998" weight="0"/>    
+      <emulab:fd name="OS-1761-2017" weight="0"/>    
+      <emulab:fd name="OS-1828" weight="0"/>    
+      <emulab:fd name="OS-2179" weight="0"/>    
+      <emulab:fd name="OS-1937" weight="0"/>    
+      <emulab:fd name="OS-1952" weight="0"/>    
+      <emulab:fd name="OS-2098" weight="0"/>    
+      <emulab:fd name="OS-2111" weight="0"/>    
+      <emulab:fd name="OS-2260" weight="0"/>    
+      <emulab:fd name="OS-2281" weight="0"/>    
+      <emulab:fd name="OS-2283" weight="0"/>    
+      <emulab:fd name="OS-2286" weight="0"/>    
+      <emulab:fd name="OS-2329" weight="0"/>    
+      <emulab:fd name="OS-2343" weight="0"/>    
+      <emulab:fd name="OS-2471" weight="0"/>    
+      <emulab:fd name="OS-2492" weight="0"/>    
+      <emulab:fd name="OS-2547" weight="0"/>    
+      <emulab:fd name="OS-2693" weight="0"/>    
+      <emulab:fd name="OS-2721" weight="0"/>    
+      <emulab:fd name="OS-2788" weight="0"/>    
+      <emulab:fd name="OS-2794" weight="0"/>    
+      <emulab:fd name="OS-2795" weight="0"/>    
+      <emulab:fd name="OS-526" weight="0"/>    
+      <emulab:fd name="OS-526" weight="0"/>    
+      <emulab:fd name="OS-362" weight="0"/>    
+      <emulab:fd name="OS-278" weight="0"/>    
+      <emulab:fd name="OS-361" weight="0"/>    
+      <emulab:fd name="OS-406" weight="0"/>    
+      <emulab:fd name="OS-407" weight="0"/>    
+      <emulab:fd name="OS-1762" weight="0"/>    
+      <emulab:fd name="connected-to-cisco1" weight="0.0"/>    
+      <emulab:fd name="connected-to-cisco2" weight="0.0"/>    
+  </node>  
+  <node component_id="urn:publicid:IDN+emulab.net+node+pc243" component_manager_id="urn:publicid:IDN+emulab.net+authority+cm" component_name="pc243" exclusive="true">    
+      <hardware_type name="pc3000">      
+          <emulab:node_type type_slots="1"/>      
+      </hardware_type>    
+      <sliver_type name="raw-pc">      
+      <disk_image description="Standard 32-bit Fedora 10 image" name="urn:publicid:IDN+emulab.net+image+emulab-ops:FEDORA10-STD" os="Fedora" version="10"/>      
+      <disk_image description="FreeBSD 7.2" name="urn:publicid:IDN+emulab.net+image+emulab-ops:FBSD72-STD" os="FreeBSD" version="7.2"/>      
+      <disk_image description="Ubuntu 10 32-bit" name="urn:publicid:IDN+emulab.net+image+emulab-ops:UBUNTU10-STD" os="Linux" version="10"/>      
+      <disk_image description="UBUNTU10 with LAMP for protogeni" name="urn:publicid:IDN+emulab.net+image+emulab-ops:UBUNTU10-LAMP" os="Linux" version="10.04"/>      
+      <disk_image default="true" description="Any of RedHat Linux" name="urn:publicid:IDN+emulab.net+image+emulab-ops:RHL-STD" os="Linux" version=""/>      
+      </sliver_type>    
+      <hardware_type name="pc">      
+          <emulab:node_type type_slots="1"/>      
+      </hardware_type>    
+      <hardware_type name="delay">      
+          <emulab:node_type type_slots="2"/>      
+      </hardware_type>    
+      <hardware_type name="delay-pc3000">      
+          <emulab:node_type type_slots="2"/>      
+      </hardware_type>    
+      <hardware_type name="pc3000-vm">      
+          <emulab:node_type type_slots="50"/>      
+      </hardware_type>    
+      <hardware_type name="pcvm3000">      
+          <emulab:node_type type_slots="50"/>      
+      </hardware_type>    
+      <sliver_type name="emulab-openvz"/>    
+      <hardware_type name="pcvm">      
+          <emulab:node_type type_slots="50"/>      
+      </hardware_type>    
+      <hardware_type name="lan">      
+          <emulab:node_type static="true" type_slots="unlimited"/>      
+      </hardware_type>    
+      <available now="false"/>    
+      <location country="US" latitude="40.768652" longitude="-111.84581"/>    
+      <emulab:trivial_bandwidth value="10000000"/>    
+      <interface component_id="urn:publicid:IDN+emulab.net+interface+pc243:eth1" role="experimental">      
+          <emulab:interface name="eth1"/>      
+      </interface>    
+      <interface component_id="urn:publicid:IDN+emulab.net+interface+pc243:eth3" role="experimental">      
+          <emulab:interface name="eth3"/>      
+      </interface>    
+      <interface component_id="urn:publicid:IDN+emulab.net+interface+pc243:eth2" role="experimental">      
+          <emulab:interface name="eth2"/>      
+      </interface>    
+      <interface component_id="urn:publicid:IDN+emulab.net+interface+pc243:eth0" public_ipv4="155.98.39.43" role="control">      
+          <emulab:interface name="eth0"/>      
+      </interface>    
+      <interface component_id="urn:publicid:IDN+emulab.net+interface+pc243:eth4" role="experimental">      
+          <emulab:interface name="eth4"/>      
+      </interface>    
+      <interface component_id="urn:publicid:IDN+emulab.net+interface+pc243:eth5" role="experimental">      
+          <emulab:interface name="eth5"/>      
+      </interface>    
+      <emulab:fd local_operator="+" name="virtpercent" violatable="true" weight="100"/>    
+      <emulab:fd local_operator="+" name="cpu" violatable="true" weight="3000"/>    
+      <emulab:fd local_operator="+" name="ram" violatable="true" weight="2048"/>    
+      <emulab:fd local_operator="+" name="cpupercent" violatable="true" weight="92"/>    
+      <emulab:fd local_operator="+" name="rampercent" violatable="true" weight="80"/>    
+      <emulab:fd name="firewallable" weight="0"/>    
+      <emulab:fd name="OS-988" weight="0"/>    
+      <emulab:fd name="OS-989" weight="0"/>    
+      <emulab:fd name="OS-331" weight="0"/>    
+      <emulab:fd name="OS-332" weight="0"/>    
+      <emulab:fd name="OS-340" weight="0"/>    
+      <emulab:fd name="OS-977" weight="0"/>    
+      <emulab:fd name="OS-285" weight="0"/>    
+      <emulab:fd name="OS-336" weight="0"/>    
+      <emulab:fd name="OS-286" weight="0"/>    
+      <emulab:fd name="OS-337" weight="0"/>    
+      <emulab:fd name="OS-299" weight="0"/>    
+      <emulab:fd name="OS-347" weight="0"/>    
+      <emulab:fd name="OS-1685" weight="0"/>    
+      <emulab:fd name="OS-2653" weight="0"/>    
+      <emulab:fd name="OS-357" weight="0"/>    
+      <emulab:fd name="OS-355" weight="0"/>    
+      <emulab:fd name="OS-296" weight="0"/>    
+      <emulab:fd name="OS-339" weight="0"/>    
+      <emulab:fd name="OS-351" weight="0"/>    
+      <emulab:fd name="OS-306" weight="0"/>    
+      <emulab:fd name="OS-349" weight="0"/>    
+      <emulab:fd name="OS-326" weight="0"/>    
+      <emulab:fd name="OS-298" weight="0"/>    
+      <emulab:fd name="OS-354" weight="0"/>    
+      <emulab:fd name="OS-348" weight="0"/>    
+      <emulab:fd name="OS-356" weight="0"/>    
+      <emulab:fd name="OS-308" weight="0"/>    
+      <emulab:fd name="OS-352" weight="0"/>    
+      <emulab:fd name="OS-353" weight="0"/>    
+      <emulab:fd name="OS-307" weight="0"/>    
+      <emulab:fd name="OS-338" weight="0"/>    
+      <emulab:fd name="OS-305" weight="0"/>    
+      <emulab:fd name="OS-320" weight="0"/>    
+      <emulab:fd name="OS-321" weight="0"/>    
+      <emulab:fd name="OS-301" weight="0"/>    
+      <emulab:fd name="OS-302" weight="0"/>    
+      <emulab:fd name="OS-304" weight="0"/>    
+      <emulab:fd name="OS-303" weight="0"/>    
+      <emulab:fd name="OS-310" weight="0"/>    
+      <emulab:fd name="OS-323" weight="0"/>    
+      <emulab:fd name="OS-876" weight="0"/>    
+      <emulab:fd name="OS-878" weight="0"/>    
+      <emulab:fd name="OS-879" weight="0"/>    
+      <emulab:fd name="OS-926" weight="0"/>    
+      <emulab:fd name="OS-982" weight="0"/>    
+      <emulab:fd name="OS-1686" weight="0"/>    
+      <emulab:fd name="OS-940" weight="0"/>    
+      <emulab:fd name="OS-991" weight="0"/>    
+      <emulab:fd name="OS-990" weight="0"/>    
+      <emulab:fd name="OS-992" weight="0"/>    
+      <emulab:fd name="OS-1006" weight="0"/>    
+      <emulab:fd name="OS-1033" weight="0"/>    
+      <emulab:fd name="OS-2652" weight="0"/>    
+      <emulab:fd name="OS-1172" weight="0"/>    
+      <emulab:fd name="OS-1174" weight="0"/>    
+      <emulab:fd name="OS-1232" weight="0"/>    
+      <emulab:fd name="OS-1668" weight="0"/>    
+      <emulab:fd name="OS-1664" weight="0"/>    
+      <emulab:fd name="OS-1325" weight="0"/>    
+      <emulab:fd name="OS-1346" weight="0"/>    
+      <emulab:fd name="OS-1351" weight="0"/>    
+      <emulab:fd name="OS-1701" weight="0"/>    
+      <emulab:fd name="OS-1412" weight="0"/>    
+      <emulab:fd name="OS-1576" weight="0"/>    
+      <emulab:fd name="OS-1477" weight="0"/>    
+      <emulab:fd name="OS-1478" weight="0"/>    
+      <emulab:fd name="OS-1554" weight="0"/>    
+      <emulab:fd name="OS-1761" weight="0"/>    
+      <emulab:fd name="OS-1761-1996" weight="0"/>    
+      <emulab:fd name="OS-1761-1998" weight="0"/>    
+      <emulab:fd name="OS-1761-2017" weight="0"/>    
+      <emulab:fd name="OS-1828" weight="0"/>    
+      <emulab:fd name="OS-1863" weight="0"/>    
+      <emulab:fd name="OS-2179" weight="0"/>    
+      <emulab:fd name="OS-1937" weight="0"/>    
+      <emulab:fd name="OS-1952" weight="0"/>    
+      <emulab:fd name="OS-1961" weight="0"/>    
+      <emulab:fd name="OS-1971" weight="0"/>    
+      <emulab:fd name="OS-1971-1995" weight="0"/>    
+      <emulab:fd name="OS-1971-1996" weight="0"/>    
+      <emulab:fd name="OS-1971-1997" weight="0"/>    
+      <emulab:fd name="OS-1971-1998" weight="0"/>    
+      <emulab:fd name="OS-1971-2016" weight="0"/>    
+      <emulab:fd name="OS-1971-2017" weight="0"/>    
+      <emulab:fd name="OS-2071" weight="0"/>    
+      <emulab:fd name="OS-2071-2088" weight="0"/>    
+      <emulab:fd name="OS-2071-2096" weight="0"/>    
+      <emulab:fd name="OS-2098" weight="0"/>    
+      <emulab:fd name="OS-2111" weight="0"/>    
+      <emulab:fd name="OS-2141" weight="0"/>    
+      <emulab:fd name="OS-2147" weight="0"/>    
+      <emulab:fd name="OS-2254" weight="0"/>    
+      <emulab:fd name="OS-2260" weight="0"/>    
+      <emulab:fd name="OS-2281" weight="0"/>    
+      <emulab:fd name="OS-2283" weight="0"/>    
+      <emulab:fd name="OS-2286" weight="0"/>    
+      <emulab:fd name="OS-2287" weight="0"/>    
+      <emulab:fd name="OS-2329" weight="0"/>    
+      <emulab:fd name="OS-2343" weight="0"/>    
+      <emulab:fd name="OS-2351" weight="0"/>    
+      <emulab:fd name="OS-2401" weight="0"/>    
+      <emulab:fd name="OS-2401-1995" weight="0"/>    
+      <emulab:fd name="OS-2401-1996" weight="0"/>    
+      <emulab:fd name="OS-2401-1997" weight="0"/>    
+      <emulab:fd name="OS-2401-1998" weight="0"/>    
+      <emulab:fd name="OS-2401-2016" weight="0"/>    
+      <emulab:fd name="OS-2401-2017" weight="0"/>    
+      <emulab:fd name="OS-2471" weight="0"/>    
+      <emulab:fd name="OS-2492" weight="0"/>    
+      <emulab:fd name="OS-2547" weight="0"/>    
+      <emulab:fd name="OS-2585" weight="0"/>    
+      <emulab:fd name="OS-2588" weight="0"/>    
+      <emulab:fd name="OS-2693" weight="0"/>    
+      <emulab:fd name="OS-2721" weight="0"/>    
+      <emulab:fd name="OS-2788" weight="0"/>    
+      <emulab:fd name="OS-2790" weight="0"/>    
+      <emulab:fd name="OS-2794" weight="0"/>    
+      <emulab:fd name="OS-2795" weight="0"/>    
+      <emulab:fd name="OS-2796" weight="0"/>    
+      <emulab:fd name="OS-2799" weight="0"/>    
+      <emulab:fd name="OS-526" weight="0"/>    
+      <emulab:fd name="OS-526" weight="0"/>    
+      <emulab:fd name="OS-362" weight="0"/>    
+      <emulab:fd name="OS-278" weight="0"/>    
+      <emulab:fd name="OS-361" weight="0"/>    
+      <emulab:fd name="OS-406" weight="0"/>    
+      <emulab:fd name="OS-407" weight="0"/>    
+      <emulab:fd name="OS-1762" weight="0"/>    
+      <emulab:fd name="OS-1906" weight="0"/>    
+      <emulab:fd name="OS-1972" weight="0"/>    
+      <emulab:fd name="OS-2072" weight="0"/>    
+      <emulab:fd name="connected-to-cisco6" weight="0.0"/>    
+      <emulab:fd name="connected-to-cisco8" weight="0.0"/>    
+      <emulab:fd name="connected-to-cisco5" weight="0.0"/>    
+  </node>  
+  <node component_id="urn:publicid:IDN+emulab.net+node+pc545" component_manager_id="urn:publicid:IDN+emulab.net+authority+cm" component_name="pc545" exclusive="true">    
+      <hardware_type name="d710">      
+          <emulab:node_type type_slots="1"/>      
+      </hardware_type>    
+      <sliver_type name="raw-pc">      
+      <disk_image default="true" description="Standard 32-bit Fedora 10 image" name="urn:publicid:IDN+emulab.net+image+emulab-ops:FEDORA10-STD" os="Fedora" version="10"/>      
+      <disk_image description="FreeBSD 7.2" name="urn:publicid:IDN+emulab.net+image+emulab-ops:FBSD72-STD" os="FreeBSD" version="7.2"/>      
+      <disk_image description="Ubuntu 10 32-bit" name="urn:publicid:IDN+emulab.net+image+emulab-ops:UBUNTU10-STD" os="Linux" version="10"/>      
+      <disk_image description="UBUNTU10 with LAMP for protogeni" name="urn:publicid:IDN+emulab.net+image+emulab-ops:UBUNTU10-LAMP" os="Linux" version="10.04"/>      
+      <disk_image default="true" description="Standard 32-bit Fedora 10 image" name="urn:publicid:IDN+emulab.net+image+emulab-ops:FEDORA10-STD" os="Fedora" version="10"/>      
+      </sliver_type>    
+      <hardware_type name="pc">      
+          <emulab:node_type type_slots="1"/>      
+      </hardware_type>    
+      <hardware_type name="delay">      
+          <emulab:node_type type_slots="2"/>      
+      </hardware_type>    
+      <hardware_type name="delay-d710">      
+          <emulab:node_type type_slots="2"/>      
+      </hardware_type>    
+      <hardware_type name="d710-vm">      
+          <emulab:node_type type_slots="100"/>      
+      </hardware_type>    
+      <sliver_type name="emulab-openvz"/>    
+      <hardware_type name="pcvm">      
+          <emulab:node_type type_slots="100"/>      
+      </hardware_type>    
+      <hardware_type name="lan">      
+          <emulab:node_type static="true" type_slots="unlimited"/>      
+      </hardware_type>    
+      <available now="false"/>    
+      <location country="US" latitude="40.768652" longitude="-111.84581"/>    
+      <emulab:trivial_bandwidth value="10000000"/>    
+      <interface component_id="urn:publicid:IDN+emulab.net+interface+pc545:eth4" role="experimental">      
+          <emulab:interface name="eth4"/>      
+      </interface>    
+      <interface component_id="urn:publicid:IDN+emulab.net+interface+pc545:eth1" role="experimental">      
+          <emulab:interface name="eth1"/>      
+      </interface>    
+      <interface component_id="urn:publicid:IDN+emulab.net+interface+pc545:eth3" role="experimental">      
+          <emulab:interface name="eth3"/>      
+      </interface>    
+      <interface component_id="urn:publicid:IDN+emulab.net+interface+pc545:eth0" public_ipv4="155.98.38.145" role="control">      
+          <emulab:interface name="eth0"/>      
+      </interface>    
+      <interface component_id="urn:publicid:IDN+emulab.net+interface+pc545:eth2" role="experimental">      
+          <emulab:interface name="eth2"/>      
+      </interface>    
+      <interface component_id="urn:publicid:IDN+emulab.net+interface+pc545:eth5" role="experimental">      
+          <emulab:interface name="eth5"/>      
+      </interface>    
+      <emulab:fd local_operator="+" name="virtpercent" violatable="true" weight="100"/>    
+      <emulab:fd local_operator="+" name="cpu" violatable="true" weight="2400"/>    
+      <emulab:fd local_operator="+" name="ram" violatable="true" weight="12288"/>    
+      <emulab:fd local_operator="+" name="cpupercent" violatable="true" weight="92"/>    
+      <emulab:fd local_operator="+" name="rampercent" violatable="true" weight="80"/>    
+      <emulab:fd name="OS-2653" weight="0"/>    
+      <emulab:fd name="OS-2652" weight="0"/>    
+      <emulab:fd name="OS-1478" weight="0"/>    
+      <emulab:fd name="OS-1761" weight="0"/>    
+      <emulab:fd name="OS-1761-1996" weight="0"/>    
+      <emulab:fd name="OS-1761-1998" weight="0"/>    
+      <emulab:fd name="OS-1761-2017" weight="0"/>    
+      <emulab:fd name="OS-2179" weight="0"/>    
+      <emulab:fd name="OS-1937" weight="0"/>    
+      <emulab:fd name="OS-1952" weight="0"/>    
+      <emulab:fd name="OS-1961" weight="0"/>    
+      <emulab:fd name="OS-1971" weight="0"/>    
+      <emulab:fd name="OS-1971-1995" weight="0"/>    
+      <emulab:fd name="OS-1971-1996" weight="0"/>    
+      <emulab:fd name="OS-1971-1997" weight="0"/>    
+      <emulab:fd name="OS-1971-1998" weight="0"/>    
+      <emulab:fd name="OS-1971-2016" weight="0"/>    
+      <emulab:fd name="OS-1971-2017" weight="0"/>    
+      <emulab:fd name="OS-2071" weight="0"/>    
+      <emulab:fd name="OS-2071-2088" weight="0"/>    
+      <emulab:fd name="OS-2071-2096" weight="0"/>    
+      <emulab:fd name="OS-2098" weight="0"/>    
+      <emulab:fd name="OS-2111" weight="0"/>    
+      <emulab:fd name="OS-2141" weight="0"/>    
+      <emulab:fd name="OS-2147" weight="0"/>    
+      <emulab:fd name="OS-2254" weight="0"/>    
+      <emulab:fd name="OS-2260" weight="0"/>    
+      <emulab:fd name="OS-2281" weight="0"/>    
+      <emulab:fd name="OS-2286" weight="0"/>    
+      <emulab:fd name="OS-2287" weight="0"/>    
+      <emulab:fd name="OS-2329" weight="0"/>    
+      <emulab:fd name="OS-2343" weight="0"/>    
+      <emulab:fd name="OS-2351" weight="0"/>    
+      <emulab:fd name="OS-2401" weight="0"/>    
+      <emulab:fd name="OS-2401-1995" weight="0"/>    
+      <emulab:fd name="OS-2401-1996" weight="0"/>    
+      <emulab:fd name="OS-2401-1997" weight="0"/>    
+      <emulab:fd name="OS-2401-1998" weight="0"/>    
+      <emulab:fd name="OS-2401-2016" weight="0"/>    
+      <emulab:fd name="OS-2401-2017" weight="0"/>    
+      <emulab:fd name="OS-2471" weight="0"/>    
+      <emulab:fd name="OS-2492" weight="0"/>    
+      <emulab:fd name="OS-2690" weight="0"/>    
+      <emulab:fd name="OS-2585" weight="0"/>    
+      <emulab:fd name="OS-2588" weight="0"/>    
+      <emulab:fd name="OS-2691" weight="0"/>    
+      <emulab:fd name="OS-2693" weight="0"/>    
+      <emulab:fd name="OS-2721" weight="0"/>    
+      <emulab:fd name="OS-2788" weight="0"/>    
+      <emulab:fd name="OS-2790" weight="0"/>    
+      <emulab:fd name="OS-2794" weight="0"/>    
+      <emulab:fd name="OS-2795" weight="0"/>    
+      <emulab:fd name="OS-2796" weight="0"/>    
+      <emulab:fd name="OS-2799" weight="0"/>    
+      <emulab:fd name="OS-1937" weight="0"/>    
+      <emulab:fd name="OS-1762" weight="0"/>    
+      <emulab:fd name="OS-1972" weight="0"/>    
+      <emulab:fd name="OS-2072" weight="0"/>    
+      <emulab:fd name="connected-to-procurve4" weight="0.0"/>    
+      <emulab:fd name="connected-to-procurve5" weight="0.0"/>    
+      <emulab:fd name="connected-to-procurve2" weight="0.0"/>    
+      <emulab:fd name="connected-to-procurve3" weight="0.0"/>    
+  </node>  
+  <node component_id="urn:publicid:IDN+emulab.net+node+pc211" component_manager_id="urn:publicid:IDN+emulab.net+authority+cm" component_name="pc211" exclusive="true">    
+      <hardware_type name="pc3000">      
+          <emulab:node_type type_slots="1"/>      
+      </hardware_type>    
+      <sliver_type name="raw-pc">      
+      <disk_image description="Standard 32-bit Fedora 10 image" name="urn:publicid:IDN+emulab.net+image+emulab-ops:FEDORA10-STD" os="Fedora" version="10"/>      
+      <disk_image description="FreeBSD 7.2" name="urn:publicid:IDN+emulab.net+image+emulab-ops:FBSD72-STD" os="FreeBSD" version="7.2"/>      
+      <disk_image description="Ubuntu 10 32-bit" name="urn:publicid:IDN+emulab.net+image+emulab-ops:UBUNTU10-STD" os="Linux" version="10"/>      
+      <disk_image description="UBUNTU10 with LAMP for protogeni" name="urn:publicid:IDN+emulab.net+image+emulab-ops:UBUNTU10-LAMP" os="Linux" version="10.04"/>      
+      <disk_image default="true" description="Any of RedHat Linux" name="urn:publicid:IDN+emulab.net+image+emulab-ops:RHL-STD" os="Linux" version=""/>      
+      </sliver_type>    
+      <hardware_type name="pc">      
+          <emulab:node_type type_slots="1"/>      
+      </hardware_type>    
+      <hardware_type name="delay">      
+          <emulab:node_type type_slots="2"/>      
+      </hardware_type>    
+      <hardware_type name="delay-pc3000">      
+          <emulab:node_type type_slots="2"/>      
+      </hardware_type>    
+      <hardware_type name="pc3000-vm">      
+          <emulab:node_type type_slots="50"/>      
+      </hardware_type>    
+      <hardware_type name="pcvm3000">      
+          <emulab:node_type type_slots="50"/>      
+      </hardware_type>    
+      <sliver_type name="emulab-openvz"/>    
+      <hardware_type name="pcvm">      
+          <emulab:node_type type_slots="50"/>      
+      </hardware_type>    
+      <hardware_type name="lan">      
+          <emulab:node_type static="true" type_slots="unlimited"/>      
+      </hardware_type>    
+      <available now="true"/>    
+      <location country="US" latitude="40.768652" longitude="-111.84581"/>    
+      <emulab:trivial_bandwidth value="10000000"/>    
+      <interface component_id="urn:publicid:IDN+emulab.net+interface+pc211:eth0" public_ipv4="155.98.39.11" role="control">      
+          <emulab:interface name="eth0"/>      
+      </interface>    
+      <interface component_id="urn:publicid:IDN+emulab.net+interface+pc211:eth1" role="experimental">      
+          <emulab:interface name="eth1"/>      
+      </interface>    
+      <interface component_id="urn:publicid:IDN+emulab.net+interface+pc211:eth2" role="experimental">      
+          <emulab:interface name="eth2"/>      
+      </interface>    
+      <interface component_id="urn:publicid:IDN+emulab.net+interface+pc211:eth3" role="experimental">      
+          <emulab:interface name="eth3"/>      
+      </interface>    
+      <interface component_id="urn:publicid:IDN+emulab.net+interface+pc211:eth4" role="experimental">      
+          <emulab:interface name="eth4"/>      
+      </interface>    
+      <interface component_id="urn:publicid:IDN+emulab.net+interface+pc211:eth5" role="experimental">      
+          <emulab:interface name="eth5"/>      
+      </interface>    
+      <emulab:fd local_operator="+" name="virtpercent" violatable="true" weight="100"/>    
+      <emulab:fd local_operator="+" name="cpu" violatable="true" weight="3000"/>    
+      <emulab:fd local_operator="+" name="ram" violatable="true" weight="2048"/>    
+      <emulab:fd local_operator="+" name="cpupercent" violatable="true" weight="92"/>    
+      <emulab:fd local_operator="+" name="rampercent" violatable="true" weight="80"/>    
+      <emulab:fd name="firewallable" weight="0"/>    
+      <emulab:fd name="gigEx4" weight="0.5"/>    
+      <emulab:fd name="OS-988" weight="0"/>    
+      <emulab:fd name="OS-989" weight="0"/>    
+      <emulab:fd name="OS-331" weight="0"/>    
+      <emulab:fd name="OS-332" weight="0"/>    
+      <emulab:fd name="OS-340" weight="0"/>    
+      <emulab:fd name="OS-977" weight="0"/>    
+      <emulab:fd name="OS-285" weight="0"/>    
+      <emulab:fd name="OS-336" weight="0"/>    
+      <emulab:fd name="OS-286" weight="0"/>    
+      <emulab:fd name="OS-337" weight="0"/>    
+      <emulab:fd name="OS-299" weight="0"/>    
+      <emulab:fd name="OS-347" weight="0"/>    
+      <emulab:fd name="OS-1685" weight="0"/>    
+      <emulab:fd name="OS-2653" weight="0"/>    
+      <emulab:fd name="OS-357" weight="0"/>    
+      <emulab:fd name="OS-355" weight="0"/>    
+      <emulab:fd name="OS-296" weight="0"/>    
+      <emulab:fd name="OS-339" weight="0"/>    
+      <emulab:fd name="OS-351" weight="0"/>    
+      <emulab:fd name="OS-306" weight="0"/>    
+      <emulab:fd name="OS-349" weight="0"/>    
+      <emulab:fd name="OS-326" weight="0"/>    
+      <emulab:fd name="OS-298" weight="0"/>    
+      <emulab:fd name="OS-354" weight="0"/>    
+      <emulab:fd name="OS-348" weight="0"/>    
+      <emulab:fd name="OS-356" weight="0"/>    
+      <emulab:fd name="OS-308" weight="0"/>    
+      <emulab:fd name="OS-352" weight="0"/>    
+      <emulab:fd name="OS-353" weight="0"/>    
+      <emulab:fd name="OS-307" weight="0"/>    
+      <emulab:fd name="OS-338" weight="0"/>    
+      <emulab:fd name="OS-305" weight="0"/>    
+      <emulab:fd name="OS-320" weight="0"/>    
+      <emulab:fd name="OS-321" weight="0"/>    
+      <emulab:fd name="OS-301" weight="0"/>    
+      <emulab:fd name="OS-302" weight="0"/>    
+      <emulab:fd name="OS-304" weight="0"/>    
+      <emulab:fd name="OS-303" weight="0"/>    
+      <emulab:fd name="OS-310" weight="0"/>    
+      <emulab:fd name="OS-323" weight="0"/>    
+      <emulab:fd name="OS-876" weight="0"/>    
+      <emulab:fd name="OS-878" weight="0"/>    
+      <emulab:fd name="OS-879" weight="0"/>    
+      <emulab:fd name="OS-926" weight="0"/>    
+      <emulab:fd name="OS-982" weight="0"/>    
+      <emulab:fd name="OS-1686" weight="0"/>    
+      <emulab:fd name="OS-940" weight="0"/>    
+      <emulab:fd name="OS-991" weight="0"/>    
+      <emulab:fd name="OS-990" weight="0"/>    
+      <emulab:fd name="OS-992" weight="0"/>    
+      <emulab:fd name="OS-1006" weight="0"/>    
+      <emulab:fd name="OS-1033" weight="0"/>    
+      <emulab:fd name="OS-2652" weight="0"/>    
+      <emulab:fd name="OS-1172" weight="0"/>    
+      <emulab:fd name="OS-1174" weight="0"/>    
+      <emulab:fd name="OS-1232" weight="0"/>    
+      <emulab:fd name="OS-1668" weight="0"/>    
+      <emulab:fd name="OS-1664" weight="0"/>    
+      <emulab:fd name="OS-1325" weight="0"/>    
+      <emulab:fd name="OS-1346" weight="0"/>    
+      <emulab:fd name="OS-1351" weight="0"/>    
+      <emulab:fd name="OS-1701" weight="0"/>    
+      <emulab:fd name="OS-1412" weight="0"/>    
+      <emulab:fd name="OS-1576" weight="0"/>    
+      <emulab:fd name="OS-1477" weight="0"/>    
+      <emulab:fd name="OS-1478" weight="0"/>    
+      <emulab:fd name="OS-1554" weight="0"/>    
+      <emulab:fd name="OS-1761" weight="0"/>    
+      <emulab:fd name="OS-1761-1996" weight="0"/>    
+      <emulab:fd name="OS-1761-1998" weight="0"/>    
+      <emulab:fd name="OS-1761-2017" weight="0"/>    
+      <emulab:fd name="OS-1828" weight="0"/>    
+      <emulab:fd name="OS-1863" weight="0"/>    
+      <emulab:fd name="OS-2179" weight="0"/>    
+      <emulab:fd name="OS-1937" weight="0"/>    
+      <emulab:fd name="OS-1952" weight="0"/>    
+      <emulab:fd name="OS-1961" weight="0"/>    
+      <emulab:fd name="OS-1971" weight="0"/>    
+      <emulab:fd name="OS-1971-1995" weight="0"/>    
+      <emulab:fd name="OS-1971-1996" weight="0"/>    
+      <emulab:fd name="OS-1971-1997" weight="0"/>    
+      <emulab:fd name="OS-1971-1998" weight="0"/>    
+      <emulab:fd name="OS-1971-2016" weight="0"/>    
+      <emulab:fd name="OS-1971-2017" weight="0"/>    
+      <emulab:fd name="OS-2071" weight="0"/>    
+      <emulab:fd name="OS-2071-2088" weight="0"/>    
+      <emulab:fd name="OS-2071-2096" weight="0"/>    
+      <emulab:fd name="OS-2098" weight="0"/>    
+      <emulab:fd name="OS-2111" weight="0"/>    
+      <emulab:fd name="OS-2141" weight="0"/>    
+      <emulab:fd name="OS-2147" weight="0"/>    
+      <emulab:fd name="OS-2254" weight="0"/>    
+      <emulab:fd name="OS-2260" weight="0"/>    
+      <emulab:fd name="OS-2281" weight="0"/>    
+      <emulab:fd name="OS-2283" weight="0"/>    
+      <emulab:fd name="OS-2286" weight="0"/>    
+      <emulab:fd name="OS-2287" weight="0"/>    
+      <emulab:fd name="OS-2329" weight="0"/>    
+      <emulab:fd name="OS-2343" weight="0"/>    
+      <emulab:fd name="OS-2351" weight="0"/>    
+      <emulab:fd name="OS-2401" weight="0"/>    
+      <emulab:fd name="OS-2401-1995" weight="0"/>    
+      <emulab:fd name="OS-2401-1996" weight="0"/>    
+      <emulab:fd name="OS-2401-1997" weight="0"/>    
+      <emulab:fd name="OS-2401-1998" weight="0"/>    
+      <emulab:fd name="OS-2401-2016" weight="0"/>    
+      <emulab:fd name="OS-2401-2017" weight="0"/>    
+      <emulab:fd name="OS-2471" weight="0"/>    
+      <emulab:fd name="OS-2492" weight="0"/>    
+      <emulab:fd name="OS-2547" weight="0"/>    
+      <emulab:fd name="OS-2585" weight="0"/>    
+      <emulab:fd name="OS-2588" weight="0"/>    
+      <emulab:fd name="OS-2693" weight="0"/>    
+      <emulab:fd name="OS-2721" weight="0"/>    
+      <emulab:fd name="OS-2788" weight="0"/>    
+      <emulab:fd name="OS-2790" weight="0"/>    
+      <emulab:fd name="OS-2794" weight="0"/>    
+      <emulab:fd name="OS-2795" weight="0"/>    
+      <emulab:fd name="OS-2796" weight="0"/>    
+      <emulab:fd name="OS-2799" weight="0"/>    
+      <emulab:fd name="OS-526" weight="0"/>    
+      <emulab:fd name="OS-526" weight="0"/>    
+      <emulab:fd name="OS-362" weight="0"/>    
+      <emulab:fd name="OS-278" weight="0"/>    
+      <emulab:fd name="OS-361" weight="0"/>    
+      <emulab:fd name="OS-406" weight="0"/>    
+      <emulab:fd name="OS-407" weight="0"/>    
+      <emulab:fd name="OS-1762" weight="0"/>    
+      <emulab:fd name="OS-1906" weight="0"/>    
+      <emulab:fd name="OS-1972" weight="0"/>    
+      <emulab:fd name="OS-2072" weight="0"/>    
+      <emulab:fd name="connected-to-cisco6" weight="0.0"/>    
+      <emulab:fd name="connected-to-cisco8" weight="0.0"/>    
+  </node>  
+  <node component_id="urn:publicid:IDN+emulab.net+node+pc302" component_manager_id="urn:publicid:IDN+emulab.net+authority+cm" component_name="pc302" exclusive="true">    
+      <hardware_type name="pc3000">      
+          <emulab:node_type type_slots="1"/>      
+      </hardware_type>    
+      <sliver_type name="raw-pc">      
+      <disk_image description="Standard 32-bit Fedora 10 image" name="urn:publicid:IDN+emulab.net+image+emulab-ops:FEDORA10-STD" os="Fedora" version="10"/>      
+      <disk_image description="FreeBSD 7.2" name="urn:publicid:IDN+emulab.net+image+emulab-ops:FBSD72-STD" os="FreeBSD" version="7.2"/>      
+      <disk_image description="Ubuntu 10 32-bit" name="urn:publicid:IDN+emulab.net+image+emulab-ops:UBUNTU10-STD" os="Linux" version="10"/>      
+      <disk_image description="UBUNTU10 with LAMP for protogeni" name="urn:publicid:IDN+emulab.net+image+emulab-ops:UBUNTU10-LAMP" os="Linux" version="10.04"/>      
+      <disk_image default="true" description="Any of RedHat Linux" name="urn:publicid:IDN+emulab.net+image+emulab-ops:RHL-STD" os="Linux" version=""/>      
+      </sliver_type>    
+      <hardware_type name="pc">      
+          <emulab:node_type type_slots="1"/>      
+      </hardware_type>    
+      <hardware_type name="delay">      
+          <emulab:node_type type_slots="2"/>      
+      </hardware_type>    
+      <hardware_type name="delay-pc3000">      
+          <emulab:node_type type_slots="2"/>      
+      </hardware_type>    
+      <hardware_type name="pc3000-vm">      
+          <emulab:node_type type_slots="50"/>      
+      </hardware_type>    
+      <hardware_type name="pcvm3000">      
+          <emulab:node_type type_slots="50"/>      
+      </hardware_type>    
+      <sliver_type name="emulab-openvz"/>    
+      <hardware_type name="pcvm">      
+          <emulab:node_type type_slots="50"/>      
+      </hardware_type>    
+      <hardware_type name="lan">      
+          <emulab:node_type static="true" type_slots="unlimited"/>      
+      </hardware_type>    
+      <available now="false"/>    
+      <location country="US" latitude="40.768652" longitude="-111.84581"/>    
+      <emulab:trivial_bandwidth value="10000000"/>    
+      <interface component_id="urn:publicid:IDN+emulab.net+interface+pc302:eth5" role="experimental">      
+          <emulab:interface name="eth5"/>      
+      </interface>    
+      <interface component_id="urn:publicid:IDN+emulab.net+interface+pc302:eth4" role="experimental">      
+          <emulab:interface name="eth4"/>      
+      </interface>    
+      <interface component_id="urn:publicid:IDN+emulab.net+interface+pc302:eth0" public_ipv4="155.98.39.102" role="control">      
+          <emulab:interface name="eth0"/>      
+      </interface>    
+      <interface component_id="urn:publicid:IDN+emulab.net+interface+pc302:eth3" role="experimental">      
+          <emulab:interface name="eth3"/>      
+      </interface>    
+      <interface component_id="urn:publicid:IDN+emulab.net+interface+pc302:eth1" role="experimental">      
+          <emulab:interface name="eth1"/>      
+      </interface>    
+      <interface component_id="urn:publicid:IDN+emulab.net+interface+pc302:eth2" role="experimental">      
+          <emulab:interface name="eth2"/>      
+      </interface>    
+      <emulab:fd local_operator="+" name="virtpercent" violatable="true" weight="100"/>    
+      <emulab:fd local_operator="+" name="cpu" violatable="true" weight="3000"/>    
+      <emulab:fd local_operator="+" name="ram" violatable="true" weight="2048"/>    
+      <emulab:fd local_operator="+" name="cpupercent" violatable="true" weight="92"/>    
+      <emulab:fd local_operator="+" name="rampercent" violatable="true" weight="80"/>    
+      <emulab:fd name="firewallable" weight="0"/>    
+      <emulab:fd name="OS-988" weight="0"/>    
+      <emulab:fd name="OS-989" weight="0"/>    
+      <emulab:fd name="OS-331" weight="0"/>    
+      <emulab:fd name="OS-332" weight="0"/>    
+      <emulab:fd name="OS-340" weight="0"/>    
+      <emulab:fd name="OS-977" weight="0"/>    
+      <emulab:fd name="OS-285" weight="0"/>    
+      <emulab:fd name="OS-336" weight="0"/>    
+      <emulab:fd name="OS-286" weight="0"/>    
+      <emulab:fd name="OS-337" weight="0"/>    
+      <emulab:fd name="OS-299" weight="0"/>    
+      <emulab:fd name="OS-347" weight="0"/>    
+      <emulab:fd name="OS-1685" weight="0"/>    
+      <emulab:fd name="OS-2653" weight="0"/>    
+      <emulab:fd name="OS-357" weight="0"/>    
+      <emulab:fd name="OS-355" weight="0"/>    
+      <emulab:fd name="OS-296" weight="0"/>    
+      <emulab:fd name="OS-339" weight="0"/>    
+      <emulab:fd name="OS-351" weight="0"/>    
+      <emulab:fd name="OS-306" weight="0"/>    
+      <emulab:fd name="OS-349" weight="0"/>    
+      <emulab:fd name="OS-326" weight="0"/>    
+      <emulab:fd name="OS-298" weight="0"/>    
+      <emulab:fd name="OS-354" weight="0"/>    
+      <emulab:fd name="OS-348" weight="0"/>    
+      <emulab:fd name="OS-356" weight="0"/>    
+      <emulab:fd name="OS-308" weight="0"/>    
+      <emulab:fd name="OS-352" weight="0"/>    
+      <emulab:fd name="OS-353" weight="0"/>    
+      <emulab:fd name="OS-307" weight="0"/>    
+      <emulab:fd name="OS-338" weight="0"/>    
+      <emulab:fd name="OS-305" weight="0"/>    
+      <emulab:fd name="OS-320" weight="0"/>    
+      <emulab:fd name="OS-321" weight="0"/>    
+      <emulab:fd name="OS-301" weight="0"/>    
+      <emulab:fd name="OS-302" weight="0"/>    
+      <emulab:fd name="OS-304" weight="0"/>    
+      <emulab:fd name="OS-303" weight="0"/>    
+      <emulab:fd name="OS-310" weight="0"/>    
+      <emulab:fd name="OS-323" weight="0"/>    
+      <emulab:fd name="OS-876" weight="0"/>    
+      <emulab:fd name="OS-878" weight="0"/>    
+      <emulab:fd name="OS-879" weight="0"/>    
+      <emulab:fd name="OS-926" weight="0"/>    
+      <emulab:fd name="OS-982" weight="0"/>    
+      <emulab:fd name="OS-1686" weight="0"/>    
+      <emulab:fd name="OS-940" weight="0"/>    
+      <emulab:fd name="OS-991" weight="0"/>    
+      <emulab:fd name="OS-990" weight="0"/>    
+      <emulab:fd name="OS-992" weight="0"/>    
+      <emulab:fd name="OS-1006" weight="0"/>    
+      <emulab:fd name="OS-1033" weight="0"/>    
+      <emulab:fd name="OS-2652" weight="0"/>    
+      <emulab:fd name="OS-1172" weight="0"/>    
+      <emulab:fd name="OS-1174" weight="0"/>    
+      <emulab:fd name="OS-1232" weight="0"/>    
+      <emulab:fd name="OS-1668" weight="0"/>    
+      <emulab:fd name="OS-1664" weight="0"/>    
+      <emulab:fd name="OS-1325" weight="0"/>    
+      <emulab:fd name="OS-1346" weight="0"/>    
+      <emulab:fd name="OS-1351" weight="0"/>    
+      <emulab:fd name="OS-1701" weight="0"/>    
+      <emulab:fd name="OS-1412" weight="0"/>    
+      <emulab:fd name="OS-1576" weight="0"/>    
+      <emulab:fd name="OS-1477" weight="0"/>    
+      <emulab:fd name="OS-1478" weight="0"/>    
+      <emulab:fd name="OS-1554" weight="0"/>    
+      <emulab:fd name="OS-1761" weight="0"/>    
+      <emulab:fd name="OS-1761-1996" weight="0"/>    
+      <emulab:fd name="OS-1761-1998" weight="0"/>    
+      <emulab:fd name="OS-1761-2017" weight="0"/>    
+      <emulab:fd name="OS-1828" weight="0"/>    
+      <emulab:fd name="OS-1863" weight="0"/>    
+      <emulab:fd name="OS-2179" weight="0"/>    
+      <emulab:fd name="OS-1937" weight="0"/>    
+      <emulab:fd name="OS-1952" weight="0"/>    
+      <emulab:fd name="OS-1961" weight="0"/>    
+      <emulab:fd name="OS-1971" weight="0"/>    
+      <emulab:fd name="OS-1971-1995" weight="0"/>    
+      <emulab:fd name="OS-1971-1996" weight="0"/>    
+      <emulab:fd name="OS-1971-1997" weight="0"/>    
+      <emulab:fd name="OS-1971-1998" weight="0"/>    
+      <emulab:fd name="OS-1971-2016" weight="0"/>    
+      <emulab:fd name="OS-1971-2017" weight="0"/>    
+      <emulab:fd name="OS-2071" weight="0"/>    
+      <emulab:fd name="OS-2071-2088" weight="0"/>    
+      <emulab:fd name="OS-2071-2096" weight="0"/>    
+      <emulab:fd name="OS-2098" weight="0"/>    
+      <emulab:fd name="OS-2111" weight="0"/>    
+      <emulab:fd name="OS-2141" weight="0"/>    
+      <emulab:fd name="OS-2147" weight="0"/>    
+      <emulab:fd name="OS-2254" weight="0"/>    
+      <emulab:fd name="OS-2260" weight="0"/>    
+      <emulab:fd name="OS-2281" weight="0"/>    
+      <emulab:fd name="OS-2283" weight="0"/>    
+      <emulab:fd name="OS-2286" weight="0"/>    
+      <emulab:fd name="OS-2287" weight="0"/>    
+      <emulab:fd name="OS-2329" weight="0"/>    
+      <emulab:fd name="OS-2343" weight="0"/>    
+      <emulab:fd name="OS-2351" weight="0"/>    
+      <emulab:fd name="OS-2401" weight="0"/>    
+      <emulab:fd name="OS-2401-1995" weight="0"/>    
+      <emulab:fd name="OS-2401-1996" weight="0"/>    
+      <emulab:fd name="OS-2401-1997" weight="0"/>    
+      <emulab:fd name="OS-2401-1998" weight="0"/>    
+      <emulab:fd name="OS-2401-2016" weight="0"/>    
+      <emulab:fd name="OS-2401-2017" weight="0"/>    
+      <emulab:fd name="OS-2471" weight="0"/>    
+      <emulab:fd name="OS-2492" weight="0"/>    
+      <emulab:fd name="OS-2547" weight="0"/>    
+      <emulab:fd name="OS-2585" weight="0"/>    
+      <emulab:fd name="OS-2588" weight="0"/>    
+      <emulab:fd name="OS-2693" weight="0"/>    
+      <emulab:fd name="OS-2721" weight="0"/>    
+      <emulab:fd name="OS-2788" weight="0"/>    
+      <emulab:fd name="OS-2790" weight="0"/>    
+      <emulab:fd name="OS-2794" weight="0"/>    
+      <emulab:fd name="OS-2795" weight="0"/>    
+      <emulab:fd name="OS-2796" weight="0"/>    
+      <emulab:fd name="OS-2799" weight="0"/>    
+      <emulab:fd name="OS-526" weight="0"/>    
+      <emulab:fd name="OS-526" weight="0"/>    
+      <emulab:fd name="OS-362" weight="0"/>    
+      <emulab:fd name="OS-278" weight="0"/>    
+      <emulab:fd name="OS-361" weight="0"/>    
+      <emulab:fd name="OS-406" weight="0"/>    
+      <emulab:fd name="OS-407" weight="0"/>    
+      <emulab:fd name="OS-1762" weight="0"/>    
+      <emulab:fd name="OS-1906" weight="0"/>    
+      <emulab:fd name="OS-1972" weight="0"/>    
+      <emulab:fd name="OS-2072" weight="0"/>    
+      <emulab:fd name="connected-to-cisco8" weight="0.0"/>    
+      <emulab:fd name="connected-to-cisco6" weight="0.0"/>    
+      <emulab:fd name="connected-to-cisco5" weight="0.0"/>    
+  </node>  
+              </link>          
+          </port>        
+       </node>      
+
+       <node id="urn:publicid:IDN+emulab.net+interface+procurve-pgeni-salt">        
+          <port id="urn:publicid:IDN+emulab.net+interface+procurve-pgeni-salt:10">          
+              <capacity>            1000000000          </capacity>          
+              <maximumReservableCapacity>            1000000000          </maximumReservableCapacity>          
+              <minimumReservableCapacity>            1000000          </minimumReservableCapacity>          
+              <granularity>            1000000          </granularity>          
+              <link id="urn:publicid:IDN+emulab.net+interface+procurve-pgeni-salt:10:ion">            
+                  <remoteLinkId>              urn:publicid:IDN+ion.internet2.edu+interface+rtr.salt:ge-7/1/2:protogeni            </remoteLinkId>            
+                  <trafficEngineeringMetric>              10            </trafficEngineeringMetric>            
+                  <capacity>              10000000000            </capacity>            
+                  <maximumReservableCapacity>              10000000000            </maximumReservableCapacity>            
+                  <minimumReservableCapacity>              1000000            </minimumReservableCapacity>            
+                  <granularity>              1000000            </granularity>            
+                  <SwitchingCapabilityDescriptors>              
+                      <switchingcapType>                l2sc              </switchingcapType>              
+                      <encodingType>                ethernet              </encodingType>              
+                      <switchingCapabilitySpecificInfo>                
+                           <interfaceMTU>                  9000                </interfaceMTU>                
+                           <vlanRangeAvailability>                  2-4094                </vlanRangeAvailability>                
+                           <vlanTranslation>                  true                </vlanTranslation>                
+                      </switchingCapabilitySpecificInfo>              
+                  </SwitchingCapabilityDescriptors>            
+              </link>          
+          </port>        
+          <port id="urn:publicid:IDN+emulab.net+interface+procurve-pgeni-salt:(null)">          
+              <capacity>            1000000000          </capacity>          
+              <maximumReservableCapacity>            1000000000          </maximumReservableCapacity>          
+              <minimumReservableCapacity>            1000000          </minimumReservableCapacity>          
+              <granularity>            1000000          </granularity>          
+              <link id="urn:publicid:IDN+emulab.net+interface+procurve-pgeni-salt:(null):*">            
+                  <remoteLinkId>              urn:publicid:IDN+emulab.net+interface+*:*:*            </remoteLinkId>            
+                  <trafficEngineeringMetric>              10            </trafficEngineeringMetric>            
+                  <capacity>              10000000000            </capacity>            
+                  <maximumReservableCapacity>              10000000000            </maximumReservableCapacity>            
+                  <minimumReservableCapacity>              1000000            </minimumReservableCapacity>            
+                  <granularity>              1000000            </granularity>            
+                  <SwitchingCapabilityDescriptors>              
+                      <switchingcapType>                l2sc              </switchingcapType>              
+                      <encodingType>                ethernet              </encodingType>              
+                      <switchingCapabilitySpecificInfo>                
+                           <interfaceMTU>                  9000                </interfaceMTU>                
+                           <vlanRangeAvailability>                  2-4094                </vlanRangeAvailability>                
+                           <vlanTranslation>                  true                </vlanTranslation>                
+                      </switchingCapabilitySpecificInfo>              
+                  </SwitchingCapabilityDescriptors>            
+              </link>          
+          </port>        
+       </node>      
+
+    </aggregate>    
+  </stitching>  
+</rspec>
