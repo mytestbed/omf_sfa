@@ -1,7 +1,7 @@
 
 require 'nokogiri'   
 require 'time' 
-require 'omf-common/mobject2'
+require 'omf_common/lobject'
 
 require 'omf-sfa/resource/gurn'
 require 'omf-sfa/resource/constants'

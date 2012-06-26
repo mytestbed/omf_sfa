@@ -3,7 +3,7 @@
 # modesl from it.
 #
 require 'nokogiri'   
-require "omf-common/mobject2"
+require "omf-common/lobject"
 
 
 module OMF; module SFA; end end
@@ -31,7 +31,7 @@ module OMF::SFA
       name
     end
     
-    class Ontology < OMF::Common::MObject
+    class Ontology < OMF::Common::LObject
       
       # URL prefix which we serve from local directory
       LOCAL_PREFIX = 'http://geni-orca.renci.org/owl/'

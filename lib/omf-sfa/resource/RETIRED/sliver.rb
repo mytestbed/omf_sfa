@@ -5,7 +5,7 @@ require 'omf-sfa/resource/component'
 
 module OMF::SFA::Resource
   
-  class Sliver < OMF::Common::MObject
+  class Sliver < OMF::Common::LObject
     include DataMapper::Resource
     
     property :name, String

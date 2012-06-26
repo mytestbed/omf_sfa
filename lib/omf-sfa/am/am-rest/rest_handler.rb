@@ -10,7 +10,7 @@ require 'nokogiri'
 require 'set'
 require 'json'
 
-require 'omf-common/mobject2'
+require 'omf-common/lobject'
 #require 'omf-sfa/am/am_default_manager'
 
 
@@ -62,7 +62,7 @@ module OMF::SFA::AM::Rest
   end
 
 
-  class RestHandler < OMF::Common::MObject
+  class RestHandler < OMF::Common::LObject
 
     def initialize(am_manager, opts = {})
       #puts "INIT>>> #{am_manager}::#{self}"

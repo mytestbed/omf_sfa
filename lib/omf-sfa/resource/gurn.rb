@@ -1,5 +1,5 @@
 
-require 'omf-common/mobject2'
+require 'omf-common/lobject'
 
 module OMF::SFA::Resource
 #   

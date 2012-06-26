@@ -1,8 +1,8 @@
 require 'nokogiri'
-require 'omf-common/mobject2'
+require 'omf_common/lobject'
 
 module OMF::SFA::AM
-  class Credential < OMF::Common::MObject
+  class Credential < OMF::Common::LObject
 
     @@root_certs = '~/.gcf/trusted_roots/CATedCACerts.pem'
     @@xmlsec = 'xmlsec1'

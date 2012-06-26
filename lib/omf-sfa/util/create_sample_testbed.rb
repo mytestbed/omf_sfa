@@ -5,7 +5,7 @@
 require 'rubygems'
 require 'data_mapper'
 require 'nokogiri'
-require 'omf-common/mobject2'
+require 'omf_common/lobject'
 
 require 'omf-sfa/resource'
 

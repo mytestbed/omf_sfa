@@ -1,5 +1,5 @@
 
-require 'omf-common/mobject2'
+require 'omf-common/lobject'
 require 'omf-sfa/resource'
 require 'omf-sfa/resource/comp_group'
 require 'nokogiri'
@@ -24,7 +24,7 @@ module OMF::SFA::AM
   #
   # This implementation doesn't create new components, it simply shits them between
   # slices.
-  class AbstractManager < OMF::Common::MObject
+  class AbstractManager < OMF::Common::LObject
     
     # Register a resource to be managed by this AM.
     # 

@@ -3,7 +3,7 @@ require 'dm-core'
 require 'dm-types'
 require 'dm-validations'
 require 'json'
-require 'omf-common/mobject2'
+require 'omf_common/lobject'
 require 'set'
 
 #require 'omf-sfa/resource/oproperty'
