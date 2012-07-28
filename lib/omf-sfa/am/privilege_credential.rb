@@ -19,6 +19,7 @@ module OMF::SFA::AM
     #
     def initialize(description_doc, signer_urn)
       super
+      # @see http://groups.geni.net/geni/wiki/GeniApiCredentials
       # <privileges>
         # <privilege><name>refresh</name><can_delegate>true</can_delegate></privilege>
         # <privilege><name>embed</name><can_delegate>true</can_delegate></privilege>
