@@ -36,17 +36,21 @@ module OMF::SFA::Resource
     # Create a GURN object from +urn_str+.
     #
     def self.parse(urn_str)
-      a = urn_str.split('+')
-      a.delete_at(0) # get rid of "urn:publicid:IDN"
-      if a.length == 3
-        prefix, type, name = a
-      elsif a.length == 2
-        prefix, name = a
-        type = nil
+      if urn_str.start_with? 'urn:publicid:IDN'
+        a = urn_str.split('+')
+        a.delete_at(0) # get rid of "urn:publicid:IDN"
+        if a.length == 3
+          prefix, type, name = a
+        elsif a.length == 2
+          prefix, name = a
+          type = nil
+        else
+          raise "unknown format '#{urn_str}' for GURN (#{a.inspect})."
+        end
+        @@name2obj[urn_str] = self.new(name, type, prefix)
       else
-        raise "unknown format '#{urn_str}' for GURN (#{a.inspect})."
+        raise "unknown format '#{urn_str}' for GURN - expected it to start with 'urn:publicid:IDN'."
       end
-      @@name2obj[urn_str] = self.new(name, type, prefix)
     end
 
     def self.default_domain=(domain)
@@ -79,6 +83,13 @@ module OMF::SFA::Resource
       @urn = 'urn:publicid:IDN+' + name      
     end
     
+    def uuid
+      unless @uuid
+        @uuid = UUIDTools::UUID.parse(short_name)
+      end
+      @uuid
+    end
+    
     def to_s
       @urn
     end
@@ -86,9 +97,11 @@ module OMF::SFA::Resource
   end # GURN
 end # OMF::SFA    
     
+require 'dm-core'
+
 module DataMapper
   class Property
-    class GURN < String
+    class GURN < DataMapper::Property::String
       
       # Maximum length chosen based on recommendation:
       length 256

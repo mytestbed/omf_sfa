@@ -17,70 +17,85 @@ module OMF::SFA::AM
 
   class MissingImplementationException < Exception; end
   
+  # Holds the necessary information to make authorization decisions
+  #
+  Struct.new('AuthorizationContext', :account, :user)
+  
   # The manager is where all the AM related policies and 
   # resource management is concentrated. Testbeds with their own 
   # ways of dealing with resources and components should only 
   # need to extend this class.
   #
-  # This implementation doesn't create new components, it simply shits them between
-  # slices.
   class AbstractManager < OMF::Common::LObject
     
-    # Register a resource to be managed by this AM.
-    # 
-    def manage_resource(resource)
-      raise MissingImplementationException.new
-    end
-
-    # Register an array of resources to be managed by this AM.
-    # 
-    def manage_resources(resources)
-      MISS
-    end
+    # # Register a resource to be managed by this AM.
+    # # 
+    # def manage_resource(resource)
+      # raise MissingImplementationException.new
+    # end
+# 
+    # # Register an array of resources to be managed by this AM.
+    # # 
+    # def manage_resources(resources)
+      # MISS
+    # end
     
+
     # Release resources currently used by an account into the global pool
     #
-    def free_resources(resources, opts)
-      MISS
+    # @param [Array<OResource>] Resources to release
+    # @param [Authorizer] Authorization context
+    def free_resources(resources, authorizer)
+      raise MissingImplementationException.new
     end    
     
     # Find a resource. If it doesn't exist, or is not visible to requester
     # throws +UnknownResourceException+.
     #
-    # resource_descr: Various types, primarily a hash used to lookup OResources
-    # requester_only: If true, throw exception if not already assigned to requester
-    # opts:
-    #   :req
-    #      :account_id .. uuid of account 
-    #   :requester_account  ... OAccount instance
+    # @param [Hash, String] describing properties of the requested resource, or the 
+    #   resource's UUID
+    # @param [Boolean] If true, throw exception if not already assigned to requester
+    # @param [Authorizer] Defines context for authorization decisions
+    # @return [OResource] The resource requested
+    # @raise [UnknownResourceException] if no matching resource can be found
     #
-    # NOTE: This will assign the resource automatically to the requesting account
-    #    
-    def find_resource(resource_descr, requester_only, opts)
-      MISS
+    # @note This will assign the resource automatically to the requesting account
+    #        
+    def find_resource(resource_descr, requester_only, authorizer)
+      raise MissingImplementationException.new
     end    
     
-    def find_all_resources_for_account(account, opts)
-      MISS
+    # Find all resources for a specific account.
+    #
+    # @param [OAccount] Account for which to find all associated resources
+    # @param [Authorizer] Defines context for authorization decisions
+    # @return [Array<OResource>] The resource requested
+    #        
+    def find_all_resources_for_account(account, authorizer)
+      raise MissingImplementationException.new
     end
     
+
     # Find or create a resource. If it doesn't exist, is already assigned to 
     # someone else, or cannot be created, throws +UnknownResourceException+.
     #
-    # Find or create a resource. If it doesn't exist, is already assigned to 
-    # someone else, or cannot be created, throws +UnknownResourceException+.
-    #
-    def find_or_create_resource(resource_descr, type_to_create, opts)
+    # @param [Hash] describing properties of the requested resource
+    # @param [String] Type to create if not already exist
+    # @param [Authorizer] Defines context for authorization decisions
+    # @return [OResource] The resource requested
+    # @raise [UnknownResourceException] if no matching resource can be found
+    #        
+    def find_or_create_resource(resource_descr, type_to_create, authorizer)
       debug "find_or_create_resource: resource '#{resource_descr.inspect}' type: '#{type_to_create}'"
       unless resource_descr.is_a? Hash
         error "Unknown resource description '#{resource_descr.inspect}'"
         return nil
       end
       
-      account = get_requester_account(opts)
+      account = authorizer.account
       begin
         resource_descr[:account] = account 
-        return find_resource(resource_descr, false, opts)
+        return find_resource(resource_descr, false, authorizer)
       rescue UnknownResourceException
       end
       
@@ -89,7 +104,7 @@ module OMF::SFA::AM
       if type_to_create == 'group'
         copts = resource_descr.kind_of?(Hash) ? resource_descr : {}
         copts[:account] ||=  account
-        debug "find_or_create_resource:create group: opts '#{copts.keys.inspect}'"
+        debug "find_or_create_resource:create group: authorizer '#{copts.keys.inspect}'"
         #return OMF::SFA::Resource::CompGroup.create(copts)
         return create_group_resource(copts)
       end
@@ -98,8 +113,8 @@ module OMF::SFA::AM
       #
       begin
         resource_descr[:account] = get_default_account() 
-        r = find_resource(resource_descr, false, opts)
-        return virtualize_resource(r, resource_descr, opts)
+        r = find_resource(resource_descr, false, authorizer)
+        return virtualize_resource(r, resource_descr, authorizer)
       rescue UnknownResourceException
       end
 
@@ -112,24 +127,34 @@ module OMF::SFA::AM
     # not mentioned are released. Returns the list
     # of resources requested or throw an error if ANY of the requested resources isn't available.
     # 
-    # WARNING: Throws exceptio if a contained resource doesn't exist, but will not roll back already 
-    # done modifications done to other resources.
+    # Find or create a resource. If it doesn't exist, is already assigned to 
+    # someone else, or cannot be created, throws +UnknownResourceException+.
     #
-    def update_resources_from_xml(descr_el, clean_state = false, opts = {})
+    # @param [Element] RSpec fragment describing resource and their properties
+    # @param [Boolean] Set all properties not mentioned to their defaults
+    # @param [Authorizer] Defines context for authorization decisions
+    # @return [OResource] The resource requested
+    # @raise [UnknownResourceException] if no matching resource can be found
+    # @raise [FormatException] if RSpec elements are not known
+    #        
+    # @note Throws exception if a contained resource doesn't exist, but will not roll back any 
+    # already performed modifications performed on other resources.
+    #
+    def update_resources_from_xml(descr_el, clean_state = false, authorizer = {})
       if descr_el.name.downcase == 'rspec'
         resources = descr_el.children.collect do |el|
           #debug "create_resources_from_xml::EL: #{el.inspect}"
           if el.kind_of?(Nokogiri::XML::Element)
             # ignore any text elements
-            update_sfa_resource_from_xml(el, clean_state, opts) 
+            update_sfa_resource_from_xml(el, clean_state, authorizer) 
           end
         end.compact
         if clean_state
           # Now free any resources owned by this account but not contained in +resources+
           all_resources = Set.new
           resources.each {|r| r.all_resources(all_resources)}
-          unused = find_all_resources_for_account(get_requester_account(opts), opts) - all_resources
-          free_resources(unused, opts)
+          unused = find_all_resources_for_account(get_requester_account(opts), authorizer) - all_resources
+          free_resources(unused, authorizer)
         end
         return resources
       else 
@@ -143,17 +168,17 @@ module OMF::SFA::AM
     # will be created. If +clean_state+ is set to true, all state of a resource not specifically described 
     # will be reset to it's default value. Returns the resource updated.
     # 
-    def update_sfa_resource_from_xml(resource_el, clean_state, opts = {})
+    def update_sfa_resource_from_xml(resource_el, clean_state, authorizer = {})
       if comp_id_attr = resource_el.attributes['component_id']
         comp_id = comp_id_attr.value
         comp_gurn = OMF::SFA::Resource::GURN.parse(comp_id)
         begin 
-          resource = find_or_create_resource({:name => comp_gurn.short_name}, comp_gurn.type, opts)
+          resource = find_or_create_resource({:name => comp_gurn.short_name}, comp_gurn.type, authorizer)
         rescue UnknownResourceException => ex
           # let's try the less descriptive 'component_name'
           if comp_name_attr = resource_el.attributes['component_name']
             comp_name = comp_name_attr.value
-            resource = find_or_create_resource({:name => comp_name}, comp_gurn.type, opts)
+            resource = find_or_create_resource({:name => comp_name}, comp_gurn.type, authorizer)
           else
             raise ex # raise original exception
           end
@@ -162,10 +187,10 @@ module OMF::SFA::AM
         # the only resource we can find by a name attribute is a group
         name = name_attr.value
         account = get_requester_account(opts)
-        resource = find_or_create_resource({:name => name, :account => account}, 'group', opts)
+        resource = find_or_create_resource({:name => name, :account => account}, 'group', authorizer)
       elsif uuid_attr = (resource_el.attributes['uuid'] || resource_el.attributes['idref'])
         uuid = UUIDTools::UUID.parse(uuid_attr.value)
-        resource = find_resource({:uuid => uuid}, false, opts) # wouldn't know what to create
+        resource = find_resource({:uuid => uuid}, false, authorizer) # wouldn't know what to create
       else 
         raise FormatException.new "Unknown resource description '#{resource_el.attributes.inspect}"
       end
@@ -178,7 +203,7 @@ module OMF::SFA::AM
         members = resource_el.children.collect do |el|
           if el.kind_of?(Nokogiri::XML::Element)
             # ignore any text elements
-            update_sfa_resource_from_xml(el, clean_state, opts) 
+            update_sfa_resource_from_xml(el, clean_state, authorizer) 
           end
         end.compact
         debug "update_sfa_resource_from_xml: Creating members '#{members}' for group '#{resource}'"
@@ -191,9 +216,9 @@ module OMF::SFA::AM
       else
         if clean_state
           # Set state to what's described in +resource_el+ ONLY
-          resource.create_from_xml(resource_el, opts)
+          resource.create_from_xml(resource_el, authorizer)
         else
-          resource.update_from_xml(resource_el, opts)
+          resource.update_from_xml(resource_el, authorizer)
         end
       end
       resource.save
@@ -207,37 +232,41 @@ module OMF::SFA::AM
     #
     # Currently, we simply transfer components to the +default_sliver+
     #    
-    def delete_resource(resource_descr, opts)
+    def delete_resource(resource_descr, authorizer)
       MISS
     end      
           
-    # Returns the +Account+ instance of the requester. It should either be
-    # stored in +opts+ under :req/account_id, or there should be a 
-    # :requester_account
-    # 
-    def get_requester_account(opts)
-      unless account = opts[:requester_account] || opts[:account]
-        if account_id = (opts[:req] || {})[:account_id]
-          if uuid_m = account_id.match(/^urn:uuid:(.*)/)
-            #uuid = UUIDTools::UUID.parse(uuid_m[1])
-            uuid = uuid_m[1]
-            unless account = get_account(uuid)
-              raise UnknownAccountException.new "Unknown account with uuid '#{uuid}'"
-            end
-            if account.closed?
-              raise ClosedAccountException.new 
-            end
-          else
-            raise FormatException.new "Unknown account format '#{account_id}'"
-          end
-        else
-          account = get_default_account()
-        end
-        opts[:requester_account] = account
-      end
-      account        
-    end
+    # # Returns the +Account+ instance of the requester. It should either be
+    # # stored in +opts+ under :req/account_id, or there should be a 
+    # # :requester_account
+    # # 
+    # def get_requester_account(opts)
+    #   unless account = opts[:requester_account] || opts[:account]
+    #     if account_id = (opts[:req] || {})[:account_id]
+    #       if uuid_m = account_id.match(/^urn:uuid:(.*)/)
+    #         #uuid = UUIDTools::UUID.parse(uuid_m[1])
+    #         uuid = uuid_m[1]
+    #         unless account = get_account(uuid)
+    #           raise UnknownAccountException.new "Unknown account with uuid '#{uuid}'"
+    #         end
+    #         if account.closed?
+    #           raise ClosedAccountException.new 
+    #         end
+    #       else
+    #         raise FormatException.new "Unknown account format '#{account_id}'"
+    #       end
+    #     else
+    #       account = get_default_account()
+    #     end
+    #     opts[:requester_account] = account
+    #   end
+    #   account        
+    # end
     
+    # Return the account identified by 'uuid'.
+    # 
+    # @param [String, UUID] UUID of account
+    # @return [OAccount]
     def get_account(uuid)
       MISS
     end
@@ -278,7 +307,7 @@ module OMF::SFA::AM
     
     # Return all accounts visible to the requesting user
     #
-    def find_all_accounts(opts)
+    def find_all_accounts(authorizer)
       # OMF::SFA::Resource::OAccount.all() - get_default_account()
       MISS
     end
@@ -289,7 +318,7 @@ module OMF::SFA::AM
       MISS
     end
     
-    # Return the account described by +opts+. Create if it doesn't exist.
+    # Return the account described by +account_descr+. Create if it doesn't exist.
     #
     def find_active_account(account_descr)
       account = find_account(account_descr)

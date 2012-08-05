@@ -23,7 +23,8 @@ module OMF::SFA::Resource
     
     def _to_sfa_components_property_hash(resources, pdef, href2obj, opts)
       opts = opts.dup
-      opts[:href_prefix] = (opts[:href_prefix] || '/') + 'resources/'
+      # TODO: What was that used for? Does this assume that prefix include slice name?
+      #opts[:href_prefix] = (opts[:href_prefix] || '/') + 'resources/'
       resources.collect do |o|
         o.to_sfa_hash(href2obj, opts)
       end

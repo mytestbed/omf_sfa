@@ -1,29 +1,23 @@
 
-require "#{File.dirname(__FILE__)}/../resource/common"
-require 'omf-sfa/resource/oresource'
-require 'omf-sfa/resource/ogroup'
-require 'omf-sfa/resource/ocomponent'
-require 'json'
+require 'omf-sfa/resource'
 
-class MockRequest
-  def initialize(opts = {})
-    @opts = opts
-  end
+def init_dm
+  # setup database
+  DataMapper::Logger.new($stdout, :info)
+  #DataMapper::Logger.new(STDOUT, :debug)
   
-  def []=(k, v)
-    @opts[k] = v
-  end
-  
-  def [](k)
-    @opts[k]
-  end
-  
-  def method_missing(name, *args, &block)
-    return @opts[name]
-  end
+  DataMapper.setup(:default, 'sqlite::memory:')
+  DataMapper::Model.raise_on_save_failure = true 
+  DataMapper.finalize
+    
+  require  'dm-migrations'
+  DataMapper.auto_migrate!
 end
 
-def create_def_opts(ropts = {})
-  req = MockRequest.new(ropts)
-  {:req => req} #, :am_mgr => @mgr}
+def assert_sfa_xml(resource, expected)
+  doc = resource.to_sfa_xml()
+  
+  expected = format expected, 'xmlns="http://www.protogeni.net/resources/rspec/2" xmlns:omf="http://schema.mytestbed.net/sfa/rspec/1"'
+  exp = Nokogiri.XML(expected)
+  doc.should be_equivalent_to(exp)
 end

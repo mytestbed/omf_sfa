@@ -3,7 +3,7 @@ $:.push File.expand_path("../lib", __FILE__)
 require "omf-sfa/version"
 
 Gem::Specification.new do |s|
-  s.name        = "omf_web"
+  s.name        = "omf_sfa"
   s.version     = OMF::SFA::VERSION
   s.authors     = ["NICTA"]
   s.email       = ["omf-user@lists.nicta.com.au"]
@@ -25,5 +25,13 @@ Gem::Specification.new do |s|
   s.add_runtime_dependency "thin", "~> 1.3.1"
   s.add_runtime_dependency "log4r", "~> 1.1.10"
   s.add_runtime_dependency "maruku", "~> 0.6.0"
-  s.add_runtime_dependency "json", "~> 1.7.3"
+  s.add_runtime_dependency "dm-core", "~> 1.2.0"
+  s.add_runtime_dependency "dm-types", "~> 1.2.1"
+  s.add_runtime_dependency "dm-validations", "~> 1.2.0"
+  s.add_runtime_dependency "dm-migrations", "~> 1.2.0"
+  s.add_runtime_dependency "dm-sqlite-adapter", "~> 1.2.0"
+  s.add_runtime_dependency "nokogiri", "~> 1.5.5"
+#  s.add_runtime_dependency "json", "~> 1.7.4"
+#
+  s.add_runtime_dependency "equivalent-xml", "~> 0.2.9"
 end

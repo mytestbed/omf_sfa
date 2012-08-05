@@ -17,7 +17,8 @@ describe OAccount do
   end
   
   it 'can create an account with a urn' do
-    a = OAccount.create(:urn => "urn:foo")
+    #a = OAccount.create(:urn => "urn:foo")
+    a = OAccount.first_or_create(:urn => "urn:publicid:IDN+omf:test+account+1")
   end
   
   it 'can create an account with a urn if it doesnt exist yet' do

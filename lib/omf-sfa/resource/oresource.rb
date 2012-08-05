@@ -315,6 +315,10 @@ module OMF::SFA::Resource
       h
     end
     
+    def default_href_prefix
+      @@default_href_prefix
+    end
+    
     def _oprops_to_hash(h)
       klass = self.class
       while klass 

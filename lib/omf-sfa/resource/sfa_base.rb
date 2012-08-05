@@ -269,8 +269,10 @@ module OMF::SFA
 
           #href = (opts[:href_prefix] || '/') + component_name()
           res['uuid'] = self.uuid.to_s
-          res['name'] = self.name          
-          href = "#{opts[:href_prefix]}/#{res['uuid']}"
+          res['component_name'] = self.name          
+
+          href_prefix = opts[:href_prefix] ||= default_href_prefix
+          href = "#{href_prefix}/#{res['uuid']}"
           res['href'] = href
           if obj = href2obj[href]
             # have described myself before

@@ -27,6 +27,10 @@ require 'rubygems'
 require 'date'
 require 'log4r'
 require 'log4r/configurator'
+require 'log4r/yamlconfigurator'
+require 'log4r/outputter/datefileoutputter'
+require 'omf_common/log4r_outputter'
+
 #include Log4r
 
 module OMF; module Common; end end
@@ -41,32 +45,35 @@ module OMF::Common
 
   
     #
-    # Initialize the logger. The 'appName' is the name of the root
+    # Initialize the logger. The 'appName' is used to build some of the defaults. 
+    # The 'environment' is the name of the root
     # logger. 'AppInstance' and 'appName' are available as parameters
-    # in the log configuration file. The 'params' hash can optionally
+    # in the log configuration file. The 'opts' hash can optionally
     # contain information on how to find a configuration file. The
     # following keys are used:
     #
+    #  * :environment - Name used for root logger name ['development']
     #  * :env - Name of environment variable holding dominant config file
     #  * :fileName - Name of config file [#{appName}_log.xml]
     #  * :searchPath - Array of directories to look for 'fileName'
     #
-    def self.init_log(appName, params = {})
+    def self.init_log(appName, opts = {})
   	  
-      @@rootLoggerName = appName
-      @@logger = Log4r::Logger.new(appName)
-  
-      configFile = params[:configFile]
-      if (configFile == nil && logEnv = params[:env])
+      @@logger = ::Log4r::Logger.new(appName)
+      set_environment(opts[:environment] || 'development')
+      
+      configFile = opts[:configFile]
+      if (configFile == nil && logEnv = opts[:env])
           configFile = ENV[logEnv]
       end
       if (configFile != nil)
         # Make sure log exists ...
         configFile = File.exists?(configFile) ? configFile : nil
       else
-        name = params[:fileName] || "#{appName}_log.xml"
-        if ((searchPath = params[:searchPath]) != nil)
-          logDir = searchPath.detect {|dir|
+        name = opts[:fileName] || "#{appName}_log4r.yaml"
+        if ((searchPath = opts[:searchPath]) != nil)
+          searchPath = searchPath.is_a?(Enumerable) ? searchPath : [searchPath]
+          logDir = searchPath.find {|dir|
             File.exists?("#{dir}/#{name}")
           }
           #puts "logDir '#{logDir}:#{logDir.class}'"
@@ -74,26 +81,41 @@ module OMF::Common
         end
       end
       #puts "config file '#{configFile}'"
-      if configFile != nil
-        if (appInstance == nil)
-          appInstance = DateTime.now.strftime("%F-%T").split(':').join('-')
-        end
-        Log4r::Configurator['appInstance'] = params[:appInstance] || 'default'
-        Log4r::Configurator['appName'] = appName
+      if !(configFile || '').empty?
+        # if (appInstance == nil)
+          # appInstance = DateTime.now.strftime("%F-%T").split(':').join('-')
+        # end
+        # ::Log4r::Configurator['appInstance'] = opts[:appInstance] || 'default'
+        ::Log4r::Configurator['appName'] = appName
         begin
-          Log4r::Configurator.load_xml_file(configFile)
-        rescue Log4r::ConfigError => ex
-          @@logger.outputters = Log4r::Outputter.stdout
-          MObject.error("Log::Config", ex)
+          ycfg = YAML.load_file(configFile)
+          ::Log4r::YamlConfigurator.decode_yaml(ycfg['log4r'])
+          #::Log4r::Configurator.load_xml_file(configFile)
+        # rescue ::Log4r::ConfigError => ex
+          # @@logger.outputters = ::Log4r::Outputter.stdout
+          # # TODO: FIX ME
+          # puts("ERROR: Log::Config: #{ex}")
         end
       else
         # set default behavior
-        @@logger.outputters = Log4r::Outputter.stdout
+        @@logger.outputters = ::Log4r::Outputter.stdout
       end
+    end
+    
+    def self.set_environment(root_logger_name)
+      if root_logger_name.nil? || root_logger_name.empty?
+        # TODO: FIX ME
+        puts("ERROR: LObject: Ignoring empty root logger")
+        return
+      end
+      @@rootLoggerName = root_logger_name
     end
   
     def self.logger(category)
-      raise "Logger not initialized" unless @@logger
+      unless @@logger
+        self.init_log('unknown')
+        self.logger('logging').warn("Logging was not initialised")
+      end
 
       name = "#{@@rootLoggerName}::#{category}"
       logger = Log4r::Logger[name]

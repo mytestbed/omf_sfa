@@ -11,7 +11,7 @@ require 'set'
 require 'json'
 
 require 'omf_common/lobject'
-#require 'omf-sfa/am/am_default_manager'
+#require 'omf-sfa/am/am_manager'
 
 
 module OMF::SFA::AM::Rest

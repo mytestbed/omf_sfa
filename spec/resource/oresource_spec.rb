@@ -45,7 +45,7 @@ describe OResource do
   
   it 'can be serialized into a hash' do
     o = OResource.create(:name => :foo)
-    o.to_hash.should == {:type=>"unknown", :name=>"foo", :uuid=>"#{o.uuid.to_s}"}   
+    o.to_hash.should == {:type=>"unknown", :name=>"foo", :uuid=>"#{o.uuid.to_s}", :href => "/resources/#{o.uuid}"}   
   end
   
   
@@ -94,17 +94,17 @@ describe OResource do
   end
   
   it 'can define properties with +oproperty+' do
-    o = TA.create()
+    o = TA.create(:name => 'o')
     o.flag = true
     o.save
     
     o.reload
     o.flag.should == true
-    o.to_hash.should == {:type=>"unknown", :uuid=>"#{o.uuid}", :flag => true}   
+    o.to_hash.should == {:type=>"unknown", :uuid=>"#{o.uuid}", :href => "/resources/#{o.uuid}", :name => 'o', :flag => true}   
   end
   
   it 'can have properties linking to other object' do
-    a = A.create
+    a = A.create(:name => 'a')
     a.b.should == nil
     a.bas.should == []    
     
@@ -115,7 +115,10 @@ describe OResource do
     a.reload
     
     a.b.uuid.should == b.uuid
-    a.to_hash.should == {:type=>"unknown", :uuid=>"#{a.uuid}", :bas => [], :b => b.uuid.to_s}       
+    a.to_hash.should == {
+      :type=>"unknown", :uuid=>"#{a.uuid}", :href => "/resources/#{a.uuid}", :name => 'a',
+      :b => b.uuid.to_s
+    }       
   end
   
   it 'can have properties linking to groups' do
@@ -124,11 +127,11 @@ describe OResource do
     r.g = g
     
     r.g.should == g
-    r.to_hash.should == {:name => "r", :type=>"unknown", :uuid=>"#{r.uuid}", :g => g.uuid.to_s}
+    r.to_hash.should == {:name => "r", :type=>"unknown", :uuid=>"#{r.uuid}", :g => g.uuid.to_s, :href => "/resources/#{r.uuid}"}
   end
 
   it 'can have non-functional properties' do
-    a = A.create
+    a = A.create(:name => 'a')
     a.bas.should == []    
     
     a.save
@@ -148,7 +151,10 @@ describe OResource do
     a.reload
     
     a.bas.should == [b, b2]
-    a.to_hash.should == {:type=>"unknown", :uuid=>"#{a.uuid}", :bas => [b.uuid.to_s, b2.uuid.to_s]}             
+    a.to_hash.should == {
+      :type=>"unknown", :uuid=>"#{a.uuid}", :href=>"/resources/#{a.uuid}", :name => 'a',
+      :bas => [b.uuid.to_s, b2.uuid.to_s]
+    }             
     
     a.bas = []
     a.save

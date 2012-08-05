@@ -28,13 +28,14 @@ module OMF::SFA::Resource
     has n, :active_components, :model => 'OResource', :child_key  => [ :account_id ], :required => false
 
     def active?
+      return false unless self.closed_at.nil?
+      
       valid_until = self.valid_until
       unless valid_until.kind_of? Time
         valid_until = Time.parse(valid_until) # seem to not be returned as Time
       end
       if Time.now > valid_until
-        self.closed_at = valid_until
-        save
+        self.close()
         return false
       end
       true

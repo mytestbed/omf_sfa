@@ -23,7 +23,7 @@ describe Node do
       <node %s 
           id="#{n.uuid}" 
           omf:href="/resources/#{n.uuid}"
-          component_id="urn:publicid:IDN+mytestbed.net+node+n1" 
+          component_id="urn:publicid:IDN+mytestbed.net+node+#{n.uuid}" 
           component_manager_id="authority+am" 
           component_name="n1">
         <available now="true"/>
@@ -39,14 +39,14 @@ describe Node do
       <node %s 
           id="#{n.uuid}" 
           omf:href="/resources/#{n.uuid}"
-          component_id="urn:publicid:IDN+mytestbed.net+node+n1" 
+          component_id="urn:publicid:IDN+mytestbed.net+node+#{n.uuid}" 
           component_manager_id="authority+am" 
           component_name="n1">
         <available now="true"/>
         <interface 
             id="#{if1.uuid}" 
             omf:href="/resources/#{if1.uuid}"
-            component_id="urn:publicid:IDN+mytestbed.net+interface+if1" 
+            component_id="urn:publicid:IDN+mytestbed.net+interface+#{if1.uuid}" 
             component_manager_id="authority+am" 
             component_name="if1"
         />
@@ -60,24 +60,24 @@ describe Node do
     n.interfaces << (if2 = Interface.create(:name => 'if2'))    
     
     n.to_sfa_hash().should == {
-      "href" => "/n1", "uuid" => n.uuid.to_s, "sfa_class" => "node",
+      "href" => "/resources/#{n.uuid}", "uuid" => n.uuid.to_s, "sfa_class" => "node",
       "component_name" => "n1", "component_manager_id" => "authority+am", 
-      "component_id" => "urn:publicid:IDN+mytestbed.net+node+n1",
+      "component_id" => "urn:publicid:IDN+mytestbed.net+node+#{n.uuid}",
       "available" => "true",
       "interfaces" => [{
-        "href" => "/if1",
+        "href" => "/resources/#{if1.uuid}",
         "uuid" => if1.uuid.to_s,
         "sfa_class" => "interface",
         "component_name" => "if1",
         "component_manager_id" => "authority+am",
-        "component_id" => "urn:publicid:IDN+mytestbed.net+interface+if1",
+        "component_id" => "urn:publicid:IDN+mytestbed.net+interface+#{if1.uuid}",
       }, {
-        "href" => "/if2",
+        "href" => "/resources/#{if2.uuid}",
         "uuid" => if2.uuid.to_s,
         "sfa_class" => "interface",
         "component_name" => "if2",
         "component_manager_id" => "authority+am",
-        "component_id" => "urn:publicid:IDN+mytestbed.net+interface+if2",
+        "component_id" => "urn:publicid:IDN+mytestbed.net+interface+#{if2.uuid}",
       }]
     }
 
@@ -85,21 +85,21 @@ describe Node do
       <node %s 
           id="#{n.uuid}" 
           omf:href="/resources/#{n.uuid}"
-          component_id="urn:publicid:IDN+mytestbed.net+node+n1" 
+          component_id="urn:publicid:IDN+mytestbed.net+node+#{n.uuid}" 
           component_manager_id="authority+am" 
           component_name="n1">
         <available now="true"/>
         <interface 
             id="#{if1.uuid}" 
             omf:href="/resources/#{if1.uuid}"
-            component_id="urn:publicid:IDN+mytestbed.net+interface+if1" 
+            component_id="urn:publicid:IDN+mytestbed.net+interface+#{if1.uuid}" 
             component_manager_id="authority+am" 
             component_name="if1"
         />
         <interface 
             id="#{if2.uuid}" 
             omf:href="/resources/#{if2.uuid}"
-            component_id="urn:publicid:IDN+mytestbed.net+interface+if2" 
+            component_id="urn:publicid:IDN+mytestbed.net+interface+#{if2.uuid}" 
             component_manager_id="authority+am" 
             component_name="if2"
         />
@@ -127,19 +127,20 @@ describe Node do
     n.interfaces << if1
     
     n.to_sfa_hash().should == {
-      "href" => "/n1", "uuid" => n.uuid.to_s, "sfa_class" => "node",
+      "href" => "/resources/#{n.uuid}", "uuid" => n.uuid.to_s, "sfa_class" => "node",
       "component_name" => "n1", "component_manager_id" => "authority+am", 
-      "component_id" => "urn:publicid:IDN+mytestbed.net+node+n1",
+      "component_id" => "urn:publicid:IDN+mytestbed.net+node+#{n.uuid}",
       "available" => "true",
       "interfaces" => [{
-        "href" => "/if1",
+        "href" => "/resources/#{if1.uuid}",
         "uuid" => if1.uuid.to_s,
         "sfa_class" => "interface",
         "component_name" => "if1",
         "component_manager_id" => "authority+am",
-        "component_id" => "urn:publicid:IDN+mytestbed.net+interface+if1",
+        "component_id" => "urn:publicid:IDN+mytestbed.net+interface+#{if1.uuid}",
       }, {
-        "href" => "/if1",
+        "component_name" => "if1",
+        "href" => "/resources/#{if1.uuid}",
         "uuid" => if1.uuid.to_s
       }]
     }
@@ -148,20 +149,20 @@ describe Node do
       <node %s 
           id="#{n.uuid}" 
           omf:href="/resources/#{n.uuid}"
-          component_id="urn:publicid:IDN+mytestbed.net+node+n1" 
+          component_id="urn:publicid:IDN+mytestbed.net+node+#{n.uuid}" 
           component_manager_id="authority+am" 
           component_name="n1">
         <available now="true"/>
         <interface 
             id="#{if1.uuid}" 
             omf:href="/resources/#{if1.uuid}"
-            component_id="urn:publicid:IDN+mytestbed.net+interface+if1" 
+            component_id="urn:publicid:IDN+mytestbed.net+interface+#{if1.uuid}" 
             component_manager_id="authority+am" 
             component_name="if1"
         />
         <interface_ref
             id_ref="#{if1.uuid}" 
-            component_id="urn:publicid:IDN+mytestbed.net+interface+if1" 
+            component_id="urn:publicid:IDN+mytestbed.net+interface+#{if1.uuid}" 
         />
       </node>
     }
