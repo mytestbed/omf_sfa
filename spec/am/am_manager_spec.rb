@@ -146,7 +146,7 @@ describe AMManager do
     
     it 'find single resource belonging to anyone' do
       auth.should_receive(:can_view_resource?).with(kind_of(OMF::SFA::Resource::OResource)) 
-      r = manager.find_resource({:name => 'r1'}, false, auth)
+      r = manager.find_resource({:name => 'r1'}, auth)
       r.should be_a(OMF::SFA::Resource::OResource)   
     end
     
@@ -156,14 +156,14 @@ describe AMManager do
 
       # resources belong to nil account, so they shouldn't be found
       lambda do      
-        manager.find_resource({:name => 'r1'}, true, auth)
+        manager.find_resource_for_account({:name => 'r1'}, auth)
       end.should raise_error(UnknownResourceException)
       
       # now, assign them to this account
       @r1.account = account
       @r1.save
       auth.should_receive(:can_view_resource?).with(@r1)      
-      r = manager.find_resource({:name => 'r1'}, true, auth)
+      r = manager.find_resource_for_account({:name => 'r1'}, auth)
       r.should == @r1
     end
     
@@ -176,8 +176,10 @@ describe AMManager do
       scheduler.stub(:create_resource).and_return(vr)
       scheduler.create_resource().should == vr
 
+      descr = {:name => 'r1'}
+      auth.should_receive(:can_create_resource?) #.with(descr, 'oresource')
       #auth.should_receive(:can_view_resource?)
-      r = manager.find_or_create_resource({:name => 'r1'}, 'oresource', auth)
+      r = manager.find_or_create_resource_for_account(descr, 'oresource', auth)
       r.should == vr
     end
     
@@ -201,6 +203,8 @@ describe AMManager do
         authorizer.should == auth
         vr
       end
+      auth.should_receive(:can_create_resource?).with({:name => 'r1', :account => account}, anything)  
+      #auth.should_receive(:can_view_resource?)          
       r = manager.update_resources_from_rspec(req.root, true, auth)
       r.should == [vr]
     end

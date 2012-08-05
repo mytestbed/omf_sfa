@@ -191,14 +191,11 @@ module OMF::SFA::AM
     #
     # @note This will assign the resource automatically to the requesting account
     #        
-    def find_resource(resource_descr, requester_only, authorizer)
+    def find_resource(resource_descr, authorizer)
       #debug "find_resource: descr: '#{resource_descr.inspect}'"
       if resource_descr.kind_of? OMF::SFA::Resource::OResource
         resource = resource_descr
       elsif resource_descr.kind_of? Hash
-        if requester_only
-          resource_descr[:account] = authorizer.account
-        end
         resource = OMF::SFA::Resource::OResource.first(resource_descr)
       elsif resource_descr.kind_of? String
         # assume to be UUID
@@ -208,9 +205,6 @@ module OMF::SFA::AM
         rescue ArgumentError
           # doesn't seem to be a UUID, try it as a name - be aware of non-uniqueness
           descr = {:name => resource_descr}
-        end
-        if requester_only
-          descr[:account] = authorizer.account
         end
         resource = OMF::SFA::Resource::OResource.first(descr)
       else
@@ -222,6 +216,25 @@ module OMF::SFA::AM
       authorizer.can_view_resource?(resource)
       resource
     end    
+    
+    # Find a resource which has been assigned to the authoizer's account. 
+    # If it doesn't exist, or is not visible to requester
+    # throws +UnknownResourceException+.
+    #
+    # @param [Hash, String] describing properties of the requested resource, or the 
+    #   resource's UUID
+    # @param [Authorizer] Defines context for authorization decisions
+    # @return [OResource] The resource requested
+    # @raise [UnknownResourceException] if no matching resource can be found
+    #
+    # @note This will assign the resource automatically to the requesting account
+    #        
+    def find_resource_for_account(resource_descr, authorizer)
+      rdescr = resource_descr.dup
+      rdescr[:account] = authorizer.account
+      find_resource(rdescr, authorizer)
+    end
+
     
     # Find all resources for a specific account.
     #
@@ -251,19 +264,36 @@ module OMF::SFA::AM
         return nil
       end
       
-      account = authorizer.account
+      #account = authorizer.account
       begin
-        resource_descr[:account] = account 
-        return find_resource(resource_descr, false, authorizer)
+        #resource_descr[:account] = account 
+        return find_resource(resource_descr, authorizer)
       rescue UnknownResourceException
       end
       #_create_resource(resource_descr, type_to_create, authorizer)
+      authorizer.can_create_resource?(resource_descr, type_to_create)
       unless resource = @scheduler.create_resource(resource_descr, type_to_create, authorizer)
         raise UnknownResourceException.new "Resource '#{resource_descr.inspect}' cannot be created"    
       end
       resource
     end
-
+    
+    # Find or create a resource for authorizer's account. If it doesn't exist, 
+    # is already assigned to 
+    # someone else, or cannot be created, throws +UnknownResourceException+.
+    #
+    # @param [Hash] describing properties of the requested resource
+    # @param [String] Type to create if not already exist
+    # @param [Authorizer] Defines context for authorization decisions
+    # @return [OResource] The resource requested
+    # @raise [UnknownResourceException] if no matching resource can be found
+    #        
+    def find_or_create_resource_for_account(resource_descr, type_to_create, authorizer)
+      rdescr = resource_descr.dup
+      rdescr[:account] = authorizer.account
+      find_or_create_resource(rdescr, type_to_create, authorizer)
+    end
+    
     # def _create_resource(resource_descr, type_to_create, authorizer)
       # # OK, let's check if a group was requested. They are cheap to make
       # #
@@ -343,9 +373,9 @@ module OMF::SFA::AM
         comp_gurn = OMF::SFA::Resource::GURN.parse(comp_id)
         #begin
           if uuid = comp_gurn.uuid
-            resource = find_or_create_resource({:uuid => uuid}, comp_gurn.type, authorizer)
+            resource = find_or_create_resource_for_account({:uuid => uuid}, comp_gurn.type, authorizer)
           else
-            resource = find_or_create_resource({:name => comp_gurn.short_name}, comp_gurn.type, authorizer)
+            resource = find_or_create_resource_for_account({:name => comp_gurn.short_name}, comp_gurn.type, authorizer)
           end
         # rescue UnknownResourceException => ex
           # # let's try the less descriptive 'component_name'
@@ -360,7 +390,7 @@ module OMF::SFA::AM
         # the only resource we can find by a name attribute is a group
         # TODO: Not sure about the 'group' assumption
         name = name_attr.value
-        resource = find_or_create_resource({:name => name}, 'group', authorizer)
+        resource = find_or_create_resource_for_account({:name => name}, 'unknown', authorizer)
       else 
         raise FormatException.new "Unknown resource description '#{resource_el.attributes.inspect}"
       end
