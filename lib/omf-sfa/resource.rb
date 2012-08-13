@@ -11,6 +11,7 @@ require 'omf-sfa/resource/oproperty'
 require 'omf-sfa/resource/ogroup'
 require 'omf-sfa/resource/group_membership'
 require 'omf-sfa/resource/oaccount'
+require 'omf-sfa/resource/olease'
 
 #require 'omf-sfa/resource/sliver'
 require 'omf-sfa/resource/link'

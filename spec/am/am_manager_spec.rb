@@ -127,6 +127,88 @@ describe AMManager do
     end
   end # context - account
 
+  context 'lease' do
+
+    let(:auth) { double('authorizer') }
+
+    before :each do
+      DataMapper.auto_migrate! # reset database
+    end
+        
+    it 'can create lease' do
+      auth.should_receive(:can_create_lease?)
+      lease = manager.find_or_create_lease({:name => 'l1', :valid_from => Time.now, :valid_until => Time.now + 100}, auth) 
+      lease.should be_a(OMF::SFA::Resource::OLease)
+    end
+
+    it 'can find created lease' do
+      auth.should_receive(:can_create_lease?)
+      a1 = manager.find_or_create_lease({:name => 'l1'}, auth)
+             
+      auth.should_receive(:can_view_lease?).with(kind_of(OMF::SFA::Resource::OLease))      
+      a2 = manager.find_or_create_lease({:name => 'l1'}, auth)
+      a2.reload      
+      a1.should == a2
+      
+      auth.should_receive(:can_view_lease?).with(kind_of(OMF::SFA::Resource::OLease))      
+      a3 = manager.find_lease({:name => 'l1'}, auth)
+      a3.reload
+      a1.should == a3
+    end
+
+    it 'throws exception when looking for non-exisiting lease' do
+      lambda do 
+        manager.find_lease({:name => 'l1'}, auth)
+      end.should raise_error(UnavailableResourceException)
+    end
+    
+    it "can request all user's leases" do
+
+      auth.should_receive(:can_create_account?)
+      a1 = manager.find_or_create_account({:name => 'a1'}, auth)
+
+      manager.find_all_leases_for_account(a1, auth).should == []   
+
+      auth.should_receive(:can_create_lease?)
+      l1 = manager.find_or_create_lease({:name => 'l1', :account => a1}, auth)
+      
+      auth.should_receive(:can_view_lease?)      
+      manager.find_all_leases_for_account(a1, auth).should == [l1]
+      
+      auth.should_receive(:can_create_lease?)
+      l2 = manager.find_or_create_lease({:name => 'l2', :account => a1}, auth)
+       
+      auth.should_receive(:can_view_lease?).exactly(2).times
+      manager.find_all_leases_for_account(a1, auth).should == [l1, l2]
+
+      auth.should_receive(:can_view_lease?).exactly(2).times.and_raise(InsufficientPrivilegesException)    
+      manager.find_all_leases_for_account(a1, auth).should == []
+    end
+    
+    it 'can modify leases' do
+      auth.should_receive(:can_create_lease?)
+      l1 = manager.find_or_create_lease({:name => 'l1'}, auth)
+
+      valid_from = 1338847200
+      valid_until = 1338850800
+      auth.should_receive(:can_modify_lease?).with(l1)            
+      l2 = manager.modify_lease({:name => 'l1', :valid_from => valid_from, :valid_until => valid_until}, l1, auth)
+      l2.save
+      l2.should == l1.reload
+      l2.valid_from.should == valid_from
+      l2.valid_until.should == valid_until
+    end
+    
+    it 'can cancel a lease' do
+      auth.should_receive(:can_create_lease?)
+      l1 = manager.find_or_create_lease({:name => 'l1'}, auth)
+      
+      auth.should_receive(:can_cancel_lease?).with(l1)   
+      manager.cancel_lease(l1, auth)#.should be_true
+    end
+
+  end # context - lease
+
   context 'resource' do
     let(:account) { OMF::SFA::Resource::OAccount.new(:name => 'a') }
     let(:auth) do
@@ -185,7 +267,6 @@ describe AMManager do
     
     it 'will create resource from rspec' do
       rspec = %{
-        <?xml version="1.0"?>
         <rspec xmlns="http://www.protogeni.net/resources/rspec/2" xmlns:omf="http://schema.mytestbed.net/sfa/rspec/1" type="request">
           <node component_name="r1">
             <available now="true"/>

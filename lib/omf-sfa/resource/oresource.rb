@@ -63,6 +63,7 @@ module OMF::SFA::Resource
     has n, :included_in_groups, 'OGroup', :through => :group_memberships, :via => :o_group
     
     belongs_to :account, :model => 'OAccount', :child_key  => [ :account_id ], :required => false
+    belongs_to :lease, :model => 'OLease', :child_key  => [ :lease_id ], :required => false
     
     
     def self.oproperty(name, type, opts = {})

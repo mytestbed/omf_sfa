@@ -3,6 +3,7 @@
 require 'omf-sfa/resource/oresource'
 require 'omf-sfa/resource/ogroup'
 require 'omf-sfa/resource/sfa_base'
+require 'omf-sfa/resource/olease'
 
 module OMF::SFA::Resource
   
