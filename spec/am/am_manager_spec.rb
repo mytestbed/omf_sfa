@@ -209,7 +209,6 @@ describe AMManager do
       r.should == [vr]
     end
     
-    
   end # context - resource
   
 end

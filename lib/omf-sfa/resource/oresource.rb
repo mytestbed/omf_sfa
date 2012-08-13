@@ -13,6 +13,7 @@ autoload :GroupMembership, 'omf-sfa/resource/group_membership'
 autoload :OAccount, 'omf-sfa/resource/oaccount'
 autoload :OGroup, 'omf-sfa/resource/ogroup'
 
+
 # module OMF::SFA::Resource
   # class OResource; end
 # end
