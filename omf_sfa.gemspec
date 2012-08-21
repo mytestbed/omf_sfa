@@ -36,4 +36,5 @@ Gem::Specification.new do |s|
 #
   s.add_runtime_dependency "equivalent-xml", "~> 0.2.9"
   s.add_runtime_dependency "rspec", "~> 2.11.0"
+  s.add_runtime_dependency "activesupport", "~> 3.2.8"
 end

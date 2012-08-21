@@ -7,6 +7,7 @@ def init_dm
   #DataMapper::Logger.new(STDOUT, :debug)
   
   DataMapper.setup(:default, 'sqlite::memory:')
+  #DataMapper.setup(:default, 'sqlite:///tmp/am_test.db')
   DataMapper::Model.raise_on_save_failure = true 
   DataMapper.finalize
     

@@ -85,37 +85,39 @@ module OMF::SFA::Resource
     
     def uuid
       unless @uuid
-        @uuid = UUIDTools::UUID.parse(short_name)
+	@uuid = UUIDTools::UUID.parse(short_name)
       end
       @uuid
+    rescue ArgumentError
+      @uuid = nil
     end
-    
+
     def to_s
       @urn
     end
-    
+
   end # GURN
 end # OMF::SFA    
-    
+
 require 'dm-core'
 
 module DataMapper
   class Property
     class GURN < DataMapper::Property::String
-      
+
       # Maximum length chosen based on recommendation:
       length 256
 
       def custom?
-        true
+	true
       end
 
       def primitive?(value)
-        value.kind_of?(OMF::SFA::Resource::GURN)
+	value.kind_of?(OMF::SFA::Resource::GURN)
       end
 
       def valid?(value, negated = false)
-        super || primitive?(value) #|| value.kind_of?(::String)
+	super || primitive?(value) #|| value.kind_of?(::String)
       end
 
       # We don't want this to be called, but the Model::Property calls
@@ -125,27 +127,27 @@ module DataMapper
       # of casting in +load2+
       #
       def load(value)
-        if value 
-          if value.start_with?('urn')
-            return OMF::SFA::Resource::GURN.create(value)
-          end
-          raise "BUG: Shouldn't be called anymore (#{value})"
-        end
-        nil
+	if value 
+	  if value.start_with?('urn')
+	    return OMF::SFA::Resource::GURN.create(value)
+	  end
+	  raise "BUG: Shouldn't be called anymore (#{value})"
+	end
+	nil
       end
-      
+
       def load2(value, context_class)
-        if value
-          #puts "LOAD #{value}||#{value.class}||#{context.inspect}" 
-          return OMF::SFA::Resource::GURN.create(value, context_class)
-        end
-        nil
+	if value
+	  #puts "LOAD #{value}||#{value.class}||#{context.inspect}" 
+	  return OMF::SFA::Resource::GURN.create(value, context_class)
+	end
+	nil
       end
 
       def dump(value)
-        value.to_s unless value.nil?
+	value.to_s unless value.nil?
       end
-      
+
       # Typecasts an arbitrary value to a GURN
       #
       # @param [Hash, #to_mash, #to_s] value
@@ -156,20 +158,20 @@ module DataMapper
       #
       # @api private
       def typecast_to_primitive(value)
-        raise "BUG: Shouldn't be called anymore"
-      end
-      
-      # @override
-      def set(resource, value)
-        #puts ">>> SET: #{resource}"
-        set!(resource, load2(value, resource.class))
+	raise "BUG: Shouldn't be called anymore"
       end
 
-      
-    
+      # @override
+      def set(resource, value)
+	#puts ">>> SET: #{resource}"
+	set!(resource, load2(value, resource.class))
+      end
+
+
+
     end # class GURN 
   end # class Property
 end #module DataMapper
-  
-    
+
+
 
