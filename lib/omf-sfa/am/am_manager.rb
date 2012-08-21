@@ -191,7 +191,7 @@ module OMF::SFA::AM
     def find_or_create_lease(lease_descr, authorizer)
       debug "find_or_create_lease: '#{lease_descr.inspect}'"
       begin
-	return find_lease({ :name => lease_descr[:name] }, authorizer)
+	return find_lease(lease_descr, authorizer)
       rescue UnavailableResourceException
       end
       authorizer.can_create_lease?
@@ -225,12 +225,12 @@ module OMF::SFA::AM
     def find_all_leases_for_account(account, authorizer)
       leases = OMF::SFA::Resource::OLease.all(:account => account) 
       leases.map do |l|
-	begin 
-	  authorizer.can_view_lease?(l)
-	  l
-	rescue InsufficientPrivilegesException
-	  nil
-	end
+        begin 
+          authorizer.can_view_lease?(l)
+          l
+        rescue InsufficientPrivilegesException
+          nil
+        end
       end.compact
     end
 
@@ -245,6 +245,7 @@ module OMF::SFA::AM
       authorizer.can_modify_lease?(lease)
       lease.valid_from = lease_descr[:valid_from]
       lease.valid_until = lease_descr[:valid_until]
+      lease.save
       lease
     end
 
@@ -255,43 +256,79 @@ module OMF::SFA::AM
     # @param [OLease] lease to release
     # @param [Authorizer] Authorization context
     #
-    def cancel_lease(lease, authorizer)
-      authorizer.can_cancel_lease?(lease)
+    def release_lease(lease, authorizer)
+      authorizer.can_release_lease?(lease)
 
-      lease.destroy
+      lease.component_leases.each do |l|
+	l.destroy # unlink the lease with the corresponding components
+      end
+      raise "Error while destroying lease: #{lease}" unless lease.destroy
     end
 
     #
-    # Create, Modify and Cancel leases through RSpecs
+    # Create or Modify leases through RSpecs
     #
-    # When a lease described in the RSpecs cannot be found, it is being created
-    # When a lease described in the RSpecs has modified times, then it is being modified
-    # When a lease described in the RSpecs has +valid_from+ and +valid_until+ set to zero
-    # then it is being cancelled
+    # When a uuid is provided, then the corresponding lease is modified. Otherwise a new
+    # lease is created with the properties described in the RSpecs.
     #
-    # @param [
-    #
-    # @param [Nokogiri::XML::NodeSet] RSpec fragment describing leases and their properties
-    # @param [Boolean] Set all properties not mentioned to their defaults
+    # @param [Nokogiri::XML::Node] RSpec fragment describing lease and its properties
     # @param [Authorizer] Defines context for authorization decisions
-    # @return [Array<OLease>] The requested leases
+    # @return [OLease] The requested lease
     # @raise [UnavailableResourceException] if no matching resource can be found or created
     # @raise [FormatException] if RSpec elements are not known
     #
-    def update_leases_from_rspec(rspec, clean_state, authorizer)
-      rspec.collect do |l|
-	lease_descr = { :name => l[:lease_name], :valid_from => l[:valid_from], :valid_until => l[:valid_until] }
-	lease = find_or_create_lease(lease_descr, authorizer)
+    def update_lease_from_rspec(lease_el, authorizer)
 
-	if lease_descr[:valid_from].eql?('0') && lease_descr[:valid_until] == ('0')
-	  cancel_lease(lease, authorizer)
-	elsif (lease_descr[:valid_from].eql?("#{lease.valid_from}") && lease_descr[:valid_until].eql?("#{lease.valid_until}"))
-	  lease
-	else
+      lease_descr = {:valid_from => lease_el[:valid_from], :valid_until => lease_el[:valid_until]}
+      lease = nil
+
+      unless lease_el[:uuid].nil?
+	lease = find_lease({:uuid => lease_el[:uuid]}, authorizer)
+	if lease.valid_from != lease_descr[:valid_from].to_i || lease.valid_until != lease_descr[:valid_until].to_i
 	  modify_lease(lease_descr, lease, authorizer)
+	else
+	  lease
 	end
-      end.compact
+      else
+	lease_descr[:name] = lease_el[:lease_name]
+	lease = find_or_create_lease(lease_descr, authorizer)
+      end
     end
+
+    # Update the leases described in +leases+. Any lease not already assigned to the
+    # requesting account will be added. If +clean_state+ is true, the state of all described leases 
+    # is set to the state described with all other properties set to their default values. Any leases
+    # not mentioned are canceled. Returns the list
+    # of leases requested or throw an error if ANY of the requested leases isn't available.
+    # 
+    # @param [Element] RSpec fragment describing leases and their properties
+    # @param [Boolean] Set all properties not mentioned to their defaults
+    # @param [Authorizer] Defines context for authorization decisions
+    # @return [Hash{String => OLease}] The leases requested
+    # @raise [UnknownResourceException] if no matching lease can be found
+    # @raise [FormatException] if RSpec elements are not known
+    #        
+    def update_leases_from_rspec(leases, clean_state, authorizer)
+      unless leases.empty?
+	leases = leases.collect do |l|
+	  [l[:lease_name],  update_lease_from_rspec(l, authorizer)] 
+	end.compact 
+	leases = Hash[leases] # { "lease_name" => OLease }
+      end
+      if clean_state
+	# Now free any leases owned by this account but not contained in +leases+
+	all_leases = Set.new
+	unless leases.empty?
+	  leases.values.each {|l| l.all_resources(all_leases)}
+	end
+	unused = find_all_leases_for_account(authorizer.account, authorizer).to_set - all_leases
+	unused.each do |u|
+	  release_lease(u, authorizer)
+	end
+      end
+      leases
+    end
+
 
     ### RESOURCES creating, finding, and releasing resources
 
@@ -364,6 +401,17 @@ module OMF::SFA::AM
       res = OMF::SFA::Resource::OResource.all(:account => account)
       res
     end
+    
+    # Find all components for a specific account.
+    #
+    # @param [OAccount] Account for which to find all associated component
+    # @param [Authorizer] Defines context for authorization decisions
+    # @return [Array<OComponent>] The component requested
+    #        
+    def find_all_components_for_account(account, authorizer)
+      res = OMF::SFA::Resource::OComponent.all(:account => account)
+      res
+    end
 
     # Find or create a resource. If it doesn't exist, is already assigned to 
     # someone else, or cannot be created, throws +UnknownResourceException+.
@@ -383,14 +431,28 @@ module OMF::SFA::AM
 
       #account = authorizer.account
       begin
-	#resource_descr[:account] = account 
+	#resource_descr[:account] = account
+
+	# avoid to include lease description whenever you search for a resource
+	#r_descr = { :name => resource_descr[:name], :account => resource_descr[:account] }
 	return find_resource(resource_descr, authorizer)
       rescue UnknownResourceException
       end
-      #_create_resource(resource_descr, type_to_create, authorizer)
+      create_resource(resource_descr, type_to_create, authorizer)
+    end
+
+    # Create a resource
+    #
+    # @param [Hash] Describing properties of the requested resource
+    # @param [String] Type to create
+    # @param [Authorizer] Defines context for authorization decisions
+    # @return [OResource] The resource requested
+    # @raise [UnknownResourceException] if no resource can be created
+    #
+    def create_resource(resource_descr, type_to_create, authorizer)
       authorizer.can_create_resource?(resource_descr, type_to_create)
       unless resource = @scheduler.create_resource(resource_descr, type_to_create, authorizer)
-	raise UnknownResourceException.new "Resource '#{resource_descr.inspect}' cannot be created"    
+	raise UnknownResourceException.new "Resource '#{resource_descr.inspect}' cannot be created"
       end
       resource
     end
@@ -458,30 +520,30 @@ module OMF::SFA::AM
       leases = nil
       if descr_el.name.downcase == 'rspec'
 	if descr_el.namespaces.values.include?(OL_NAMESPACE)
-	  leases = descr_el.xpath('//ol:lease')
-	  unless leases.empty?
-	    leases = update_leases_from_rspec(leases, clean_state, authorizer)
-	  end
+	  leases = descr_el.xpath('//ol:lease', 'ol' => OL_NAMESPACE)
+	  leases = update_leases_from_rspec(leases, clean_state, authorizer)
 	end
 
-	descr_el.document.remove_namespaces! # If we don't remove the namespaces, we will have to search like this "xpath('//xmlns:node')"
+	# If we don't remove the namespaces, we will have to search like this "xpath('//xmlns:node')"
+	descr_el.document.remove_namespaces! 
+
 	resources = descr_el.xpath('//node').collect do |el|
 	  #debug "create_resources_from_xml::EL: #{el.inspect}"
 	  if el.kind_of?(Nokogiri::XML::Element)
 	    # ignore any text elements
-	    if el[:lease_name].nil?
-	      update_resource_from_rspec(el, nil, clean_state, authorizer) 
-	    else # This node has a lease
-	      lease = leases.find { |l| l[:name].eql?(el[:lease_name]) }
-	      update_resource_from_rspec(el, lease, clean_state, authorizer) 
-	    end
+	    #if el[:lease_name].nil?
+	    #  update_resource_from_rspec(el, nil, clean_state, authorizer) 
+	    #else # This node has a lease
+	    #  lease = leases.find { |l| l[:name].eql?(el[:lease_name]) }
+	    update_resource_from_rspec(el, leases, clean_state, authorizer) 
+	    #end
 	  end
 	end.compact
 	if clean_state
 	  # Now free any resources owned by this account but not contained in +resources+
 	  all_resources = Set.new
 	  resources.each {|r| r.all_resources(all_resources)}
-	  unused = find_all_resources_for_account(authorizer.account, authorizer) - all_resources
+	  unused = find_all_components_for_account(authorizer.account, authorizer) - all_resources
 	  release_resources(unused, authorizer)
 	end
 	return resources
@@ -495,7 +557,7 @@ module OMF::SFA::AM
     # will be created. If +clean_state+ is set to true, all state of a resource not specifically described 
     # will be reset to it's default value. Returns the resource updated.
     # 
-    def update_resource_from_rspec(resource_el, lease, clean_state, authorizer)
+    def update_resource_from_rspec(resource_el, leases, clean_state, authorizer)
       resource = nil 
       if uuid_attr = (resource_el.attributes['uuid'] || resource_el.attributes['idref'])
 	uuid = UUIDTools::UUID.parse(uuid_attr.value)
@@ -507,8 +569,35 @@ module OMF::SFA::AM
 	if uuid = comp_gurn.uuid
 	  resource = find_or_create_resource_for_account({:uuid => uuid}, comp_gurn.type, authorizer)
 	else
-	  resource = find_or_create_resource_for_account({:name => comp_gurn.short_name}, comp_gurn.type, authorizer)
+	  #resource_descr = {:name => comp_gurn.short_name}
+
+	  if resource_el[:lease_name] 
+	    lease_name = resource_el[:lease_name]
+	    resource_descr = {:name => comp_gurn.short_name, :lease => leases[lease_name]}
+	  elsif resource_el[:lease_uuid]
+	    lease = find_lease({:uuid => resource_el[:lease_uuid]}, authorizer)
+	    resource_descr = {:name => comp_gurn.short_name, :lease => lease}
+	  else
+	    resource_descr = {:name => comp_gurn.short_name}
+	  end
+	  r_descr = resource_descr.clone
+	  r_descr.delete(:lease)
+
+	  begin
+	    resource = find_resource(r_descr, authorizer)
+
+	    if resource.leases.first(resource_descr[:lease])
+	      resource
+	    else
+	      resource = modify_resource(resource, resource_descr, authorizer)
+	    end
+	  rescue UnknownResourceException
+	    resource_descr[:account] = authorizer.account
+	    resource = create_resource(resource_descr, comp_gurn.type, authorizer) 
+	  end
+
 	end
+
 	# rescue UnknownResourceException => ex
 	# # let's try the less descriptive 'component_name'
 	# if comp_name_attr = resource_el.attributes['component_name']
@@ -576,7 +665,7 @@ module OMF::SFA::AM
     def release_resource(resource, authorizer)
       authorizer.can_release_resource?(resource)
       @scheduler.release_resource(resource, authorizer)
-      resource.remove_from_all_groups
+      #resource.remove_from_all_groups
 
       # if r.kind_of? OMF::SFA::Resource::CompGroup
       #   # groups don't go back in the pool, they are created per account
@@ -585,7 +674,7 @@ module OMF::SFA::AM
       #   r.account = def_account
       #   r.save
       # end
-      resource.destroy
+      #resource.destroy
     end
 
 
