@@ -30,7 +30,6 @@ describe AMManager do
   end
   
   context 'account' do
-    #let(:auth) { AuthorizerMock.new }
     let(:auth) { double('authorizer') }
 
     before :each do
@@ -193,18 +192,17 @@ describe AMManager do
       valid_until = 1338850800
       auth.should_receive(:can_modify_lease?).with(l1)            
       l2 = manager.modify_lease({:name => 'l1', :valid_from => valid_from, :valid_until => valid_until}, l1, auth)
-      l2.save
       l2.should == l1.reload
       l2.valid_from.should == valid_from
       l2.valid_until.should == valid_until
     end
     
-    it 'can cancel a lease' do
+    it 'can release a lease' do
       auth.should_receive(:can_create_lease?)
       l1 = manager.find_or_create_lease({:name => 'l1'}, auth)
       
-      auth.should_receive(:can_cancel_lease?).with(l1)   
-      manager.cancel_lease(l1, auth)#.should be_true
+      auth.should_receive(:can_release_lease?).with(l1)   
+      manager.release_lease(l1, auth)#.should be_true
     end
 
   end # context - lease
@@ -216,7 +214,6 @@ describe AMManager do
       auth.stub(:account) { account }
       auth    
     end
-  #  let (:manager) { AMManager.new }
     
 
     before :each do
@@ -268,28 +265,37 @@ describe AMManager do
     it 'will create resource from rspec' do
       rspec = %{
         <rspec xmlns="http://www.protogeni.net/resources/rspec/2" xmlns:omf="http://schema.mytestbed.net/sfa/rspec/1" type="request">
-          <node component_name="r1">
+          <node component_id="urn:publicid:IDN+openlab+node+node1" component_name="node1">
             <available now="true"/>
           </node>
         </rspec>
       } 
       req = Nokogiri.XML(rspec)
       
-      vr = OMF::SFA::Resource::Node.new(:name => 'vn')
+      #vr = OMF::SFA::Resource::Node.new(:name => 'vn')
       # vr.stub(:group?).and_return(false)
       # vr.stub(:save)
       # vr.should_receive(:create_from_xml)
       scheduler.stub(:create_resource) do |resource_descr, type_to_create, authorizer|
-        resource_descr[:name].should == 'r1'
-        authorizer.should == auth
-        vr
+	resource_descr[:name].should == 'node1'
+	authorizer.should == auth
+	OMF::SFA::Resource::Node.new(resource_descr)
       end
-      auth.should_receive(:can_create_resource?).with({:name => 'r1', :account => account}, anything)  
+      auth.should_receive(:can_create_resource?).with({:name => 'node1', :account => account}, anything)  
       #auth.should_receive(:can_view_resource?)          
       r = manager.update_resources_from_rspec(req.root, true, auth)
-      r.should == [vr]
+      r.first.should be_instance_of(OMF::SFA::Resource::Node)
     end
-    
+
+    it 'will release a resource' do
+      auth.should_receive(:can_release_resource?).with(@r1)
+
+      scheduler.stub(:release_resource) do |resource, authorizer|
+	resource.destroy
+      end
+      manager.release_resource(@r1, auth)
+    end
+
   end # context - resource
-  
+
 end

@@ -30,6 +30,10 @@ describe OResource do
     OResource.create()
   end
 
+  it 'can destroy a basic resource' do
+    OResource.create().destroy
+  end
+
   it 'assigns a UUID by default' do  
     r = OResource.create()
     r.uuid.should_not be(nil)
