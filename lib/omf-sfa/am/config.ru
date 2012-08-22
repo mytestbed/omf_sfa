@@ -19,6 +19,9 @@ use ::Rack::Lint
 opts = OMF::SFA::AM::Runner.instance.options
 #puts self.methods.sort.inspect
 am_mgr = opts[:am][:manager]
+if am_mgr.is_a? Proc
+  am_mgr = am_mgr.call()
+end
 
 map '/slices' do
   require 'omf-sfa/am/am-rest/account_handler'
@@ -26,15 +29,15 @@ map '/slices' do
 end
 
 
-map "/resources" do
-  require 'omf-sfa/am/am-rest/resource_handler'
-  account = am_mgr.get_default_account()
-  run OMF::SFA::AM::Rest::ResourceHandler.new(am_mgr, opts.merge({:account => account}))
-end
+#map "/resources" do
+#  require 'omf-sfa/am/am-rest/resource_handler'
+#  account = am_mgr.get_default_account()
+#  run OMF::SFA::AM::Rest::ResourceHandler.new(am_mgr, opts.merge({:account => account}))
+#end
 
 map RPC_URL do
   require 'omf-sfa/am/am-rpc/am_rpc_service'
-  service = OMF::SFA::AM::RPC::AMService.new(opts[:am] || {})
+  service = OMF::SFA::AM::RPC::AMService.new({:manager => am_mgr})
   run ::Rack::RPC::Endpoint.new(nil, service, :path => '') #:path => RPC_URL)        
 end
 

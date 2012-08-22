@@ -1,6 +1,8 @@
-
+require 'omf_common/lobject'
 
 module OMF::SFA::AM
+
+  include OMF::Common
   
   # This class implements the decision logic for determining
   # access of a user in a specific context to specific functionality
@@ -29,7 +31,7 @@ module OMF::SFA::AM
           raise FormatException.new "Unknown account format '#{account_id}'"
         end
       else
-        account = get_default_account()
+        account = am_manager._get_nil_account()
       end
       user = nil # TODO: Fix me
       self.new(account, user, am_manager)        

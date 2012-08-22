@@ -225,12 +225,12 @@ module OMF::SFA::AM
     def find_all_leases_for_account(account, authorizer)
       leases = OMF::SFA::Resource::OLease.all(:account => account) 
       leases.map do |l|
-        begin 
-          authorizer.can_view_lease?(l)
-          l
-        rescue InsufficientPrivilegesException
-          nil
-        end
+	begin 
+	  authorizer.can_view_lease?(l)
+	  l
+	rescue InsufficientPrivilegesException
+	  nil
+	end
       end.compact
     end
 
@@ -401,7 +401,7 @@ module OMF::SFA::AM
       res = OMF::SFA::Resource::OResource.all(:account => account)
       res
     end
-    
+
     # Find all components for a specific account.
     #
     # @param [OAccount] Account for which to find all associated component
@@ -732,11 +732,11 @@ module OMF::SFA::AM
     # @param [OAccount] Account for which to find resources
     # @param [Authorizer] Authoization context
     #
-    # def get_resources_for_account(account, authorizer)
-    # OMF::SFA::Resource::OComponent.all(:account => account)
-    # end
-    #     
-    #     
+    #def get_resources_for_account(account)#, authorizer)
+    #  OMF::SFA::Resource::OComponent.all(:account => account)
+    #end
+
+
     def _get_nil_account()
       @scheduler.get_nil_account()
     end

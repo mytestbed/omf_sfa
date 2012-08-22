@@ -8,6 +8,7 @@ require 'openssl'
 require 'tempfile'
 
 require 'omf-sfa/am/am-rpc/abstract_rpc_service'
+require 'omf-sfa/am/authorizer'
 
 require 'omf-sfa/am/am-rpc/am_rpc_api'
 require 'omf-sfa/am/privilege_credential'
@@ -40,6 +41,7 @@ module OMF::SFA::AM::RPC
     end
   
     def list_resources(credentials, options)
+      @authorizer = OMF::SFA::AM::Authorizer.create_for_web_request(@request.env, @manager)
       debug 'ListResources: Options: ', options.inspect
       
       only_available = options["geni_available"]
@@ -124,7 +126,7 @@ module OMF::SFA::AM::RPC
   
     def get_resources(slice_urn, available_only)
 #      begin 
-        resources = @manager.get_resources_for_account(slice_urn)
+        resources = @manager.find_all_components_for_account(slice_urn, @authorizer)
         
         # only list independent resources
         resources = resources.select {|r| r.independent_component?}

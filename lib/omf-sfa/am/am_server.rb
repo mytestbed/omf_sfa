@@ -7,7 +7,8 @@ require 'omf_common/lobject'
 require 'omf_common/load_yaml'
 
 require 'omf-sfa/am/am_runner'
-require 'omf-sfa/am/omf_am_manager'
+require 'omf-sfa/am/am_manager'
+require 'omf-sfa/am/am_scheduler'
 
 
 OMF::Common::Loggable.init_log 'am_server'
@@ -23,7 +24,7 @@ OpenSSL::SSL::SSLContext::DEFAULT_CERT_STORE.add_cert(trusted_cert)
 opts = {
   :port => 8001,
   :am => {
-    :manager => OMF::SFA::AM::OMFManager.new
+    :manager => lambda { OMF::SFA::AM::AMManager.new(OMF::SFA::AM::AMScheduler.new) }
   },
   :ssl => {
     :cert_file => File.expand_path("~/.gcf/am-cert.pem"), 
@@ -43,9 +44,13 @@ def load_test_am
   DataMapper.auto_migrate!
   
   am = @options[:am][:manager]
+  if am.is_a? Proc
+    am = am.call
+  end
 
   require 'omf-sfa/resource/oaccount'
-  account = am.find_or_create_account(:name => 'foo')
+  #account = am.find_or_create_account(:name => 'foo')
+  account = OMF::SFA::Resource::OAccount.new(:name => 'foo')
   
   require 'omf-sfa/resource/node'
   nodes = []
