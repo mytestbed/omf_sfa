@@ -396,7 +396,7 @@ module OMF::SFA::AM
     # @param [Authorizer] Defines context for authorization decisions
     # @return [Array<OResource>] The resource requested
     #        
-    def find_all_resources_for_account(account, authorizer)
+    def find_all_resources_for_account(account = _get_nil_account, authorizer)
       #debug "find_all_resources_for_account: #{account.inspect}"
       res = OMF::SFA::Resource::OResource.all(:account => account)
       res
@@ -408,7 +408,7 @@ module OMF::SFA::AM
     # @param [Authorizer] Defines context for authorization decisions
     # @return [Array<OComponent>] The component requested
     #        
-    def find_all_components_for_account(account, authorizer)
+    def find_all_components_for_account(account = _get_nil_account, authorizer)
       res = OMF::SFA::Resource::OComponent.all(:account => account)
       res
     end
@@ -732,7 +732,7 @@ module OMF::SFA::AM
     # @param [OAccount] Account for which to find resources
     # @param [Authorizer] Authoization context
     #
-    #def get_resources_for_account(account)#, authorizer)
+    #def get_resources_for_account(account, authorizer)
     #  OMF::SFA::Resource::OComponent.all(:account => account)
     #end
 

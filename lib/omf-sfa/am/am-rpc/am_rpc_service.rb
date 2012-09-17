@@ -24,6 +24,9 @@ module OMF::SFA::AM::RPC
     #implement ServiceAPI
     implement AMServiceAPI
 
+    # create an authorizer for every request
+    before_filter :create_auth
+
     def get_version
       debug "GetVersion"
 
@@ -41,9 +44,8 @@ module OMF::SFA::AM::RPC
     end
   
     def list_resources(credentials, options)
-      @authorizer = OMF::SFA::AM::Authorizer.create_for_web_request(@request.env, @manager)
       debug 'ListResources: Options: ', options.inspect
-      
+
       only_available = options["geni_available"]
       compressed = options["geni_compressed"]
       slice_urn = options["geni_slice_urn"]
@@ -124,9 +126,15 @@ module OMF::SFA::AM::RPC
       @manager = opts[:manager]
     end
   
+    def create_auth
+      @authorizer = OMF::SFA::AM::Authorizer.create_for_web_request(@request.env, @manager)
+      puts "Authorizer: #{@authorizer}"
+    end
+
     def get_resources(slice_urn, available_only)
 #      begin 
-        resources = @manager.find_all_components_for_account(slice_urn, @authorizer)
+        account = @manager.find_or_create_account({:urn => slice_urn}, @authorizer)
+        resources = @manager.find_all_components_for_account(account, @authorizer)
         
         # only list independent resources
         resources = resources.select {|r| r.independent_component?}

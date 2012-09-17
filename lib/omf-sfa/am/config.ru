@@ -12,7 +12,7 @@ class MyFile < Rack::File
   end  
 end
 
-use ::Rack::Lint
+use Rack::Lint
 
 #am_mgr = opts[:am][:manager]
 #sleep 10
@@ -23,10 +23,10 @@ if am_mgr.is_a? Proc
   am_mgr = am_mgr.call()
 end
 
-map '/slices' do
-  require 'omf-sfa/am/am-rest/account_handler'
-  run OMF::SFA::AM::Rest::AccountHandler.new(am_mgr, opts)
-end
+#map '/slices' do
+#  require 'omf-sfa/am/am-rest/account_handler'
+#  run OMF::SFA::AM::Rest::AccountHandler.new(am_mgr, opts)
+#end
 
 
 #map "/resources" do
@@ -38,9 +38,13 @@ end
 map RPC_URL do
   require 'omf-sfa/am/am-rpc/am_rpc_service'
   service = OMF::SFA::AM::RPC::AMService.new({:manager => am_mgr})
-  run ::Rack::RPC::Endpoint.new(nil, service, :path => '') #:path => RPC_URL)        
-end
 
+  app = lambda do |env|
+    [404, {"Content-Type" => "text/plain"}, ["Not found"]]
+  end
+
+  run Rack::RPC::Endpoint.new(app, service, :path => '') 
+end
 
 map "/" do
   require 'bluecloth'
@@ -73,7 +77,7 @@ map "/" do
   p = lambda do |env|
   puts "#{env.inspect}"
  
-    return [200, {"Content-Type" => "text/html"}, wrapper % frag] 
+    return [200, {"Content-Type" => "text/html"}, [wrapper % frag]] 
   end
   run p
 end
