@@ -20,12 +20,14 @@ module OMF::SFA::AM::RPC
   
   class AMService < AbstractService
     include OMF::Common::Loggable
+
+    attr_accessor :authorizer
     
     #implement ServiceAPI
     implement AMServiceAPI
 
     # create an authorizer for every request
-    before_filter :create_auth
+    before_filter :create_authorizer
 
     def get_version
       debug "GetVersion"
@@ -50,7 +52,7 @@ module OMF::SFA::AM::RPC
       compressed = options["geni_compressed"]
       slice_urn = options["geni_slice_urn"]
   
-      check_credentials(:ListResources, slice_urn, credentials)
+      @authorizer.check_credentials(:ListResources, slice_urn, credentials)
       resources = get_resources(slice_urn, only_available)
       res = OMF::SFA::Resource::OComponent.sfa_advertisement_xml(resources).to_xml
       if compressed
@@ -61,15 +63,15 @@ module OMF::SFA::AM::RPC
   
     def create_sliver(slice_urn, credentials, rspec_s, users)
       debug 'CreateSliver: SLICE URN: ', slice_urn, ' RSPEC: ', rspec_s, ' USERS: ', users.inspect
-      check_credentials(:CreateSliver, slice_urn, credentials)
-      account = @manager.find_or_create_account(:urn => slice_urn)
+      @authorizer.check_credentials(:CreateSliver, slice_urn, credentials)
+      account = @manager.find_or_create_account({:urn => slice_urn}, @authorizer)
       if account.closed?
         raise "Can't recreate a previously deleted sliver"
       end
       #debug "Slice '#{slice_urn}' associated with account '#{account.id}:#{account.closed_at}'"
 
       rspec = Nokogiri::XML.parse(rspec_s)
-      resources = @manager.update_resources_from_xml(rspec.root, true, {:account => account})
+      resources = @manager.update_resources_from_rspec(rspec.root, true, @authorizer)
 
       # TODO: Still need to implement USER handling
         
@@ -78,8 +80,9 @@ module OMF::SFA::AM::RPC
   
     def sliver_status(slice_urn, credentials)
       debug('SliverStatus for ', slice_urn)
-      check_credentials(:SliverStatus, slice_urn, credentials)
-      account = @manager.find_account(:urn => slice_urn)
+      @authorizer.check_credentials(:SliverStatus, slice_urn, credentials)
+      # OPTIMIZE: we are calling "find_account" again below in "get_resources" method.
+      account = @manager.find_account({:urn => slice_urn}, @authorizer)
       
       status = {}
       status['geni_urn'] = slice_urn
@@ -100,95 +103,68 @@ module OMF::SFA::AM::RPC
     def renew_sliver(slice_urn, credentials, expiration_time)
       debug('RenewSliver ', slice_urn, ' until <', expiration_time.class, '>')          
       debug('RenewSliver ', slice_urn, ' until <', Time.parse(expiration_time), '>')
-      check_credentials(:RenewSliver, slice_urn, credentials)
-      @manager.renew_account_until({:urn => slice_urn}, expiration_time)
+      @authorizer.check_credentials(:RenewSliver, slice_urn, credentials)
+      @manager.renew_account_until({:urn => slice_urn}, expiration_time, @authorizer)
       true
     end
   
+    # close the account and release the attached resources
     def delete_sliver(slice_urn, credentials)
       debug('DeleteSliver ', slice_urn)
-      check_credentials(:DeleteSliver, slice_urn, credentials)
-      account = @manager.delete_account({:urn => slice_urn})
+      @authorizer.check_credentials(:DeleteSliver, slice_urn, credentials)
+      #account = @manager.delete_account({:urn => slice_urn})
+      # We don't like deleting things
+      account = @manager.close_account({:urn => slice_urn}, @authorizer)
       debug "Slice '#{slice_urn}' associated with account '#{account.id}:#{account.closed_at}'"
       true
     end
   
+    # close the account but do not release its resources
     def shutdown_sliver(slice_urn, credentials)
-      check_credentials(:Shutdown, slice_urn, credentials)
-      puts "SLICE URN: #{slice_urn}"
-      true
+      @authorizer.check_credentials(:Shutdown, slice_urn, credentials)
+      #puts "SLICE URN: #{slice_urn}"
+      account = @manager.find_account({:urn => slice_urn}, @authorizer)
+      @authorizer.can_close_account?(account)
+      account.close
+      account.save # it will return true on success
+      #true
     end
-    
+
     private 
-    
+
     def initialize(opts)
       super
       @manager = opts[:manager]
     end
-  
-    def create_auth
-      @authorizer = OMF::SFA::AM::Authorizer.create_for_web_request(@request.env, @manager)
+
+    def create_authorizer
+      @authorizer = OMF::SFA::AM::Authorizer.create_for_web_request(@request, @manager)
       puts "Authorizer: #{@authorizer}"
     end
 
+    # TODO: implement the "available_only" option
     def get_resources(slice_urn, available_only)
-#      begin 
-        account = @manager.find_or_create_account({:urn => slice_urn}, @authorizer)
-        resources = @manager.find_all_components_for_account(account, @authorizer)
-        
-        # only list independent resources
-        resources = resources.select {|r| r.independent_component?}
-        #debug "Resources for '#{slice_urn}' >>> #{resources.inspect}"
-        
+      #      begin 
+      account = @manager.find_or_create_account({:urn => slice_urn}, @authorizer)
+      resources = @manager.find_all_components_for_account(account, @authorizer)
+
+      # only list independent resources
+      resources = resources.select {|r| r.independent_component?}
+      #debug "Resources for '#{slice_urn}' >>> #{resources.inspect}"
+
       # rescue UnavailableResourceException => ex
-        # raise ex
-        # # resources = []
+      # raise ex
+      # # resources = []
       # rescue Exception => ex
-        # error ex
-        # debug "Backtrace\n\t#{ex.backtrace.join("\n\t")}"
-        # raise ex
+      # error ex
+      # debug "Backtrace\n\t#{ex.backtrace.join("\n\t")}"
+      # raise ex
       # end
-      
+
     end
 
-  
-    # Throws exception if credentials XML encoded in +cred_string_a+ 
-    # are *not* sufficient for _action_
-    #
-    def check_credentials(action, slice_urn, cred_string_a)
-      credentials = unmarshall_credentials(cred_string_a)
-      #
-      # TODO: Check policy for +action+
-      # raise NotAuthorizedException.new(99, 'Insufficient credentials')
-      
-      credentials
-    end
-    
-    def unmarshall_credentials(cred_string_a)
-      begin 
-        unless cert_s = @request.env['rack.peer_cert']
-          raise "Missing peer cert"
-        end
-        peer_cert = OMF::SFA::AM::UserCredential.unmarshall(cert_s)
-      end
-      
-      debug "Requester: #{peer_cert.subject} :: #{peer_cert.user_urn}"
-      begin 
-        credentials = cred_string_a.map do |cd|
-          #debug "Credential: ", cd
-          OMF::SFA::AM::PrivilegeCredential.unmarshall(cd)
-        end
-      rescue Exception => ex
-        warn "Error while parsing credentials #{ex}"
-        debug "\t#{ex.backtrace.join("\n\t")}"
-      end
-      debug "Credentials::: #{credentials.inspect}"
-      credentials
-    end
-    
-    
   end # AMService
-  
+
 end # module
 
 
