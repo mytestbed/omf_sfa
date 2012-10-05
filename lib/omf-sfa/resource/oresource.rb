@@ -12,6 +12,7 @@ autoload :OProperty, 'omf-sfa/resource/oproperty'
 autoload :GroupMembership, 'omf-sfa/resource/group_membership'
 autoload :OAccount, 'omf-sfa/resource/oaccount'
 autoload :OGroup, 'omf-sfa/resource/ogroup'
+autoload :OLease, 'omf-sfa/resource/olease'
 
 # module OMF::SFA::Resource
   # class OResource; end
@@ -260,12 +261,14 @@ module OMF::SFA::Resource
     
     def destroy 
       self.remove_from_all_groups
-      if p = self.provided_by
-        pa = p.provides
-        pa.delete self
-        r = p.save
-        i = 0
-      end
+
+      #if p = self.provided_by
+      #  pa = p.provides
+      #  pa.delete self
+      #  r = p.save
+      #  i = 0
+      #end
+
       # first destroy all properties
       self.oproperties.all().each do |p|
         r = p.destroy

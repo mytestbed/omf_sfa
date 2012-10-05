@@ -3,6 +3,7 @@
 require 'omf-sfa/resource/oresource'
 require 'omf-sfa/resource/ogroup'
 require 'omf-sfa/resource/sfa_base'
+require 'omf-sfa/resource/olease'
 
 module OMF::SFA::Resource
   
@@ -23,6 +24,8 @@ module OMF::SFA::Resource
     oproperty :provides, self, :functional => false
     oproperty :provided_by, self
     
+    has n, :component_leases, :child_key => [:component_id]
+    has n, :leases, :model => 'OLease', :through => :component_leases, :via => :lease
 
     extend OMF::SFA::Resource::Base::ClassMethods
     include OMF::SFA::Resource::Base::InstanceMethods
@@ -63,6 +66,33 @@ module OMF::SFA::Resource
     def independent_component?
       true
     end
-    
+
+    def destroy
+      if !self.provides.empty?
+	raise MissingImplementationException("Don't know yet how to delete resource which still provides other resources")
+      end
+      provider = self.provided_by      
+
+      if provider
+	pa = provider.provides
+	pa.delete self
+	# This assumes that base resources can only provide one virtual resource
+	# TODO: This doesn't really test if the provider is a base resource
+	provider.available = true
+	provider.save
+      end
+
+      self.component_leases.each do |l|
+	# unlink the resource with all its leases
+	raise "Couldn't unlink resource with lease: #{l}" unless l.destroy 
+      end
+
+      super
+    end
+
+    def destroy!
+      destroy
+      super
+    end
   end  # OComponent
 end # OMF::SFA::Resource
