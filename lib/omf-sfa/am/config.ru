@@ -12,7 +12,8 @@ class MyFile < Rack::File
   end  
 end
 
-use Rack::Lint
+# There seem to be some issues with teh sfi.py tool
+#use Rack::Lint
 
 #am_mgr = opts[:am][:manager]
 #sleep 10
