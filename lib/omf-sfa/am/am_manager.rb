@@ -413,6 +413,16 @@ module OMF::SFA::AM
       res
     end
 
+    # Find all components
+    #
+    # @return [Array<OComponent>] The components requested
+    #
+    def find_all_components
+      res = OMF::SFA::Resource::OComponent.all
+      res
+    end
+
+
     # Find or create a resource. If it doesn't exist, is already assigned to 
     # someone else, or cannot be created, throws +UnknownResourceException+.
     #

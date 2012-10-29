@@ -2,6 +2,8 @@ require 'omf-sfa/am/credential'
 
 module OMF::SFA::AM
   class PrivilegeCredential < Credential
+
+    attr_reader :privileges
     
     def self.verify_type(type)
       raise "Expected type 'privilege' but got '#{type}'" unless type == 'privilege'
@@ -36,7 +38,8 @@ module OMF::SFA::AM
         pel.children.each do |cel|
           p[cel.name.to_sym] = cel.content
         end
-        @privileges[p.delete(:name)] = p
+	# example: @privileges={"refresh"=>{:can_delegate=>"true"}, "resolve"=>{:can_delegate=>"true"}, "info"=>{:can_delegate=>"true"}}
+        @privileges[p.delete(:name)] = p 
       end
     end
 

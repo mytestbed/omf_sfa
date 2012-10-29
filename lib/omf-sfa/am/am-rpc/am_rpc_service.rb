@@ -47,12 +47,14 @@ module OMF::SFA::AM::RPC
   
     def list_resources(credentials, options)
       debug 'ListResources: Options: ', options.inspect
+      #puts credentials
 
       only_available = options["geni_available"]
       compressed = options["geni_compressed"]
       slice_urn = options["geni_slice_urn"]
+      puts options
   
-      @authorizer.check_credentials(:ListResources, slice_urn, credentials)
+      @authorizer.check_credentials(:ListResources, slice_urn, credentials.first)
       resources = get_resources(slice_urn, only_available)
       res = OMF::SFA::Resource::OComponent.sfa_advertisement_xml(resources).to_xml
       if compressed
@@ -63,11 +65,12 @@ module OMF::SFA::AM::RPC
   
     def create_sliver(slice_urn, credentials, rspec_s, users)
       debug 'CreateSliver: SLICE URN: ', slice_urn, ' RSPEC: ', rspec_s, ' USERS: ', users.inspect
-      @authorizer.check_credentials(:CreateSliver, slice_urn, credentials)
-      account = @manager.find_or_create_account({:urn => slice_urn}, @authorizer)
-      if account.closed?
-        raise "Can't recreate a previously deleted sliver"
-      end
+      #puts credentials
+      @authorizer.check_credentials(:CreateSliver, slice_urn, credentials.first)
+      #account = @manager.find_or_create_account({:urn => slice_urn}, @authorizer)
+      #if account.closed?
+      #  raise "Can't recreate a previously deleted sliver"
+      #end
       #debug "Slice '#{slice_urn}' associated with account '#{account.id}:#{account.closed_at}'"
 
       rspec = Nokogiri::XML.parse(rspec_s)
@@ -81,8 +84,6 @@ module OMF::SFA::AM::RPC
     def sliver_status(slice_urn, credentials)
       debug('SliverStatus for ', slice_urn)
       @authorizer.check_credentials(:SliverStatus, slice_urn, credentials)
-      # OPTIMIZE: we are calling "find_account" again below in "get_resources" method.
-      account = @manager.find_account({:urn => slice_urn}, @authorizer)
       
       status = {}
       status['geni_urn'] = slice_urn
@@ -104,7 +105,7 @@ module OMF::SFA::AM::RPC
       debug('RenewSliver ', slice_urn, ' until <', expiration_time.class, '>')          
       debug('RenewSliver ', slice_urn, ' until <', Time.parse(expiration_time), '>')
       @authorizer.check_credentials(:RenewSliver, slice_urn, credentials)
-      @manager.renew_account_until({:urn => slice_urn}, expiration_time, @authorizer)
+      @manager.renew_account_until(@authorizer.account, expiration_time, @authorizer)
       true
     end
   
@@ -114,7 +115,8 @@ module OMF::SFA::AM::RPC
       @authorizer.check_credentials(:DeleteSliver, slice_urn, credentials)
       #account = @manager.delete_account({:urn => slice_urn})
       # We don't like deleting things
-      account = @manager.close_account({:urn => slice_urn}, @authorizer)
+      # TODO: implement @manager.release_resources_for_account
+      account = @manager.close_account(@authorizer.account, @authorizer)
       debug "Slice '#{slice_urn}' associated with account '#{account.id}:#{account.closed_at}'"
       true
     end
@@ -123,10 +125,7 @@ module OMF::SFA::AM::RPC
     def shutdown_sliver(slice_urn, credentials)
       @authorizer.check_credentials(:Shutdown, slice_urn, credentials)
       #puts "SLICE URN: #{slice_urn}"
-      account = @manager.find_account({:urn => slice_urn}, @authorizer)
-      @authorizer.can_close_account?(account)
-      account.close
-      account.save # it will return true on success
+      account = @manager.close_account(@authorizer.account, @authorizer)
       #true
     end
 
@@ -139,14 +138,16 @@ module OMF::SFA::AM::RPC
 
     def create_authorizer
       @authorizer = OMF::SFA::AM::Authorizer.create_for_web_request(@request, @manager)
-      puts "Authorizer: #{@authorizer}"
     end
 
     # TODO: implement the "available_only" option
     def get_resources(slice_urn, available_only)
-      #      begin 
-      account = @manager.find_or_create_account({:urn => slice_urn}, @authorizer)
-      resources = @manager.find_all_components_for_account(account, @authorizer)
+
+      if slice_urn.nil?
+	resources = @manager.find_all_components
+      else	
+	resources = @manager.find_all_components_for_account(@authorizer.account, @authorizer)
+      end
 
       # only list independent resources
       resources = resources.select {|r| r.independent_component?}

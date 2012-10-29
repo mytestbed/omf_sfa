@@ -5,6 +5,7 @@ module OMF::SFA::AM
   class Credential < OMF::Common::LObject
 
     @@root_certs = '~/.gcf/trusted_roots/CATedCACerts.pem'
+    #@@root_certs = '~/.sfi/trusted_certificates'
     @@xmlsec = 'xmlsec1'
    
     # <?xml version="1.0"?>
@@ -69,7 +70,7 @@ module OMF::SFA::AM
           #debug result
         end 
         unless (result.xpath('/VerificationContext')[0]['status'] == 'succeeded')
-          raise "Error: Signature doesn't verify\n#{@signature.to_xml}"
+          raise "Error: Signature doesn't verify"#\n#{@signature.to_xml}"
         end
           # <Certificate>
           #   <SubjectName>/CN=geni//gpo//gcf.authority.sa</SubjectName>
@@ -101,10 +102,14 @@ module OMF::SFA::AM
       unless el = description_doc.xpath('//credential/owner_urn')[0]
         raise "Missing element 'owner_urn' in credential"
       end
+      #URI:urn:publicid:IDN+topdomain:subdomain+user+pi
+      #@owner_urn = el.content[el.content.index('+')+1..el.content.length]
       @owner_urn = el.content
       unless el = description_doc.xpath('//credential/target_urn')[0]
         raise "Missing element 'target_urn' in credential"
       end
+      #URI:urn:publicid:IDN+topdomain:subdomain+slice+test
+      #@target_urn = el.content[el.content.index('+')+1..el.content.length]
       @target_urn = el.content
       
       @signer_urn = signer_urn

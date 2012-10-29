@@ -14,8 +14,16 @@ require 'omf-sfa/am/am_scheduler'
 OMF::Common::Loggable.init_log 'am_server'
 config = OMF::Common::YAML.load('omf-sfa-am', :path => [File.dirname(__FILE__) + '/../../../etc/omf-sfa'])[:omf_sfa_am]
 
-# Add additional cert roots. Should really come from the config file
+# Add additional cert roots. TODO:Should really come from the config file
 trusted_cert_file = File.expand_path('~/.gcf/trusted_roots/CATedCACerts.pem')
+trusted_cert = OpenSSL::X509::Certificate.new(File.read(trusted_cert_file))
+OpenSSL::SSL::SSLContext::DEFAULT_CERT_STORE.add_cert(trusted_cert)
+
+trusted_cert_file = File.expand_path('~/.sfi/topdomain.subdomain.authority.cred')
+trusted_cert = OpenSSL::X509::Certificate.new(File.read(trusted_cert_file))
+OpenSSL::SSL::SSLContext::DEFAULT_CERT_STORE.add_cert(trusted_cert)
+
+trusted_cert_file = File.expand_path('/etc/sfa/trusted_roots/topdomain.gid')
 trusted_cert = OpenSSL::X509::Certificate.new(File.read(trusted_cert_file))
 OpenSSL::SSL::SSLContext::DEFAULT_CERT_STORE.add_cert(trusted_cert)
 
