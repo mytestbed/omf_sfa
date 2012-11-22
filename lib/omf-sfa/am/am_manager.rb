@@ -406,7 +406,7 @@ module OMF::SFA::AM
       resource
     end    
 
-    # Find a resource which has been assigned to the authoizer's account. 
+    # Find a resource which has been assigned to the authorizer's account. 
     # If it doesn't exist, or is not visible to requester
     # throws +UnknownResourceException+.
     #
@@ -434,7 +434,14 @@ module OMF::SFA::AM
     def find_all_resources_for_account(account = _get_nil_account, authorizer)
       #debug "find_all_resources_for_account: #{account.inspect}"
       res = OMF::SFA::Resource::OResource.all(:account => account)
-      res
+      res.map do |r|
+	begin
+	  authorizer.can_view_resource?(r)
+	  r
+	rescue InsufficientPrivilegesException
+	  nil
+	end
+      end.compact
     end
 
     # Find all components for a specific account.
@@ -443,9 +450,20 @@ module OMF::SFA::AM
     # @param [Authorizer] Defines context for authorization decisions
     # @return [Array<OComponent>] The component requested
     #        
-    def find_all_components_for_account(account = _get_nil_account, authorizer)
-      res = OMF::SFA::Resource::OComponent.all(:account => account)
-      res
+    def find_all_components_for_account(account, authorizer)
+      if account.nil?
+	res = find_all_components
+      else
+	res = OMF::SFA::Resource::OComponent.all(:account => account)
+      end
+      res.map do |r|
+	begin
+	  authorizer.can_view_resource?(r)
+	  r
+	rescue InsufficientPrivilegesException
+	  nil
+	end
+      end.compact
     end
 
     # Find all components
@@ -588,7 +606,7 @@ module OMF::SFA::AM
 	  # Now free any resources owned by this account but not contained in +resources+
 	  all_resources = Set.new
 	  resources.each {|r| r.all_resources(all_resources)}
-	  unused = find_all_components_for_account(authorizer.account, authorizer) - all_resources
+	  unused = all_resources - find_all_components_for_account(authorizer.account, authorizer)
 	  release_resources(unused, authorizer)
 	end
 	return resources
@@ -722,6 +740,17 @@ module OMF::SFA::AM
       #resource.destroy
     end
 
+    #
+    # This method finds all the components of the specific account and
+    # detaches them.
+    #
+    # @param [OAccount] Account who owns the components
+    # @param [Authorizer] Authorization context
+    #
+    def release_all_components_for_account(account, authorizer)
+      components = find_all_components_for_account(account, authorizer)
+      release_resources(components, authorizer)
+    end
 
 
     # This methods deletes components, or more broadly defined, removes them

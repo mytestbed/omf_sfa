@@ -40,7 +40,7 @@ module OMF::SFA::AM
       unless cred.root.name == 'signed-credential'
         raise "Expected 'signed-credential' but got '#{cred.root}'"
       end
-#      puts @doc.to_xml
+      #puts @doc.to_xml
       unless (type_el =  cred.xpath('//credential/type')[0])
         raise "Credential doesn't contain 'type' element"
       end

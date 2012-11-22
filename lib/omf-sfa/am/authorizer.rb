@@ -12,8 +12,25 @@ module OMF::SFA::AM
   #
   class Authorizer < LObject
 
-    # @return [OAccount] The account associated with this instance
+    # @!attribute [r] account
+    #	@return [OAccount] The account associated with this instance
     attr_reader :account
+
+    # @!attribute [r] project
+    #	@return [OProject] The project associated with this account
+    attr_reader :project
+
+    # @!attribute [r] user
+    #	@return [User] The user associated with this membership
+    attr_reader :user
+
+    # @!attribute [r] privileges
+    #	@return [Hash] The privileges associated with this user
+    attr_reader :privileges
+
+    # @!attribute [r] certificate
+    #	@return [Hash] The certificate associated with this caller
+    attr_reader :certificate
 
 
     # Create an instance from the information
@@ -35,42 +52,20 @@ module OMF::SFA::AM
         raise "The certificate has expired or not valid yet. Check the dates."
       end
 
-      #OPTIMIZE: In my view, this is a bootstrapping problem. Should we keep it this way?
-      user_name = peer.user_urn.split('+').last
-      default_account = am_manager._get_nil_account
-      account = am_manager.find_or_create_account({:uuid => peer.user_uuid, :urn => peer.user_urn, :name => user_name}, self.new(default_account, am_manager))
-      #account = OAccount.first_or_create({:uuid => peer_cert.uuid}, {:urn => peer_cert.urn}, {:valid_until => peer_cert.not_after})
-      account.valid_until = peer.cert.not_after
-      account.save
+      #user_name = peer.user_urn.split('+').last
 
-      puts account.inspect
-      self.new(account, am_manager)
-
-      #if account_id = req.env[:account_id]
-      #  if uuid_m = account_id.match(/^urn:uuid:(.*)/)
-      #    #uuid = UUIDTools::UUID.parse(uuid_m[1])
-      #    uuid = uuid_m[1]
-      #    unless account = am_manager.get_account(uuid)
-      #      raise UnknownAccountException.new "Unknown account with uuid '#{uuid}'"
-      #    end
-      #    if account.closed?
-      #      raise ClosedAccountException.new 
-      #    end
-      #  else
-      #    raise FormatException.new "Unknown account format '#{account_id}'"
-      #  end
-      #else
-      #  account = am_manager._get_nil_account()
-      #end
-      #user = nil # TODO: Fix me
-      #self.new(account, user, am_manager)        
+      # XXX: bootstraping problem here. We have to create a user but we have not created the authorizer nor we have the credentials of the caller. 
+      user = am_manager.find_or_create_user({:uuid => peer.user_uuid, :urn => peer.user_urn})
+      self.new(user, peer.cert)
     end
 
     # Throws exception if credentials XML encoded in +cred_string_a+
     # are *not* sufficient for _action_
     #
-    def check_credentials(action, slice_urn, cred_string_a)
+    def check_credentials(slice_urn, cred_string_a, am_manager)
       credentials = unmarshall_credentials(cred_string_a)
+
+      #@privileges = credentials.privileges
 
       #puts "slice urn: #{credentials.slice_urn}"
       #puts "user urn: #{credentials.user_urn}"
@@ -95,24 +90,46 @@ module OMF::SFA::AM
       # (user or slice). 
       # See https://www.protogeni.net/trac/protogeni/wiki/ReferenceImplementationPrivileges for more information on ProtoGENI privileges.
 
-      raise "User urn mismatch in certificate and credentials" unless account.urn.eql?(credentials.user_urn)
+      raise "User urn mismatch in certificate and credentials" unless @user.urn.eql?(credentials.user_urn)
 
-      raise "Slice urn mismatch in XML call and credentials" unless slice_urn.nil? || slice_urn.eql?(credentials.slice_urn)
+      # FIXME: target_urn is not always the slice. 
+      raise "Slice urn mismatch in XML call and credentials" unless slice_urn.nil? || slice_urn.eql?(credentials.target_urn)
 
-      case action
-      when :ListResources 
-	unless slice_urn.nil? || credentials.privileges["info"]
-          raise InsufficientPrivilegesException.new "Insufficient credentials"
-	end
-      when :CreateSliver
-      else
-	raise "Uknown Method Called"
+      # XXX: as administrators we must be able to create accounts without authorizer. The other approach is to have already an authorizer for nil account with full privileges...
+      unless slice_urn.nil?
+	account_descr = { :urn => slice_urn }
+	@account = am_manager.find_or_create_account(account_descr, self)
+	# XXX: decide where/when to create the Project. Right now we are creating it along with the account in the above method
+	@project = @account.project
       end
-
-      credentials
     end
 
     def unmarshall_credentials(cred_string_a)
+      credentials = OMF::SFA::AM::PrivilegeCredential.unmarshall(cred_string_a)
+      # urn:publicid:IDN+topdomain:subdomain+slice+test
+      cred_type = credentials.target_urn.split('+')[2] # it should be one of "slice" or "user"
+
+      @permissions = {}
+
+      if cred_type.eql?('slice')
+	@permissions['can_create_account'] = true if credentials.privileges.has_key?('control')
+	@permissions['can_view_account'] = true if credentials.privileges.has_key?('info')
+	@permissions['can_renew_account'] = true if credentials.privileges.has_key?('refresh')
+	@permissions['can_close_account'] = true if credentials.privileges.has_key?('control')
+      end
+
+      @permissions['can_create_resource'] = true if credentials.privileges.has_key?('refresh')
+      @permissions['can_view_resource'] = true if credentials.privileges.has_key?('info')
+      @permissions['can_release_resource'] = true if credentials.privileges.has_key?('refresh')
+
+      @permissions['can_create_lease'] = true if credentials.privileges.has_key?('refresh')
+      @permissions['can_view_lease'] = true if credentials.privileges.has_key?('info')
+      @permissions['can_modify_lease'] = true if credentials.privileges.has_key?('refresh')
+      @permissions['can_release_lease'] = true if credentials.privileges.has_key?('refresh')
+
+      #puts @permissions
+
+
       #begin
       #  unless cert_s = @request.env['rack.peer_cert']
       #    raise "Missing peer cert"
@@ -133,28 +150,25 @@ module OMF::SFA::AM
       #  debug "\t#{ex.backtrace.join("\n\t")}"
       #end
       #debug "Credentials::: #{credentials.inspect}"
-      #credentials
-      OMF::SFA::AM::PrivilegeCredential.unmarshall(cred_string_a)
+      credentials
     end
 
     ##### ACCOUNT
 
     def can_create_account?
-      return true
       unless @permissions['can_create_account']
         raise InsufficientPrivilegesException.new
       end
     end
     
     def can_view_account?(account)
-      return true
       unless @permissions['can_view_account']
         raise InsufficientPrivilegesException.new
       end
     end
     
     def can_renew_account?(account, expiration_time)
-      unless @permissions['can_renew_account']
+      unless @permissions['can_renew_account'] && expiration_time <= @certificate.not_after
         raise InsufficientPrivilegesException.new
       end
     end
@@ -168,14 +182,12 @@ module OMF::SFA::AM
     ##### RESOURCE
 
     def can_create_resource?(resource_descr, type)
-      return true
       unless @permissions['can_create_resource']
         raise InsufficientPrivilegesException.new
       end
     end
 
     def can_view_resource?(resource)
-      return true
       unless @permissions['can_view_resource']
         raise InsufficientPrivilegesException.new
       end
@@ -187,6 +199,32 @@ module OMF::SFA::AM
       end
     end
     
+    ##### LEASE
+
+    def can_create_lease?(lease)
+      unless @permissions['can_create_lease']
+	raise InsufficientPrivilegesException.new
+      end
+    end
+
+    def can_view_lease?(lease)
+      unless @permissions['can_view_lease']
+	raise InsufficientPrivilegesException.new
+      end
+    end
+    
+    def can_modify_lease?(lease)
+      unless @permissions['can_modify_lease']
+	raise InsufficientPrivilegesException.new
+      end
+    end
+    
+    def can_release_lease?(lease)
+      unless @permissions['can_release_lease']
+	raise InsufficientPrivilegesException.new
+      end
+    end
+
     protected
 
     #def initialize(account, permissions = {})
@@ -194,9 +232,14 @@ module OMF::SFA::AM
     #  @permissions = permission
     #end
 
-    def initialize(account, am_manager)
-      @am_manager = am_manager 
-      @account = account
+    #def initialize(account, am_manager)
+    #  @am_manager = am_manager 
+    #  @account = account
+    #end
+
+    def initialize(user, certificate)
+      @user = user
+      @certificate = certificate
     end
 
   end

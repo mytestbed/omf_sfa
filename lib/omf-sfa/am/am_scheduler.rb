@@ -50,10 +50,6 @@ module OMF::SFA::AM
 	raise "Expected OResource but got '#{resource.inspect}"
       end
 
-      unless resource.account == authorizer.account
-	raise InsufficientPrivilegesException.new("Can only release account owner's resource")
-      end
-      
       resource = resource.destroy!
       raise "Failed to destroy resource" unless resource
       resource

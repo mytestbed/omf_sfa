@@ -9,9 +9,10 @@ module OMF::SFA::AM
       raise "Expected type 'privilege' but got '#{type}'" unless type == 'privilege'
     end
     
-    def slice_urn
-      target_urn
-    end
+    #target_urn doesn't contain always a slice... it can contain also user+pi...
+    #def slice_urn
+    #  target_urn
+    #end
     
     def user_urn
       owner_urn
