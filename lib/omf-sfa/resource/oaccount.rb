@@ -2,6 +2,7 @@
 require 'time'
 require 'omf-sfa/resource/oresource'
 require 'omf-sfa/resource/ocomponent'
+require 'omf-sfa/resource/project'
 
 module OMF::SFA::Resource
   
@@ -26,6 +27,7 @@ module OMF::SFA::Resource
 
 
     has n, :active_components, :model => 'OResource', :child_key  => [ :account_id ], :required => false
+    belongs_to :project, :required => false
 
     def active?
       return false unless self.closed_at.nil?

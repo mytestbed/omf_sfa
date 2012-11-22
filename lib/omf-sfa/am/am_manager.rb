@@ -80,6 +80,8 @@ module OMF::SFA::AM
       end
       authorizer.can_create_account?
       account = OMF::SFA::Resource::OAccount.create(account_descr)
+      project = OMF::SFA::Resource::Project.create
+      account.project = project
       raise UnavailableResourceException.new "Cannot create '#{account_descr.inspect}'" unless account 
       account
     end
@@ -151,6 +153,7 @@ module OMF::SFA::AM
       account = find_active_account(account_descr, authorizer)
       authorizer.can_renew_account?(account, expiration_time)
       account.valid_until = expiration_time
+      account.save
       account
     end
 
@@ -176,6 +179,38 @@ module OMF::SFA::AM
       account.close
       account.save
       account
+    end
+
+    ### USERS
+    
+    # Return the user described by +user_descr+. Create if it doesn't exist.
+    #
+    # @param [Hash] properties of user
+    # @return [User] The requested user
+    # @raise [UnknownResourceException] if requested user cannot be created
+    #
+    def find_or_create_user(user_descr)
+      debug "find_or_create_user: '#{user_descr.inspect}'"
+      begin
+	return find_user(user_descr)
+      rescue UnavailableResourceException
+      end
+      user = OMF::SFA::Resource::User.create(user_descr)
+      raise UnavailableResourceException.new "Cannot create '#{user_descr.inspect}'" unless user 
+      user
+    end
+
+    # Return the user described by +user_descr+.
+    #
+    # @param [Hash] properties of user
+    # @return [User] The requested user
+    # @raise [UnknownResourceException] if requested user cannot be found
+    #
+    def find_user(user_descr)
+      unless user = OMF::SFA::Resource::User.first(user_descr)
+	raise UnavailableResourceException.new "Unknown user '#{user_descr.inspect}'"
+      end
+      user
     end
 
     ### LEASES: creating, finding, and releasing leases

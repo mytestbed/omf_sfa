@@ -24,6 +24,25 @@ describe OAccount do
   it 'can create an account with a urn if it doesnt exist yet' do
     a = OAccount.first_or_create(:urn => "urn:publicid:IDN+geni:gpo:gcf+slice+5d9d-4fb:127.0.0.1%3A8000")
   end
+
+  it 'will return nil if no account found' do
+    a = OAccount.first(:urn => "urn:publicid:IDN+geni:gpo:gcf+slice+test")
+    a.should be_nil
+  end
+
+  it 'can create and find by urn' do
+
+    init_dm
+
+    a = OAccount.create(:urn => "urn:publicid:IDN+geni:gpo:gcf+slice+5d9d-4fb:127.0.0.1%3A8000")
+    b = OAccount.create(:urn => "urn:publicid:IDN+geni:gpo:gcf+slice+__test__")
+    
+    aa = OAccount.first(:urn => "urn:publicid:IDN+geni:gpo:gcf+slice+5d9d-4fb:127.0.0.1%3A8000")
+    bb = OAccount.first(:urn => "urn:publicid:IDN+geni:gpo:gcf+slice+__test__")
+
+    a.should == aa
+    b.should == bb
+  end
   
   it 'can create and find by a name' do
     a = OAccount.create(:name => 'fooBar') 
