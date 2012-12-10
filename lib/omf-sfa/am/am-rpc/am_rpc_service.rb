@@ -4,15 +4,13 @@ require 'time'
 require 'zlib'
 require 'base64'
 require 'openssl'
-#require 'xmlsec'
-require 'tempfile'
 
 require 'omf-sfa/am/am-rpc/abstract_rpc_service'
-require 'omf-sfa/am/authorizer'
+require 'omf-sfa/am/am-rpc/am_authorizer'
 
 require 'omf-sfa/am/am-rpc/am_rpc_api'
-require 'omf-sfa/am/privilege_credential'
-require 'omf-sfa/am/user_credential'
+#require 'omf-sfa/am/privilege_credential'
+#require 'omf-sfa/am/user_credential'
 
 module OMF::SFA::AM::RPC
 
@@ -26,62 +24,51 @@ module OMF::SFA::AM::RPC
     #implement ServiceAPI
     implement AMServiceAPI
 
-    # create an authorizer for every request
-    before_filter :create_authorizer
-
     def get_version
       debug "GetVersion"
-
       {
-	:geni_api => 1,
-	:omf_am => "0.1",
-	:ad_rspec_versions => [{ 
-	  :type => 'ProtoGENI',
-	  :version => '2',
-	  :namespace => 'http://www.protogeni.net/resources/rspec/2',
-	  :schema => 'http://www.protogeni.net/resources/rspec/2/ad.xsd',
-	  :extensions => []
-	}]
+      	:geni_api => 1,
+      	:omf_am => "0.1",
+      	:ad_rspec_versions => [{ 
+      	  :type => 'ProtoGENI',
+      	  :version => '2',
+      	  :namespace => 'http://www.protogeni.net/resources/rspec/2',
+      	  :schema => 'http://www.protogeni.net/resources/rspec/2/ad.xsd',
+      	  :extensions => []
+      	}]
       }
     end
 
     def list_resources(credentials, options)
       debug 'ListResources: Options: ', options.inspect
-      #puts credentials
 
       only_available = options["geni_available"]
       compressed = options["geni_compressed"]
       slice_urn = options["geni_slice_urn"]
-      #puts options
 
-      @authorizer.check_credentials(slice_urn, credentials.first, @manager)
-      resources = @manager.find_all_components_for_account(@authorizer.account, @authorizer)
+      authorizer = OMF::SFA::AM::RPC::AMAuthorizer.create_for_web_request(slice_urn, credentials, @request, @manager)
+      #@authorizer.check_credentials(slice_urn, credentials.first, @manager)
+      resources = @manager.find_all_components_for_account(authorizer.account, authorizer)
       # TODO: implement the "available_only" option
 
-      # only list independent resources
+      # only list independent resources (TODO: What does this mean??)
       resources = resources.select {|r| r.independent_component?}
       #debug "Resources for '#{slice_urn}' >>> #{resources.inspect}"
 
       res = OMF::SFA::Resource::OComponent.sfa_advertisement_xml(resources).to_xml
       if compressed
-	res = Base64.encode64(Zlib::Deflate.deflate(res))
+	      res = Base64.encode64(Zlib::Deflate.deflate(res))
       end
       res
     end
 
     def create_sliver(slice_urn, credentials, rspec_s, users)
       debug 'CreateSliver: SLICE URN: ', slice_urn, ' RSPEC: ', rspec_s, ' USERS: ', users.inspect
-      #puts credentials
-      puts users
-      @authorizer.check_credentials(slice_urn, credentials.first, @manager)
-      #account = @manager.find_or_create_account({:urn => slice_urn}, @authorizer)
-      #if account.closed?
-      #  raise "Can't recreate a previously deleted sliver"
-      #end
-      #debug "Slice '#{slice_urn}' associated with account '#{account.id}:#{account.closed_at}'"
-
+      #@authorizer.check_credentials(slice_urn, credentials.first, @manager)
+      authorizer = OMF::SFA::AM::RPC::AMAuthorizer.create_for_web_request(slice_urn, credentials, @request, @manager)
+      
       rspec = Nokogiri::XML.parse(rspec_s)
-      resources = @manager.update_resources_from_rspec(rspec.root, true, @authorizer)
+      resources = @manager.update_resources_from_rspec(rspec.root, true, authorizer)
 
       # TODO: Still need to implement USER handling
 
@@ -90,54 +77,60 @@ module OMF::SFA::AM::RPC
 
     def sliver_status(slice_urn, credentials)
       debug('SliverStatus for ', slice_urn)
-      @authorizer.check_credentials(slice_urn, credentials.first, @manager)
-
+      #@authorizer.check_credentials(slice_urn, credentials.first, @manager)
+      authorizer = OMF::SFA::AM::RPC::AMAuthorizer.create_for_web_request(slice_urn, credentials, @request, @manager)
+      
       status = {}
       status['geni_urn'] = slice_urn
       # Any of the following configuring, ready, failed, and unknown
       status['geni_status'] = 'unknown'
-      status['omf_expires_at'] = @authorizer.account.valid_until.utc.strftime('%Y%m%d%H%M%SZ')
+      status['omf_expires_at'] = authorizer.account.valid_until.utc.strftime('%Y%m%d%H%M%SZ')
 
-      resources = @manager.find_all_components_for_account(@authorizer.account, @authorizer)
+      resources = @manager.find_all_components_for_account(authorizer.account, authorizer)
       # only list independent resources
       resources = resources.select {|r| r.independent_component?}
       status['geni_resources'] = resources.collect do |r|
-	{
-	  'geni_urn'=> r.urn,
-	  'geni_status' => r.status,
-	  'geni_error' => '',          
-	}
+      	{
+      	  'geni_urn'=> r.urn,
+      	  'geni_status' => r.status,
+      	  'geni_error' => '',          
+      	}
       end
-
       status
     end
 
     def renew_sliver(slice_urn, credentials, expiration_time)
-      debug('RenewSliver ', slice_urn, ' until <', expiration_time.class, '>')          
-      debug('RenewSliver ', slice_urn, ' until <', Time.parse(expiration_time), '>')
-      @authorizer.check_credentials(slice_urn, credentials.first, @manager)
-      @manager.renew_account_until({ :urn => slice_urn }, Time.parse(expiration_time), @authorizer)
+      #debug('RenewSliver ', slice_urn, ' until <', expiration_time.to_time.class, '>') 
+      expiration_time = expiration_time.to_time # is XMLRP::DateTime         
+      debug('RenewSliver ', slice_urn, ' until <', expiration_time, '>')
+      #authorizer.check_credentials(slice_urn, credentials.first, @manager)
+      authorizer = OMF::SFA::AM::RPC::AMAuthorizer.create_for_web_request(slice_urn, credentials, @request, @manager)
+      
+      @manager.renew_account_until({ :urn => slice_urn }, expiration_time, authorizer)
       true
     end
 
     # close the account and release the attached resources
     def delete_sliver(slice_urn, credentials)
       debug('DeleteSliver ', slice_urn)
-      @authorizer.check_credentials(slice_urn, credentials.first, @manager)
-      #account = @manager.delete_account({:urn => slice_urn})
+      #@authorizer.check_credentials(slice_urn, credentials.first, @manager)
+      authorizer = OMF::SFA::AM::RPC::AMAuthorizer.create_for_web_request(slice_urn, credentials, @request, @manager)
+
       # We don't like deleting things
-      # TODO: implement @manager.release_resources_for_account
-      account = @manager.close_account({ :urn => slice_urn }, @authorizer)
-      @manager.release_all_components_for_account(account, @authorizer)
+      account = @manager.close_account({ :urn => slice_urn }, authorizer)
+      # TODO: Should this really be here? Seems to be the job of the AM manager.
+      @manager.release_all_components_for_account(account, authorizer)
       debug "Slice '#{slice_urn}' associated with account '#{account.id}:#{account.closed_at}'"
       true
     end
 
     # close the account but do not release its resources
     def shutdown_sliver(slice_urn, credentials)
-      @authorizer.check_credentials(slice_urn, credentials.first, @manager)
+      #@authorizer.check_credentials(slice_urn, credentials.first, @manager)
+      authorizer = OMF::SFA::AM::RPC::AMAuthorizer.create_for_web_request(slice_urn, credentials, @request, @manager)
+      
       #puts "SLICE URN: #{slice_urn}"
-      account = @manager.close_account({ :urn => slice_urn }, @authorizer)
+      account = @manager.close_account({ :urn => slice_urn }, authorizer)
       true
     end
 
@@ -146,34 +139,6 @@ module OMF::SFA::AM::RPC
     def initialize(opts)
       super
       @manager = opts[:manager]
-    end
-
-    def create_authorizer
-      @authorizer = OMF::SFA::AM::Authorizer.create_for_web_request(@request, @manager)
-    end
-
-    # TODO: implement the "available_only" option
-    def get_resources(slice_urn, available_only)
-
-      if slice_urn.nil?
-	resources = @manager.find_all_components
-      else	
-	resources = @manager.find_all_components_for_account(@authorizer.account, @authorizer)
-      end
-
-      # only list independent resources
-      resources = resources.select {|r| r.independent_component?}
-      #debug "Resources for '#{slice_urn}' >>> #{resources.inspect}"
-
-      # rescue UnavailableResourceException => ex
-      # raise ex
-      # # resources = []
-      # rescue Exception => ex
-      # error ex
-      # debug "Backtrace\n\t#{ex.backtrace.join("\n\t")}"
-      # raise ex
-      # end
-
     end
 
   end # AMService

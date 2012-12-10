@@ -185,6 +185,9 @@ module OMF::SFA::AM
     
     # Return the user described by +user_descr+. Create if it doesn't exist.
     #
+    # Note: This is an unprivileged  operation as creating a user doesn't imply anything
+    # else beyond opening a record.
+    #
     # @param [Hash] properties of user
     # @return [User] The requested user
     # @raise [UnknownResourceException] if requested user cannot be created
@@ -201,6 +204,9 @@ module OMF::SFA::AM
     end
 
     # Return the user described by +user_descr+.
+    #
+    # Note: This is an unprivileged  operation as creating a user doesn't imply anything
+    # else beyond opening a record.
     #
     # @param [Hash] properties of user
     # @return [User] The requested user

@@ -58,9 +58,10 @@ module OMF::Common
     #  * :searchPath - Array of directories to look for 'fileName'
     #
     def self.init_log(appName, opts = {})
-  	  
-      @@logger = ::Log4r::Logger.new(appName)
+      
+      #@@logger = ::Log4r::Logger.new(appName)
       set_environment(opts[:environment] || 'development')
+      @@logger = ::Log4r::Logger.new(@@rootLoggerName)
       
       configFile = opts[:configFile]
       if (configFile == nil && logEnv = opts[:env])
@@ -82,10 +83,6 @@ module OMF::Common
       end
       #puts "config file '#{configFile}'"
       if !(configFile || '').empty?
-        # if (appInstance == nil)
-          # appInstance = DateTime.now.strftime("%F-%T").split(':').join('-')
-        # end
-        # ::Log4r::Configurator['appInstance'] = opts[:appInstance] || 'default'
         ::Log4r::Configurator['appName'] = appName
         begin
           ycfg = YAML.load_file(configFile)
@@ -98,7 +95,12 @@ module OMF::Common
         end
       else
         # set default behavior
-        @@logger.outputters = ::Log4r::Outputter.stdout
+        ::Log4r::Logger.global.level = ::Log4r::ALL
+        formatter = ::Log4r::PatternFormatter.new(:pattern => "%l %c: %m")
+        ::Log4r::StdoutOutputter.new('console', :formatter => formatter)
+        @@logger.add 'console'
+        #@@logger.outputters = ::Log4r::StdoutOutputter.new('console') #Outputter.stdout
+        ##@@logger.outputters = ::Log4r::Outputter.stdout
       end
     end
     
@@ -112,10 +114,7 @@ module OMF::Common
     end
   
     def self.logger(category)
-      unless @@logger
-        self.init_log('unknown')
-        self.logger('logging').warn("Logging was not initialised")
-      end
+      raise "Logger not initialized" unless @@logger
 
       name = "#{@@rootLoggerName}::#{category}"
       logger = Log4r::Logger[name]
@@ -151,9 +150,12 @@ module OMF::Common
     end
 
     def _logger(category = nil)
-      unless @logger && category.nil?
-        category ||= self.class.to_s 
-        @logger = OMF::Common::Loggable.logger(category)
+      unless @logger #&& category.nil?
+        cat = self.is_a?(Class) ? self.to_s + 'Class' : self.class.to_s 
+        if category
+          cat = "#{cat}-#{category}"
+        end
+        @logger = OMF::Common::Loggable.logger(cat)
       end
       return @logger
     end

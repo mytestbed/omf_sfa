@@ -92,7 +92,12 @@ module OMF::SFA::AM
 
     attr_reader :owner_urn
     attr_reader :target_urn    
-    attr_reader :signer_urn        
+    attr_reader :signer_urn 
+
+    def valid_at?(time = Time.now)
+      puts ">>>> #{valid_until}"
+      time < @valid_until     
+    end
 
     protected
     
@@ -111,6 +116,11 @@ module OMF::SFA::AM
       #URI:urn:publicid:IDN+topdomain:subdomain+slice+test
       #@target_urn = el.content[el.content.index('+')+1..el.content.length]
       @target_urn = el.content
+
+      unless el = description_doc.xpath('//credential/expires')[0]
+        raise "Missing element 'expires' in credential"
+      end
+      @valid_until = Time.parse(el.content)
       
       @signer_urn = signer_urn
     end

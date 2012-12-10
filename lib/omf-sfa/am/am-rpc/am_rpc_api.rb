@@ -1,4 +1,4 @@
-
+ 
 module OMF::SFA::ServiceAPI
   Struct.new("MethodDescription", :rpc_name, :method_name, :opts)
   

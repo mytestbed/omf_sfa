@@ -17,24 +17,12 @@ end
 
 #am_mgr = opts[:am][:manager]
 #sleep 10
-opts = OMF::SFA::AM::Runner.instance.options
+opts = OMF::Common::Thin::Runner.instance.options
 #puts self.methods.sort.inspect
 am_mgr = opts[:am][:manager]
 if am_mgr.is_a? Proc
   am_mgr = am_mgr.call()
 end
-
-#map '/slices' do
-#  require 'omf-sfa/am/am-rest/account_handler'
-#  run OMF::SFA::AM::Rest::AccountHandler.new(am_mgr, opts)
-#end
-
-
-#map "/resources" do
-#  require 'omf-sfa/am/am-rest/resource_handler'
-#  account = am_mgr.get_default_account()
-#  run OMF::SFA::AM::Rest::ResourceHandler.new(am_mgr, opts.merge({:account => account}))
-#end
 
 map RPC_URL do
   require 'omf-sfa/am/am-rpc/am_rpc_service'

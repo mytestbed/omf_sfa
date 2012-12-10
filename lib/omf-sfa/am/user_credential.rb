@@ -7,7 +7,7 @@ module OMF::SFA::AM
 
     include OMF::SFA::Resource
     
-    attr_reader :user_urn, :user_uuid, :cert
+    attr_reader :user_urn, :user_uuid
 
     def self.unmarshall(cert_s)
       cert = OpenSSL::X509::Certificate.new(cert_s)
@@ -22,7 +22,7 @@ module OMF::SFA::AM
       @cert = cert
 
       @cert.extensions.each do |e|
-	if e.oid == 'subjectAltName'
+  if e.oid == 'subjectAltName'
 	  #URI:urn:publicid:IDN+topdomain:subdomain+user+pi, URI:urn:uuid:759ae077-2fda-4d02-8921-ab0235a09920
 	  e.value.split('URI:').each do |u|
 	    @user_urn = u.chomp(', ') if u.start_with?('urn:publicid:IDN')
@@ -44,6 +44,11 @@ module OMF::SFA::AM
     
     def subject 
       @cert.subject
+    end
+    
+    def valid_at?(time = Time.now)
+      debug "valid?  #{@cert.not_before} < #{time} < #{@cert.not_after}"
+      time > @cert.not_before  && time < @cert.not_after      
     end
     
   end # UserCredential
