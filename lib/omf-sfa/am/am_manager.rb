@@ -640,7 +640,12 @@ module OMF::SFA::AM
 	else
 	  #resource_descr = {:name => comp_gurn.short_name}
 
-	  if resource_el[:lease_name] 
+	  # lease elements come with 2 basic attributes. "lease_name" is
+	  # being set arbitrary by the user whenever he wants to create a new lease
+	  # whereas "lease_uuid" is being set by the AM after accepting a lease 
+	  # creation. The uuid is being used by the user as a reference for modifying 
+	  # the corresponding lease.
+	  if resource_el[:lease_name] # create a lease
 	    lease_name = resource_el[:lease_name]
 	    resource_descr = {:name => comp_gurn.short_name, :lease => leases[lease_name]}
 	  elsif resource_el[:lease_uuid]
@@ -649,15 +654,24 @@ module OMF::SFA::AM
 	  else
 	    resource_descr = {:name => comp_gurn.short_name}
 	  end
+
+      # we need to find if the user changed the lease of this resource. For
+	  # that, we are going to use a duplicate description of our resource
+	  # excluding the lease specification.
 	  r_descr = resource_descr.clone
 	  r_descr.delete(:lease)
 
 	  begin
+		# find the resource, using the description which doesn't specify the
+		# lease information
 	    resource = find_resource(r_descr, authorizer)
 
+		# if this resource has the same lease as the one specified in the
+		# RSpecs, then return it as it is because the user hasn't modified it
 	    if resource.leases.first(resource_descr[:lease])
 	      resource
 	    else
+		  # Update the lease of this resource
 	      resource = modify_resource(resource, resource_descr, authorizer)
 	    end
 	  rescue UnknownResourceException
