@@ -3,10 +3,20 @@ require "#{File.dirname(__FILE__)}/common"
 require 'omf-sfa/am/am_manager'
 require 'omf-sfa/resource'
 require "rspec/expectations"
+require 'omf_common/lobject'
+require 'omf_common/load_yaml'
 
 include OMF::SFA::AM
 
+def init_logger
+  OMF::Common::Loggable.init_log 'am_manager', :searchPath => File.join(File.dirname(__FILE__), 'am_manager')
+  @config = OMF::Common::YAML.load('omf-sfa-am', :path => [File.dirname(__FILE__) + '/../../etc/omf-sfa'])[:omf_sfa_am]
+end
+
 describe AMManager do
+
+  init_logger
+
   before :all do
     init_dm
   end
@@ -16,8 +26,9 @@ describe AMManager do
     scheduler.stub(:get_nil_account).and_return(nil)
     scheduler 
   end
+
   let (:manager) { AMManager.new(scheduler) }
-  
+
   context 'instance' do
     it 'can create an AM Manager' do
       manager
@@ -48,12 +59,10 @@ describe AMManager do
              
       auth.should_receive(:can_view_account?).with(kind_of(OMF::SFA::Resource::OAccount))      
       a2 = manager.find_or_create_account({:name => 'a'}, auth)
-      a2.reload      
       a1.should == a2
       
       auth.should_receive(:can_view_account?).with(kind_of(OMF::SFA::Resource::OAccount))      
       a3 = manager.find_account({:name => 'a'}, auth)
-      a3.reload
       a1.should == a3
     end
     
@@ -136,22 +145,20 @@ describe AMManager do
         
     it 'can create lease' do
       auth.should_receive(:can_create_lease?)
-      lease = manager.find_or_create_lease({:name => 'l1', :valid_from => Time.now, :valid_until => Time.now + 100}, auth) 
+      lease = manager.find_or_create_lease({:name => 'l1'}, {:valid_from => Time.now, :valid_until => Time.now + 100}, auth) 
       lease.should be_a(OMF::SFA::Resource::OLease)
     end
 
     it 'can find created lease' do
       auth.should_receive(:can_create_lease?)
-      a1 = manager.find_or_create_lease({:name => 'l1'}, auth)
+      a1 = manager.find_or_create_lease({:name => 'l1'}, {}, auth)
              
       auth.should_receive(:can_view_lease?).with(kind_of(OMF::SFA::Resource::OLease))      
-      a2 = manager.find_or_create_lease({:name => 'l1'}, auth)
-      a2.reload      
+      a2 = manager.find_or_create_lease({:name => 'l1'}, {}, auth)
       a1.should == a2
       
       auth.should_receive(:can_view_lease?).with(kind_of(OMF::SFA::Resource::OLease))      
       a3 = manager.find_lease({:name => 'l1'}, auth)
-      a3.reload
       a1.should == a3
     end
 
@@ -169,13 +176,13 @@ describe AMManager do
       manager.find_all_leases_for_account(a1, auth).should == []   
 
       auth.should_receive(:can_create_lease?)
-      l1 = manager.find_or_create_lease({:name => 'l1', :account => a1}, auth)
+      l1 = manager.find_or_create_lease({:name => 'l1', :account => a1}, {}, auth)
       
       auth.should_receive(:can_view_lease?)      
       manager.find_all_leases_for_account(a1, auth).should == [l1]
       
       auth.should_receive(:can_create_lease?)
-      l2 = manager.find_or_create_lease({:name => 'l2', :account => a1}, auth)
+      l2 = manager.find_or_create_lease({:name => 'l2', :account => a1}, {}, auth)
        
       auth.should_receive(:can_view_lease?).exactly(2).times
       manager.find_all_leases_for_account(a1, auth).should == [l1, l2]
@@ -186,12 +193,12 @@ describe AMManager do
     
     it 'can modify leases' do
       auth.should_receive(:can_create_lease?)
-      l1 = manager.find_or_create_lease({:name => 'l1'}, auth)
+      l1 = manager.find_or_create_lease({:name => 'l1'}, {}, auth)
 
       valid_from = 1338847200
       valid_until = 1338850800
       auth.should_receive(:can_modify_lease?).with(l1)            
-      l2 = manager.modify_lease({:name => 'l1', :valid_from => valid_from, :valid_until => valid_until}, l1, auth)
+      l2 = manager.modify_lease({:valid_from => valid_from, :valid_until => valid_until}, l1, auth)
       l2.should == l1.reload
       l2.valid_from.should == valid_from
       l2.valid_until.should == valid_until
@@ -199,7 +206,7 @@ describe AMManager do
     
     it 'can release a lease' do
       auth.should_receive(:can_create_lease?)
-      l1 = manager.find_or_create_lease({:name => 'l1'}, auth)
+      l1 = manager.find_or_create_lease({:name => 'l1'}, {}, auth)
       
       auth.should_receive(:can_release_lease?).with(l1)   
       manager.release_lease(l1, auth)#.should be_true
@@ -266,7 +273,6 @@ describe AMManager do
       rspec = %{
         <rspec xmlns="http://www.protogeni.net/resources/rspec/2" xmlns:omf="http://schema.mytestbed.net/sfa/rspec/1" type="request">
           <node component_id="urn:publicid:IDN+openlab+node+node1" component_name="node1">
-            <available now="true"/>
           </node>
         </rspec>
       } 
@@ -283,7 +289,7 @@ describe AMManager do
       end
       auth.should_receive(:can_create_resource?).with({:name => 'node1', :account => account}, anything)  
       #auth.should_receive(:can_view_resource?)          
-      r = manager.update_resources_from_rspec(req.root, true, auth)
+      r = manager.update_resources_from_rspec(req.root, false, auth)
       r.first.should be_instance_of(OMF::SFA::Resource::Node)
     end
 

@@ -3,6 +3,8 @@ require 'omf-sfa/am/am_manager'
 require 'omf-sfa/am/am_scheduler'
 require 'omf-sfa/resource'
 require 'dm-migrations'
+require 'omf_common/lobject'
+require 'omf_common/load_yaml'
 
 include OMF::SFA::AM
 
@@ -18,9 +20,17 @@ def init_dm
   DataMapper.auto_migrate!
 end
 
+def init_logger
+  OMF::Common::Loggable.init_log 'am_manager', :searchPath => File.join(File.dirname(__FILE__), 'am_manager')       
+  @config = OMF::Common::YAML.load('omf-sfa-am', :path => [File.dirname(__FILE__) + '/../etc/omf-sfa'])[:omf_sfa_am]
+end
+
+
 describe AMManager do
 
   init_dm
+
+  init_logger
 
   before :each do
     DataMapper.auto_migrate! # reset database
@@ -44,10 +54,8 @@ describe AMManager do
       <rspec xmlns="http://www.protogeni.net/resources/rspec/2" xmlns:omf="http://schema.mytestbed.net/sfa/rspec/1" xmlns:olx="http://schema.ict-openlab.eu/sfa/rspec/1" type="request">
 	<olx:lease lease_name="l1" olx:valid_from="1338847200" olx:valid_until="1338850800"/>
 	<node component_name="r1" uuid="#{UUID.generate}" olx:lease_name="l1">
-	  <available now="true"/>
 	</node>
 	<node component_name="r2" uuid="#{UUID.generate}" olx:lease_name="l1">
-	  <available now="true"/>
 	</node>
       </rspec>
       } 
@@ -67,7 +75,11 @@ describe AMManager do
 
     it 'will modify lease from rspec' do
 
-      l = OMF::SFA::Resource::OLease.create({ :name => "l1", :valid_from => "1338847200", :valid_until => "1338850800"})
+      #l = OMF::SFA::Resource::OLease.create({ :name => "l1", :valid_from => "1338847200", :valid_until => "1338850800"})
+      l = OMF::SFA::Resource::OLease.new({ :name => "l1", :valid_from => "1338847200", :valid_until => "1338850800"})
+      l.valid_from = "1338847200"
+      l.valid_until = "1338850800"
+      l.save
       l.should be_saved
       l.should == OMF::SFA::Resource::OLease.first({ :name => "l1" })
       rspec = %{
@@ -108,7 +120,12 @@ describe AMManager do
       end
 
       leases[0].name.should eq('l1')
+      leases[0].valid_from.should eq('1338847200')
+      leases[0].valid_until.should eq('1338850800')
+
       leases[1].name.should eq('l2')
+      leases[1].valid_from.should eq('1338854400')
+      leases[1].valid_until.should eq('1338858000')
 
     end
   end # context leases
@@ -148,12 +165,13 @@ describe AMManager do
 	rspec = %{
       <rspec xmlns="http://www.protogeni.net/resources/rspec/2" xmlns:omf="http://schema.mytestbed.net/sfa/rspec/1" xmlns:ol="http://schema.ict-openlab.eu/sfa/rspec/1" type="request">
 	<node component_id="urn:publicid:IDN+openlab+node+node1" component_name="node1">
-	  <available now="true"/>
 	</node>
       </rspec>
 	} 
 	req = Nokogiri.XML(rspec)
 
+	
+	auth.should_receive(:can_view_resource?).exactly(2).times
 	auth.should_receive(:can_release_resource?)
 	auth.should_receive(:can_create_resource?)
 
@@ -189,12 +207,15 @@ describe AMManager do
 
       it 'can create a node with a lease attached to it' do
 
-	l = OMF::SFA::Resource::OLease.create({ :name => "l1", :valid_from => "1338847200", :valid_until => "1338850800", :account => account})
+	#l = OMF::SFA::Resource::OLease.create({ :name => "l1", :valid_from => "1338847200", :valid_until => "1338850800", :account => account})
+	l = OMF::SFA::Resource::OLease.new({ :name => "l1", :account => account})
+	l.valid_from = '1338847200'
+	l.valid_until = '1338850800'
+	l.save
 
 	rspec = %{
       <rspec xmlns="http://www.protogeni.net/resources/rspec/2" xmlns:omf="http://schema.mytestbed.net/sfa/rspec/1" xmlns:ol="http://schema.ict-openlab.eu/sfa/rspec/1" type="request">
 	<node component_id="urn:publicid:IDN+openlab+node+node1" component_name="node1" ol:lease_uuid="#{l.uuid}">
-	  <available now="true"/>
 	</node>
       </rspec>
 	} 
@@ -216,8 +237,8 @@ describe AMManager do
 	lease = node.leases.first
 	lease.should be_kind_of(OMF::SFA::Resource::OLease)
 	lease.name.should be_eql('l1')
-	lease.valid_from.should be_eql(1338847200)
-	lease.valid_until.should be_eql(1338850800)
+	lease.valid_from.should be_eql('1338847200')
+	lease.valid_until.should be_eql('1338850800')
 	lease.components.first.should be_kind_of(OMF::SFA::Resource::Node)
       end
 
@@ -227,7 +248,6 @@ describe AMManager do
       <rspec xmlns="http://www.protogeni.net/resources/rspec/2" xmlns:omf="http://schema.mytestbed.net/sfa/rspec/1" xmlns:ol="http://schema.ict-openlab.eu/sfa/rspec/1" type="request">
 	<ol:lease ol:lease_name="l1" ol:valid_from="1338847200" ol:valid_until="1338850800"/>
 	<node component_id="urn:publicid:IDN+openlab+node+node1" component_name="node1" ol:lease_name="l1">
-	  <available now="true"/>
 	</node>
       </rspec>
 	} 
@@ -241,7 +261,12 @@ describe AMManager do
 
       it 'will create a new node and lease without deleting the previous' do
 
-	l = OMF::SFA::Resource::OLease.create({ :name => "l1", :valid_from => "1338847200", :valid_until => "1338850800", :account => account})
+	#l = OMF::SFA::Resource::OLease.create({ :name => "l1", :valid_from => "1338847200", :valid_until => "1338850800", :account => account})
+	l = OMF::SFA::Resource::OLease.create({ :name => "l1", :account => account})
+	l.valid_from = '1338847200'
+	l.valid_until = '1338850800'
+	l.save
+
 	r = OMF::SFA::Resource::Node.create({:name => 'r1', :account => account})
 	r.leases << l
 	r.save
@@ -252,7 +277,6 @@ describe AMManager do
 	<rspec xmlns="http://www.protogeni.net/resources/rspec/2" xmlns:omf="http://schema.mytestbed.net/sfa/rspec/1" xmlns:ol="http://schema.ict-openlab.eu/sfa/rspec/1" type="request">
 	  <ol:lease ol:lease_name="l2" ol:valid_from="1338847200" ol:valid_until="1338850800"/>
 	  <node component_id="urn:publicid:IDN+openlab+node+node1" component_name="node1" ol:lease_name="l2">
-	    <available now="true"/>
 	  </node>
 	</rspec>
 	} 
@@ -274,7 +298,12 @@ describe AMManager do
 
       it 'will unlink a node from a lease and release the node' do
 
-	l = OMF::SFA::Resource::OLease.create({ :name => "l1", :valid_from => "1338847200", :valid_until => "1338850800", :account => account})
+	#l = OMF::SFA::Resource::OLease.create({:name => "l1", :valid_from => "1338847200", :valid_until => "1338850800", :account => account})
+	l = OMF::SFA::Resource::OLease.create({:name => "l1", :account => account})
+	l.valid_from = '1338847200'
+	l.valid_until = '1338850800'
+	l.save
+
 	r = OMF::SFA::Resource::Node.create({:name => 'r1', :account => account})
 	r.leases << l
 	r.save
@@ -290,7 +319,9 @@ describe AMManager do
 	} 
 	req = Nokogiri.XML(rspec)
 
+	auth.should_receive(:can_view_resource?)
 	auth.should_receive(:can_view_lease?).exactly(2).times
+	auth.should_receive(:can_modify_lease?)
 	auth.should_receive(:can_release_resource?).with(r)
 
 	r = manager.update_resources_from_rspec(req.root, true,  auth)
@@ -306,7 +337,12 @@ describe AMManager do
 
       it 'will release a node and a lease' do
 
-	l = OMF::SFA::Resource::OLease.create({ :name => "l1", :valid_from => "1338847200", :valid_until => "1338850800", :account => account})
+	#l = OMF::SFA::Resource::OLease.create({ :name => "l1", :valid_from => "1338847200", :valid_until => "1338850800", :account => account})
+	l = OMF::SFA::Resource::OLease.create({ :name => "l1", :account => account})
+	l.valid_from = '1338847200'
+	l.valid_until = '1338850800'
+	l.save
+
 	r = OMF::SFA::Resource::Node.create({:name => 'r1', :account => account})
 	r.leases << l
 	r.save
@@ -321,6 +357,7 @@ describe AMManager do
 	} 
 	req = Nokogiri.XML(rspec)
 
+	auth.should_receive(:can_view_resource?)
 	auth.should_receive(:can_view_lease?).with(l)
 	auth.should_receive(:can_release_lease?).with(l)
 	auth.should_receive(:can_release_resource?).with(r)

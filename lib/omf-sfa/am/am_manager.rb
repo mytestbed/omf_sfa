@@ -80,8 +80,10 @@ module OMF::SFA::AM
       end
       authorizer.can_create_account?
       account = OMF::SFA::Resource::OAccount.create(account_descr)
+      # We have a 1-to-1 relationship between account and project for the moment
       project = OMF::SFA::Resource::Project.create
       account.project = project
+      account.save
       raise UnavailableResourceException.new "Cannot create '#{account_descr.inspect}'" unless account 
       account
     end
@@ -224,19 +226,23 @@ module OMF::SFA::AM
     # Return the lease described by +lease_descr+. Create if it doesn't exist.
     #
     # @param [Hash] lease_descr properties of lease
+    # @param [Hash] start and end time of lease
     # @param [Authorizer] Defines context for authorization decisions
     # @return [OLease] The requested lease
     # @raise [UnknownResourceException] if requested lease cannot be created
     # @raise [InsufficientPrivilegesException] if permission is not granted
     #
-    def find_or_create_lease(lease_descr, authorizer)
-      debug "find_or_create_lease: '#{lease_descr.inspect}'"
+    def find_or_create_lease(lease_descr, lease_times, authorizer)
+      debug "find_or_create_lease: '#{lease_descr.inspect}', '#{lease_times.inspect}'"
       begin
 	return find_lease(lease_descr, authorizer)
       rescue UnavailableResourceException
       end
       authorizer.can_create_lease?
       lease = OMF::SFA::Resource::OLease.create(lease_descr)
+      lease.valid_from = lease_times[:valid_from]
+      lease.valid_until = lease_times[:valid_until]
+      lease.save
       raise UnavailableResourceException.new "Cannot create '#{lease_descr.inspect}'" unless lease 
       lease
     end
@@ -277,15 +283,15 @@ module OMF::SFA::AM
 
     # Modify lease described by +lease_descr+ hash 
     #
-    # @param [Hash] properties of lease
+    # @param [Hash] start and end time of lease
     # @param [OLease] lease to modify
     # @param [Authorizer] Authorization context
     # @return [OLease] The requested lease
     #
-    def modify_lease(lease_descr, lease, authorizer)    
+    def modify_lease(lease_times, lease, authorizer)    
       authorizer.can_modify_lease?(lease)
-      lease.valid_from = lease_descr[:valid_from]
-      lease.valid_until = lease_descr[:valid_until]
+      lease.valid_from = lease_times[:valid_from]
+      lease.valid_until = lease_times[:valid_until]
       lease.save
       lease
     end
@@ -320,19 +326,18 @@ module OMF::SFA::AM
     #
     def update_lease_from_rspec(lease_el, authorizer)
 
-      lease_descr = {:valid_from => lease_el[:valid_from], :valid_until => lease_el[:valid_until]}
-      lease = nil
+      lease_times = {:valid_from => lease_el[:valid_from], :valid_until => lease_el[:valid_until]}
 
       unless lease_el[:uuid].nil?
 	lease = find_lease({:uuid => lease_el[:uuid]}, authorizer)
-	if lease.valid_from != lease_descr[:valid_from].to_i || lease.valid_until != lease_descr[:valid_until].to_i
-	  modify_lease(lease_descr, lease, authorizer)
+	if lease.valid_from != lease_times[:valid_from].to_i || lease.valid_until != lease_times[:valid_until].to_i
+	  modify_lease(lease_times, lease, authorizer)
 	else
 	  lease
 	end
       else
-	lease_descr[:name] = lease_el[:lease_name]
-	lease = find_or_create_lease(lease_descr, authorizer)
+	lease_descr = {:name => lease_el[:lease_name]}
+	lease = find_or_create_lease(lease_descr, lease_times, authorizer)
       end
     end
 
@@ -610,9 +615,10 @@ module OMF::SFA::AM
 	end.compact
 	if clean_state
 	  # Now free any resources owned by this account but not contained in +resources+
-	  all_resources = Set.new
-	  resources.each {|r| r.all_resources(all_resources)}
-	  unused = all_resources - find_all_components_for_account(authorizer.account, authorizer)
+	  rspec_resources = Set.new
+	  resources.each {|r| r.all_resources(rspec_resources)}
+	  all_components = find_all_components_for_account(authorizer.account, authorizer)
+	  unused = all_components.to_set - rspec_resources
 	  release_resources(unused, authorizer)
 	end
 	return resources
