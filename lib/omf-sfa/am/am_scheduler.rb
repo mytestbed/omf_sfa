@@ -13,41 +13,41 @@ module OMF::SFA::AM
 
     def create_resource(resource_descr, type_to_create, authorizer)
       if type_to_create.nil?
-	descr = resource_descr.dup
-	desc[:account] = get_nil_account()
-	bas_resource = OResource.first()
-	unless !base_resource || base_resource.available
-	  raise UnknownResourceException.new "Resource '#{resource_descr.inspect}' is not available or doesn't exist"              
-	end
+        descr = resource_descr.dup
+        desc[:account] = get_nil_account()
+        bas_resource = OResource.first()
+        unless !base_resource || base_resource.available
+          raise UnknownResourceException.new "Resource '#{resource_descr.inspect}' is not available or doesn't exist"              
+        end
 
-	# create a clone
-	vr = base_resource.clone
+        # create a clone
+        vr = base_resource.clone
 
-	base_resource.available = false
-	base_resource.provides << vr
-	base_resource.save
+        base_resource.available = false
+        base_resource.provides << vr
+        base_resource.save
 
-	vr.provided_by = base_resource
-	vr.account = authorizer.account
+        vr.provided_by = base_resource
+        vr.account = authorizer.account
 
-	return vr
+        return vr
       else
-	#resource_descr[:account] = authorizer.account
-	olease = resource_descr.delete(:lease)
+        #resource_descr[:account] = authorizer.account
+        olease = resource_descr.delete(:lease)
 
-	resource_descr[:resource_type] = type_to_create
-	type = type_to_create.camelize
-	resource = eval("OMF::SFA::Resource::#{type}").new(resource_descr)
-	resource.leases << olease if olease
-	resource.save
-	resource
+        resource_descr[:resource_type] = type_to_create
+        type = type_to_create.camelize
+        resource = eval("OMF::SFA::Resource::#{type}").new(resource_descr)
+        resource.leases << olease if olease
+        resource.save
+        resource
       end
 
     end
 
     def release_resource(resource, authorizer)
       unless resource.is_a? OMF::SFA::Resource::OResource
-	raise "Expected OResource but got '#{resource.inspect}"
+        raise "Expected OResource but got '#{resource.inspect}"
       end
 
       resource = resource.destroy!
