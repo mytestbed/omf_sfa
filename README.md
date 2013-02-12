@@ -49,8 +49,7 @@ Create Sliver
      -->
     INFO:omni:<rspec expires="2012-04-30T11:54:39-03:00" generated="2012-04-30T11:44:39-03:00" type="advertisement" xmlns="http://www.protog
     eni.net/resources/rspec/2" xmlns:omf="http://schema.mytestbed.net/sfa/rspec/1">  
-        <node component_id="urn:publicid:IDN+mytestbed.net+node+aea0b9a5-e90e-5fd6-9224-847f0a1b37cb" component_manager_id="authority+am" co
-mponent_name="n0" id="aea0b9a5-e90e-5fd6-9224-847f0a1b37cb" omf:href="/resources/aea0b9a5-e90e-5fd6-9224-847f0a1b37cb">    
+        <node component_id="urn:publicid:IDN+mytestbed.net+node+aea0b9a5-e90e-5fd6-9224-847f0a1b37cb" component_manager_id="authority+am" component_name="n0" id="aea0b9a5-e90e-5fd6-9224-847f0a1b37cb" omf:href="/resources/aea0b9a5-e90e-5fd6-9224-847f0a1b37cb">    
             <available now="true"/>    
         </node>  
     </rspec>
