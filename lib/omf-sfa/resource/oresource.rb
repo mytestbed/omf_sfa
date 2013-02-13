@@ -187,6 +187,7 @@ module OMF::SFA::Resource
         self.save
         prop = self.oproperties.first_or_create(:name => pname)
         prop.value = value
+        prop.save
       end
       value
     end

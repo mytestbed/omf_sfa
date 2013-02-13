@@ -312,11 +312,10 @@ module OMF::SFA::AM
       debug "release_lease: lease:'#{lease.inspect}' authorizer:'#{authorizer.inspect}'"
       authorizer.can_release_lease?(lease)
 
-      #FIXME: we should not delete the leases. Add a property 'active' like the OAccount
       lease.component_leases.each do |l|
         l.destroy # unlink the lease with the corresponding components
       end
-      raise "Error while destroying lease: #{lease}" unless lease.destroy
+      lease.status = :cancelled
     end
 
     #
