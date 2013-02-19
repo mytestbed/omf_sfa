@@ -25,7 +25,6 @@ module OMF::SFA::AM
       :can_view_resource?, # (resource)
       :can_release_resource?, # (resource)
       # LEASE
-      :can_create_lease?, # (lease)
       :can_view_lease?, # (lease)
       :can_modify_lease?, # (lease)
       :can_release_lease?, # (lease)

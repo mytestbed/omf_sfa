@@ -35,7 +35,7 @@ module OMF::SFA::AM
       @scheduler = scheduler
     end
 
-    ### MANAGMENT INTERFACE: adding and removing from the AM's control
+    ### MANAGEMENT INTERFACE: adding and removing from the AM's control
 
     # Register a resource to be managed by this AM.
     # 
@@ -239,15 +239,13 @@ module OMF::SFA::AM
         return find_lease(lease_descr, authorizer)
       rescue UnavailableResourceException
       end
-      authorizer.can_create_lease?
       unless lease_oproperties.has_key?(:valid_from) && lease_oproperties.has_key?(:valid_until)
         raise UnavailablePropertiesException.new "Cannot create lease without ':valid_from' and 'valid_until' oproperties #{lease_oproperties.inspect}"
       end
-      lease = OMF::SFA::Resource::OLease.create(lease_descr)
+      lease = create_resource(lease_descr, 'OLease', authorizer)
       lease.valid_from = lease_oproperties[:valid_from]
       lease.valid_until = lease_oproperties[:valid_until]
-      lease.save
-      raise UnavailableResourceException.new "Cannot create '#{lease_descr.inspect}'" unless lease 
+      raise UnavailableResourceException.new "Cannot create '#{lease_descr.inspect}'" unless lease.save
       lease
     end
 
@@ -332,12 +330,12 @@ module OMF::SFA::AM
     #
     def update_lease_from_rspec(lease_el, authorizer)
 
-      lease_properties = {:valid_from => lease_el[:valid_from], :valid_until => lease_el[:valid_until]}
+      lease_properties = {:valid_from => Time.parse(lease_el[:valid_from]), :valid_until => Time.parse(lease_el[:valid_until])}
 
       unless lease_el[:uuid].nil?
         lease = find_lease({:uuid => lease_el[:uuid]}, authorizer)
         raise UnavailableResourceException.new "Unknown lease uuid'#{lease_el[:uuid]}'" unless lease
-        if lease.valid_from != lease_properties[:valid_from].to_i || lease.valid_until != lease_properties[:valid_until].to_i
+        if Time.at(lease.valid_from.to_i) != Time.at(lease_properties[:valid_from].to_i) || Time.at(lease.valid_until.to_i) != Time.at(lease_properties[:valid_until].to_i)
           modify_lease(lease_properties, lease, authorizer)
         else
           lease
@@ -615,6 +613,8 @@ module OMF::SFA::AM
             #end
           end
         end.compact
+        # TODO: release the unused leases. The leases we have created but we never managed 
+        # to attach them to a resource because the scheduler denied it.
         if clean_state
           # Now free any resources owned by this account but not contained in +resources+
           rspec_resources = Set.new
@@ -665,9 +665,11 @@ module OMF::SFA::AM
       # whereas "lease_uuid" is being set by the AM after accepting a lease 
       # creation. The uuid is being used by the user as a reference for modifying 
       # the corresponding lease.
-      if resource_el[:lease_name] # create a lease
+      if resource_el[:lease_name] 
         unless leases.empty?
           lease_name = resource_el[:lease_name]
+          #TODO: provide the scheduler with the resource and the lease to attach them according to its policy.
+          # if the scheduler refuses to attach the lease to the resource, we should release both of them.
           resource.leases << leases[lease_name]
           resource.save
         else

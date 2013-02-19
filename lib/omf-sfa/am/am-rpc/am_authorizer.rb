@@ -105,7 +105,6 @@ module OMF::SFA::AM::RPC
       @permissions[:can_view_resource?] = credential.privilege?('info')
       @permissions[:can_release_resource?] = credential.privilege?('refresh')
 
-      @permissions[:can_create_lease?] = credential.privilege?('refresh')
       @permissions[:can_view_lease?] = credential.privilege?('info')
       @permissions[:can_modify_lease?] = credential.privilege?('refresh')
       @permissions[:can_release_lease?] = credential.privilege?('refresh')
