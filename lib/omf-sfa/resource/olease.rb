@@ -7,8 +7,8 @@ module OMF::SFA::Resource
 
   class OLease < OResource
 
-    oproperty :valid_from, DataMapper::Property::Integer
-    oproperty :valid_until, DataMapper::Property::Integer
+    oproperty :valid_from, DataMapper::Property::Time
+    oproperty :valid_until, DataMapper::Property::Time
     oproperty :status, DataMapper::Property::Enum[:pending, :accepted, :active, :past, :cancelled]
 
     has n, :component_leases, :child_key => [:lease_id]
@@ -16,7 +16,7 @@ module OMF::SFA::Resource
 
     [:pending, :accepted, :active, :past, :cancelled].each do |s|
       define_method(s.to_s + '?') do
-        if self.status.eql?(s.to_s)
+        if self.status.eql?(s)
           true
         else
           false
@@ -32,5 +32,6 @@ module OMF::SFA::Resource
         s
       end
     end
+
   end
 end

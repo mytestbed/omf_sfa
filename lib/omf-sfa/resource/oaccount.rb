@@ -62,11 +62,7 @@ module OMF::SFA::Resource
     end
     
     def valid_until
-      v = oproperty_get(:valid_until)
-      if v && !v.kind_of?(Time)
-        oproperty_set(:valid_until, v = Time.parse(v))
-      end
-      v
+      oproperty_get(:valid_until)
     end
     
   end # OAccount

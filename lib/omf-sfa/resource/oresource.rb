@@ -78,24 +78,34 @@ module OMF::SFA::Resource
         op[pname] = opts
           
         define_method pname do 
-          res = oproperty_get(name)
+          res = oproperty_get(pname)
           if res == nil
-            oproperty_set(name, res = PropValueArray.new)
+            oproperty_set(pname, res = PropValueArray.new)
           end
           res
         end
         
         define_method "#{pname}=" do |v|
-          unless v.kind_of? Enumerable
-            raise "property '#{pname}' expects a value of type Enumerable"
-          end
-          unless v.is_a? PropValueArray
+          #unless v.kind_of? Enumerable
+          #  raise "property '#{pname}' expects a value of type Enumerable"
+          #end
+
+          #val = self.eval("#{pname}")
+          #puts "RESPOND: '#{respond_to?(pname.to_sym)}' self:'#{self.inspect}'"
+          val = send(pname.to_sym)#.dup
+          #val = oproperty_get(pname)
+          if val.is_a? PropValueArray
             # we really want to store it as a PropValueArray
-            c = PropValueArray.new
-            v.each {|e| c << e}
-            v = c
+            #c = PropValueArray.new
+            #v.each {|e| c << e}
+            #v = c
+            val << v
+            #puts "VAL is '#{val}'"
+          else
+            raise "value '#{val}' of property '#{pname}' is not of type PropValueArray"
           end
-          oproperty_set(name, v)
+          #puts "NAME is '#{name}'"
+          oproperty_set(name, val)
         end 
         
       else  
@@ -171,15 +181,18 @@ module OMF::SFA::Resource
 
     
     def oproperty_get(pname)
+      #puts "OPROPERTY_GET: pname:'#{pname}'"
       pname = pname.to_sym
       return self.name if pname == :name
       
       prop = self.oproperties.first(:name => pname)
+      #puts "OPROPERTY_GET: prop:'#{prop}'"
       prop.nil? ? nil : prop.value
     end
     alias_method :[], :oproperty_get 
 
     def oproperty_set(pname, value)
+      #puts "OPROPERTY_SET pname:'#{pname}', value:'#{value}', self:'#{self.inspect}'"
       pname = pname.to_sym
       if pname == :name
         self.name = value

@@ -1,5 +1,5 @@
 require 'omf-sfa/resource/oresource'
-require 'json'
+require 'json/add/core' # Time serialization with json and ruby: http://blog.matthewrathbone.com/2010/09/28/ruby-json-serialization-sucks-for-time-objects.html
 
 module OMF::SFA::Resource
   
@@ -16,25 +16,30 @@ module OMF::SFA::Resource
     belongs_to :o_resource
     
     def value=(val)
-      return if @value_ == val
-      @value_ = val
-      @value = 'dummy'
-      @value_dirty = true
+      attribute_set(:value, JSON.generate([val]))
+      save
     end 
 
     def value()
-      unless @value_
-        js = attribute_get(:value)
-        if js
-          @value_ = JSON.parse(js)[0]
-          if @value_.kind_of? Array
-            @old_value_ = @value_.dup
-          end
-        end
-      end
-      #puts "GET #{@value_.inspect}"      
-      @value_
+      js = attribute_get(:value)
+      #puts "JS #{js.inspect}"      
+      JSON.parse(js)[0]
     end
+    #def value()
+    #  #puts "VALUE() @value_:'#{@value_.inspect}'"
+    #  unless @value_
+    #    js = attribute_get(:value)
+    #    puts "JS #{js.inspect}"      
+    #    if js
+    #      @value_ = JSON.parse(js)[0]
+    #      if @value_.kind_of? Array
+    #        @old_value_ = @value_.dup
+    #      end
+    #    end
+    #  end
+    #  #puts "VALUE()2 @value_:'#{@value_.inspect}'"      
+    #  @value_
+    #end
     
     def valid?(context = :default)
       self.name != nil #&& self.value != nil
@@ -57,18 +62,18 @@ module OMF::SFA::Resource
       false
     end
 
-    before :save do
-      #puts "SAVING BEFORE '#{self.inspect}"      
-      begin
-        if @value_dirty || (@old_value_ ? @old_value_ != @value_ : false)
-          attribute_set(:value, JSON.generate([@value_]))
-          @value_dirty = false
-        end
-      rescue Exception => ex
-        puts ">>>>>>>>> ERROR #{ex}"
-      end
-      #puts "SAVING '#{@value_.inspect}'::#{self.inspect}"      
-    end      
+    #before :save do
+    #  #puts "SAVING BEFORE @value_dirty:'#{@value_dirty}', @old_value_:'#{@old_value_}', @value_:'#{@value_}'"      
+    #  begin
+    #    if @value_dirty || (@old_value_ ? @old_value_ != @value_ : false)
+    #      attribute_set(:value, JSON.generate([@value_]))
+    #      @value_dirty = false
+    #    end
+    #  rescue Exception => ex
+    #    puts ">>>>>>>>> ERROR #{ex}"
+    #  end
+    #  #puts "SAVING AFTER @value_dirty:'#{@value_dirty}', @old_value_:'#{@old_value_}', @value_:'#{@value_}'"      
+    #end      
     
   end # OProperty
   
