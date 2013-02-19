@@ -62,7 +62,7 @@ describe AMManager do
       manager
     end
   
-    it 'can create an AM Manager' do
+    it 'can manage a resource' do
       r = OMF::SFA::Resource::OResource.create(:name => 'r')
       manager.manage_resource(r)
     end
@@ -153,9 +153,14 @@ describe AMManager do
       auth.expect(:can_view_account?, true, [OMF::SFA::Resource::OAccount])      
       auth.expect(:can_renew_account?, true, [a1, time])            
       a2 = manager.renew_account_until({:name => 'a1'}, time, auth)
-      auth.verify
 
-      a2.valid_until.must_equal time
+      # we convert the time to INT in order to round up fractional seconds
+      # more info: http://stackoverflow.com/questions/8763050/how-to-compare-time-in-ruby
+      time1 = Time.at(a2.valid_until.to_i)
+      time2 = Time.at(time.to_i)
+      time1.must_equal time2
+
+      auth.verify
     end
     
     it 'can close account' do
@@ -209,19 +214,23 @@ describe AMManager do
 
     lease_oproperties = {:valid_from => Time.now, :valid_until => Time.now + 100}
 
+    account = OMF::SFA::Resource::OAccount.first_or_create(:name => 'a1')
+
     before do
       DataMapper.auto_migrate! # reset database
     end
         
     it 'can create lease' do
-      auth.expect(:can_create_lease?, true)
+      auth.expect(:can_create_resource?, true, [Hash, 'OLease'])
+      auth.expect(:account, account)
       lease = manager.find_or_create_lease({:name => 'l1'}, lease_oproperties, auth) 
       lease.must_be_instance_of(OMF::SFA::Resource::OLease)
       auth.verify
     end
 
     it 'can find created lease' do
-      auth.expect(:can_create_lease?, true)
+      auth.expect(:can_create_resource?, true, [Hash, 'OLease'])
+      auth.expect(:account, account)
       a1 = manager.find_or_create_lease({:name => 'l1'}, lease_oproperties, auth)
              
       auth.expect(:can_view_lease?, true, [OMF::SFA::Resource::OLease])      
@@ -245,16 +254,18 @@ describe AMManager do
 
       auth.expect(:can_create_account?, true)
       a1 = manager.find_or_create_account({:name => 'a1'}, auth)
+      auth.expect(:account, a1)
 
       manager.find_all_leases_for_account(a1, auth).must_be_empty   
 
-      auth.expect(:can_create_lease?, true)
+      auth.expect(:can_create_resource?, true, [Hash, 'OLease'])
       l1 = manager.find_or_create_lease({:name => 'l1', :account => a1}, lease_oproperties, auth)
       
       auth.expect(:can_view_lease?, true, [OMF::SFA::Resource::OLease])      
       manager.find_all_leases_for_account(a1, auth).must_equal [l1]
       
-      auth.expect(:can_create_lease?, true)
+      auth.expect(:can_create_resource?, true, [Hash, 'OLease'])
+      auth.expect(:account, a1)
       l2 = manager.find_or_create_lease({:name => 'l2', :account => a1}, lease_oproperties, auth)
        
       auth.expect(:can_view_lease?, true, [OMF::SFA::Resource::OLease])
@@ -269,22 +280,29 @@ describe AMManager do
     end
 
     it 'can modify leases' do
-      auth.expect(:can_create_lease?, true)
+      auth.expect(:can_create_resource?, true, [Hash, 'OLease'])
+      auth.expect(:account, account)
       l1 = manager.find_or_create_lease({:name => 'l1'}, lease_oproperties, auth)
       auth.verify
 
-      valid_from = 1338847200
-      valid_until = 1338850800
+      valid_from = Time.now + 1000
+      valid_until = valid_from + 1000
       auth.expect(:can_modify_lease?, true, [l1])            
       l2 = manager.modify_lease({:valid_from => valid_from, :valid_until => valid_until}, l1, auth)
       auth.verify
       l2.must_equal l1.reload
-      l2.valid_from.must_equal valid_from
-      l2.valid_until.must_equal valid_until
+
+      # more info on comparing time objects here: http://stackoverflow.com/questions/8763050/how-to-compare-time-in-ruby
+      time1 = Time.at(l2.valid_from.to_i)
+      time1.must_equal Time.at(valid_from.to_i)
+
+      time1 = Time.at(l2.valid_until.to_i)
+      time1.must_equal Time.at(valid_until.to_i)
     end
     
     it 'can release a lease' do
-      auth.expect(:can_create_lease?, true)
+      auth.expect(:can_create_resource?, true, [Hash, 'OLease'])
+      auth.expect(:account, account)
       l1 = manager.find_or_create_lease({:name => 'l1'}, lease_oproperties, auth)
       auth.verify
       

@@ -74,21 +74,21 @@ describe AMManager do
       }
       req = Nokogiri.XML(rspec)
 
-      authorizer.expect(:can_create_lease?, true)
+      authorizer.expect(:can_create_resource?, true, [Hash, String])
       lease_elements = req.xpath('//ol:lease', 'ol' => OL_NAMESPACE)
       lease = manager.update_lease_from_rspec(lease_elements.first, authorizer)
       lease.must_be_kind_of(OMF::SFA::Resource::OLease)
       lease.name.must_equal('l1')
-      lease.valid_from.must_equal('2013-01-08T19:00:00Z')
-      lease.valid_until.must_equal('2013-01-08T20:00:00Z')
+      lease.valid_from.must_equal(Time.parse('2013-01-08T19:00:00Z'))
+      lease.valid_until.must_equal(Time.parse('2013-01-08T20:00:00Z'))
       authorizer.verify
     end
 
     it 'will modify lease from rspec' do
       authorizer = Minitest::Mock.new 
       l = OMF::SFA::Resource::OLease.new({ :name => 'l1'})
-      l.valid_from = '2013-01-08T19:00:00Z'
-      l.valid_until = '2013-01-08T20:00:00Z'
+      l.valid_from = Time.parse('2013-01-08T19:00:00Z')
+      l.valid_until = Time.parse('2013-01-08T20:00:00Z')
       l.save
       rspec = %{
       <rspec xmlns="http://www.protogeni.net/resources/rspec/2" xmlns:omf="http://schema.mytestbed.net/sfa/rspec/1" xmlns:ol="http://schema.ict-openlab.eu/sfa/rspec/1" type="request">
@@ -104,8 +104,8 @@ describe AMManager do
       lease = manager.update_lease_from_rspec(lease_elements.first, authorizer)
       lease.must_be_kind_of(OMF::SFA::Resource::OLease)
       lease.name.must_equal('l1')
-      lease.valid_from.must_equal('2013-01-08T19:00:00Z')
-      lease.valid_until.must_equal('2013-01-08T21:00:00Z')
+      lease.valid_from.must_equal(Time.parse('2013-01-08T19:00:00Z'))
+      lease.valid_until.must_equal(Time.parse('2013-01-08T21:00:00Z'))
       authorizer.verify
     end
 
@@ -119,8 +119,8 @@ describe AMManager do
       }
       req = Nokogiri.XML(rspec)
 
-      authorizer.expect(:can_create_lease?, true)
-      authorizer.expect(:can_create_lease?, true)
+      authorizer.expect(:can_create_resource?, true, [Hash, String])
+      authorizer.expect(:can_create_resource?, true, [Hash, String])
 
       lease_elements = req.xpath('//ol:lease')
 
@@ -130,12 +130,12 @@ describe AMManager do
       end
 
       leases[0].name.must_equal('l1')
-      leases[0].valid_from.must_equal('2013-01-08T19:00:00Z')
-      leases[0].valid_until.must_equal('2013-01-08T21:00:00Z')
+      leases[0].valid_from.must_equal(Time.parse('2013-01-08T19:00:00Z'))
+      leases[0].valid_until.must_equal(Time.parse('2013-01-08T21:00:00Z'))
 
       leases[1].name.must_equal('l2')
-      leases[1].valid_from.must_equal('2013-01-08T12:00:00Z')
-      leases[1].valid_until.must_equal('2013-01-08T14:00:00Z')
+      leases[1].valid_from.must_equal(Time.parse('2013-01-08T12:00:00Z'))
+      leases[1].valid_until.must_equal(Time.parse('2013-01-08T14:00:00Z'))
 
       authorizer.verify
     end
@@ -156,7 +156,7 @@ describe AMManager do
 
       authorizer.expect(:can_view_lease?, true, [OMF::SFA::Resource::OLease])
       authorizer.expect(:can_modify_lease?, true, [OMF::SFA::Resource::OLease])
-      authorizer.expect(:can_create_lease?, true)
+      authorizer.expect(:can_create_resource?, true, [Hash, String])
 
       lease_elements = req.xpath('//ol:lease')
 
@@ -166,12 +166,12 @@ describe AMManager do
       end
 
       leases[0].name.must_equal('l1')
-      leases[0].valid_from.must_equal('2013-01-08T20:00:00Z')
-      leases[0].valid_until.must_equal('2013-01-08T21:00:00Z')
+      leases[0].valid_from.must_equal(Time.parse('2013-01-08T20:00:00Z'))
+      leases[0].valid_until.must_equal(Time.parse('2013-01-08T21:00:00Z'))
 
       leases[1].name.must_equal('l2')
-      leases[1].valid_from.must_equal('2013-01-08T12:00:00Z')
-      leases[1].valid_until.must_equal('2013-01-08T14:00:00Z')
+      leases[1].valid_from.must_equal(Time.parse('2013-01-08T12:00:00Z'))
+      leases[1].valid_until.must_equal(Time.parse('2013-01-08T14:00:00Z'))
 
       authorizer.verify
     end
@@ -193,7 +193,7 @@ describe AMManager do
 
       #authorizer.expect(:can_view_lease?, true, [OMF::SFA::Resource::OLease])
       authorizer.expect(:can_create_resource?, true, [Hash, String])
-      authorizer.expect(:can_create_lease?, true)
+      authorizer.expect(:can_create_resource?, true, [Hash, String])
       authorizer.expect(:account, account)
 
       r = manager.update_resources_from_rspec(req.root, false, authorizer)
@@ -209,8 +209,8 @@ describe AMManager do
       lease = node.leases.first
       lease.must_be_kind_of(OMF::SFA::Resource::OLease)
       lease.name.must_equal('l1')
-      lease.valid_from.must_equal('2013-01-08T19:00:00Z')
-      lease.valid_until.must_equal('2013-01-08T20:00:00Z')
+      lease.valid_from.must_equal(Time.parse('2013-01-08T19:00:00Z'))
+      lease.valid_until.must_equal(Time.parse('2013-01-08T20:00:00Z'))
       lease.components.first.must_be_kind_of(OMF::SFA::Resource::Node)
 
       authorizer.verify
@@ -288,8 +288,8 @@ describe AMManager do
       lease = node.leases.first
       lease.must_be_kind_of(OMF::SFA::Resource::OLease)
       lease.name.must_equal('l1')
-      lease.valid_from.must_equal('2013-01-08T19:00:00Z')
-      lease.valid_until.must_equal('2013-01-08T20:00:00Z')
+      lease.valid_from.must_equal(Time.parse('2013-01-08T19:00:00Z'))
+      lease.valid_until.must_equal(Time.parse('2013-01-08T20:00:00Z'))
       lease.components.first.must_be_kind_of(OMF::SFA::Resource::Node)
 
       authorizer.verify
@@ -298,8 +298,8 @@ describe AMManager do
     it 'will attach 2 leases(1 new and 1 old) to 2 nodes' do
       authorizer = Minitest::Mock.new 
       l1 = OMF::SFA::Resource::OLease.new({ :name => 'l1'})
-      l1.valid_from = '2013-01-08T19:00:00Z'
-      l1.valid_until = '2013-01-08T20:00:00Z'
+      l1.valid_from = Time.parse('2013-01-08T19:00:00Z')
+      l1.valid_until = Time.parse('2013-01-08T20:00:00Z')
       l1.save
 
       rspec = %{
@@ -313,8 +313,7 @@ describe AMManager do
       req = Nokogiri.XML(rspec)
 
       authorizer.expect(:can_view_lease?, true, [OMF::SFA::Resource::OLease])
-      authorizer.expect(:can_modify_lease?, true, [OMF::SFA::Resource::OLease])
-      authorizer.expect(:can_create_lease?, true)
+      authorizer.expect(:can_create_resource?, true, [Hash, String])
       authorizer.expect(:can_create_resource?, true, [Hash, String])
       authorizer.expect(:can_create_resource?, true, [Hash, String])
       authorizer.expect(:account, account)
@@ -333,8 +332,8 @@ describe AMManager do
       lease = node.leases.first
       lease.must_be_kind_of(OMF::SFA::Resource::OLease)
       lease.name.must_equal('l1')
-      lease.valid_from.must_equal('2013-01-08T19:00:00Z')
-      lease.valid_until.must_equal('2013-01-08T20:00:00Z')
+      lease.valid_from.must_equal(Time.parse('2013-01-08T19:00:00Z'))
+      lease.valid_until.must_equal(Time.parse('2013-01-08T20:00:00Z'))
       lease.components.first.must_be_kind_of(OMF::SFA::Resource::Node)
 
       node = r[1]
@@ -348,8 +347,8 @@ describe AMManager do
       lease = node.leases.first
       lease.must_be_kind_of(OMF::SFA::Resource::OLease)
       lease.name.must_equal('l2')
-      lease.valid_from.must_equal('2013-01-08T12:00:00Z')
-      lease.valid_until.must_equal('2013-01-08T14:00:00Z')
+      lease.valid_from.must_equal(Time.parse('2013-01-08T12:00:00Z'))
+      lease.valid_until.must_equal(Time.parse('2013-01-08T14:00:00Z'))
       lease.components.first.must_be_kind_of(OMF::SFA::Resource::Node)
 
       authorizer.verify
@@ -377,7 +376,7 @@ describe AMManager do
       }
       req = Nokogiri.XML(rspec)
 
-      authorizer.expect(:can_create_lease?, true)
+      authorizer.expect(:can_create_resource?, true, [Hash, String])
       authorizer.expect(:can_create_resource?, true, [Hash, String])
       authorizer.expect(:account, account)
 
@@ -461,7 +460,7 @@ describe AMManager do
 
       r.must_be_empty
       OMF::SFA::Resource::Node.first(:name => 'node1').must_be_nil
-      OMF::SFA::Resource::OLease.first(:name => 'l1').must_be_nil
+      OMF::SFA::Resource::OLease.first(:name => 'l1').status.must_equal(:cancelled)
       
       authorizer.verify
     end
