@@ -242,11 +242,7 @@ module OMF::SFA::AM
       unless lease_oproperties.has_key?(:valid_from) && lease_oproperties.has_key?(:valid_until)
         raise UnavailablePropertiesException.new "Cannot create lease without ':valid_from' and 'valid_until' oproperties #{lease_oproperties.inspect}"
       end
-      lease = create_resource(lease_descr, 'OLease', authorizer)
-      lease.valid_from = lease_oproperties[:valid_from]
-      lease.valid_until = lease_oproperties[:valid_until]
-      raise UnavailableResourceException.new "Cannot create '#{lease_descr.inspect}'" unless lease.save
-      lease
+      lease = create_resource(lease_descr, 'OLease', lease_oproperties, authorizer)
     end
 
     # Return the lease described by +lease_descr+.
@@ -501,7 +497,7 @@ module OMF::SFA::AM
       res
     end
             
-    def find_or_create_resource(resource_descr, type_to_create, authorizer)
+    def find_or_create_resource(resource_descr, type_to_create, oproperties, authorizer)
       debug "find_or_create_resource: resource '#{resource_descr.inspect}' type: '#{type_to_create}'"
       unless resource_descr.is_a? Hash
         raise FormatException.new "Unknown resource description '#{resource_descr.inspect}'"
@@ -511,20 +507,21 @@ module OMF::SFA::AM
         return find_resource(resource_descr, authorizer)
       rescue UnknownResourceException
       end
-      create_resource(resource_descr, type_to_create, authorizer)
+      create_resource(resource_descr, type_to_create, oproperties, authorizer)
     end
 
     # Create a resource
     #
     # @param [Hash] Describing properties of the requested resource
     # @param [String] Type to create
+    # @param [Hash] A hash with all the OProperty values of the requested resource
     # @param [Authorizer] Defines context for authorization decisions
     # @return [OResource] The resource requested
     # @raise [UnknownResourceException] if no resource can be created
     #
-    def create_resource(resource_descr, type_to_create, authorizer)
+    def create_resource(resource_descr, type_to_create, oproperties, authorizer)
       authorizer.can_create_resource?(resource_descr, type_to_create)
-      unless resource = @scheduler.create_resource(resource_descr, type_to_create, authorizer)
+      unless resource = @scheduler.create_resource(resource_descr, type_to_create, oproperties, authorizer)
         raise UnknownResourceException.new "Resource '#{resource_descr.inspect}' cannot be created"
       end
       resource
@@ -536,15 +533,16 @@ module OMF::SFA::AM
     #
     # @param [Hash] describing properties of the requested resource
     # @param [String] Type to create if not already exist
+    # @param [Hash] A hash with all the OProperty values of the requested resource
     # @param [Authorizer] Defines context for authorization decisions
     # @return [OResource] The resource requested
     # @raise [UnknownResourceException] if no matching resource can be found
     #        
-    def find_or_create_resource_for_account(resource_descr, type_to_create, authorizer)
+    def find_or_create_resource_for_account(resource_descr, type_to_create, oproperties, authorizer)
       debug "find_or_create_resource_for_account: r_descr:'#{resource_descr}' type:'#{type_to_create}' authorizer:'#{authorizer.inspect}'"
       rdescr = resource_descr.dup
       rdescr[:account] = authorizer.account
-      find_or_create_resource(rdescr, type_to_create, authorizer)
+      find_or_create_resource(rdescr, type_to_create, oproperties, authorizer)
     end
 
     # def _create_resource(resource_descr, type_to_create, authorizer)
@@ -647,7 +645,7 @@ module OMF::SFA::AM
           resource_descr = {:name => comp_gurn.short_name}
         end
 
-        resource = find_or_create_resource_for_account(resource_descr, comp_gurn.type, authorizer) 
+        resource = find_or_create_resource_for_account(resource_descr, comp_gurn.type, {}, authorizer) 
         unless resource
           raise UnknownResourceException.new "Resource '#{resource_el.to_s}' is not available or doesn't exist"
         end
@@ -655,7 +653,7 @@ module OMF::SFA::AM
         # the only resource we can find by a name attribute is a group
         # TODO: Not sure about the 'group' assumption
         name = name_attr.value
-        resource = find_or_create_resource_for_account({:name => name}, 'unknown', authorizer)
+        resource = find_or_create_resource_for_account({:name => name}, 'unknown', {}, authorizer)
       else 
         raise FormatException.new "Unknown resource description '#{resource_el.attributes.inspect}"
       end
@@ -670,20 +668,17 @@ module OMF::SFA::AM
           lease_name = resource_el[:lease_name]
           #TODO: provide the scheduler with the resource and the lease to attach them according to its policy.
           # if the scheduler refuses to attach the lease to the resource, we should release both of them.
-          resource.leases << leases[lease_name]
-          resource.save
+          @scheduler.lease_component(leases[lease_name], resource)
         else
           raise UknownLeaseException.new "RSpecs are not provided with any lease element"
         end
       elsif resource_el[:lease_uuid] # node element in RSpecs had a lease reference with uuid
         unless leases.empty? # RSpecs did have the ol:lease element so we have already found it
           lease_uuid = resource_el[:lease_uuid]
-          resource.leases << leases[lease_uuid]
-          resource.save
+          @scheduler.lease_component(leases[lease_uuid], resource)
         else # RSpecs didn't have ol:lease element, so we must first look for it
           lease = find_lease({:uuid => resource_el[:lease_uuid]}, authorizer)
-          resource.leases << lease
-          resource.save
+          @scheduler.lease_component(lease, resource)
         end
       end
 

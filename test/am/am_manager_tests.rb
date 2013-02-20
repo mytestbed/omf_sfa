@@ -41,11 +41,16 @@ describe AMManager do
       def self.get_nil_account
         nil
       end
-      def self.create_resource(resource_descr, type_to_create, auth)
+      def self.create_resource(resource_descr, type_to_create, oproperties, auth)
         resource_descr[:resource_type] = type_to_create
         resource_descr[:account] = auth.account
         type = type_to_create.camelize
         resource = eval("OMF::SFA::Resource::#{type}").create(resource_descr)
+        if type_to_create.eql?('OLease')
+          resource.valid_from = oproperties[:valid_from]
+          resource.valid_until = oproperties[:valid_until]
+          resource.save
+        end
         return resource
       end
       def self.release_resource(resource, authorizer)
@@ -450,7 +455,7 @@ describe AMManager do
       type_to_create = 'node'
       auth.expect(:account, account)
       auth.expect(:can_create_resource?, true, [Hash, String])
-      r = manager.find_or_create_resource(resource_descr, type_to_create, auth)
+      r = manager.find_or_create_resource(resource_descr, type_to_create, {}, auth)
       auth.verify
       r.must_equal OMF::SFA::Resource::Node.first(:name => 'r1')
     end
@@ -460,7 +465,7 @@ describe AMManager do
       r1 = OMF::SFA::Resource::OResource.create(resource_descr)
       type_to_create = 'node'
       auth.expect(:can_view_resource?, true, [OMF::SFA::Resource::OResource])
-      r = manager.find_or_create_resource(resource_descr, type_to_create, auth)
+      r = manager.find_or_create_resource(resource_descr, type_to_create, {}, auth)
       auth.verify
       r.must_equal r1
     end
@@ -470,7 +475,7 @@ describe AMManager do
       auth.expect(:account, account)
       auth.expect(:can_create_resource?, true, [Hash, String])
       descr = {:name => 'v1'}
-      r = manager.find_or_create_resource_for_account(descr, 'o_resource', auth)
+      r = manager.find_or_create_resource_for_account(descr, 'o_resource', {}, auth)
       auth.verify
       vr = OMF::SFA::Resource::OResource.first({:name => 'v1', :account => account})
       r.must_equal vr

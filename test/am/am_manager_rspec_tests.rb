@@ -42,15 +42,24 @@ describe AMManager do
       def self.get_nil_account
         nil
       end
-      def self.create_resource(resource_descr, type_to_create, auth)
+      def self.create_resource(resource_descr, type_to_create, oproperties, auth)
         resource_descr[:resource_type] = type_to_create
         #resource_descr[:account] = auth.account
         type = type_to_create.camelize
         resource = eval("OMF::SFA::Resource::#{type}").create(resource_descr)
+        if type_to_create.eql?('OLease')
+          resource.valid_from = oproperties[:valid_from]
+          resource.valid_until = oproperties[:valid_until]
+          resource.save
+        end
         return resource
       end
       def self.release_resource(resource, authorizer)
         resource.destroy
+      end
+      def self.lease_component(lease, component)
+        component.leases << lease
+        component.save
       end
     end
     scheduler
