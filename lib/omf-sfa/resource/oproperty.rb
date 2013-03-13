@@ -15,6 +15,13 @@ module OMF::SFA::Resource
       
     belongs_to :o_resource
     
+    module ArrayProxy
+      def << (val)
+        @oproperty << val
+        super
+      end
+    end
+  
     def value=(val)
       attribute_set(:value, JSON.generate([val]))
       save
@@ -22,8 +29,20 @@ module OMF::SFA::Resource
 
     def value()
       js = attribute_get(:value)
-      #puts "JS #{js.inspect}"      
-      JSON.parse(js)[0]
+      # http://www.ruby-lang.org/en/news/2013/02/22/json-dos-cve-2013-0269/
+      val = JSON.load(js)[0]
+      if val.kind_of? Array
+        val.tap {|v| v.extend(ArrayProxy).instance_variable_set(:@oproperty, self) }
+      end
+      val
+    end
+
+    def << (val)
+      v = attribute_get(:value)
+      v = JSON.load(v)[0]
+      v << val
+      attribute_set(:value, JSON.generate([v]))
+      save
     end
     #def value()
     #  #puts "VALUE() @value_:'#{@value_.inspect}'"

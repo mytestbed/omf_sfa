@@ -80,7 +80,8 @@ module OMF::SFA::Resource
         define_method pname do 
           res = oproperty_get(pname)
           if res == nil
-            oproperty_set(pname, res = PropValueArray.new)
+            oproperty_set(pname, PropValueArray.new)
+            res = oproperty_get(pname)
           end
           res
         end
@@ -92,22 +93,24 @@ module OMF::SFA::Resource
 
           #val = self.eval("#{pname}")
           #puts "RESPOND: '#{respond_to?(pname.to_sym)}' self:'#{self.inspect}'"
-          val = send(pname.to_sym)#.dup
+          #val = send(pname.to_sym).value#.dup
           #val = oproperty_get(pname)
-          if val.is_a? PropValueArray
+          unless v.is_a? PropValueArray
             # we really want to store it as a PropValueArray
-            #c = PropValueArray.new
-            #v.each {|e| c << e}
-            #v = c
-            val << v
+            c = PropValueArray.new
+            if v.respond_to?(:each)
+              v.each {|e| c << e}
+            else
+              c << v
+            end
+            v = c
             #puts "VAL is '#{val}'"
-          else
-            raise "value '#{val}' of property '#{pname}' is not of type PropValueArray"
           end
           #puts "NAME is '#{name}'"
-          oproperty_set(name, val)
+          oproperty_set(pname, v)
         end 
-        
+
+                
       else  
         op[name] = opts
         
@@ -127,8 +130,6 @@ module OMF::SFA::Resource
         end 
         
       end
-
-      
     end
     
     # Clone this resource this resource. However, the clone will have a unique UUID
@@ -186,13 +187,12 @@ module OMF::SFA::Resource
       return self.name if pname == :name
       
       prop = self.oproperties.first(:name => pname)
-      #puts "OPROPERTY_GET: prop:'#{prop}'"
       prop.nil? ? nil : prop.value
     end
     alias_method :[], :oproperty_get 
 
     def oproperty_set(pname, value)
-      #puts "OPROPERTY_SET pname:'#{pname}', value:'#{value}', self:'#{self.inspect}'"
+      #puts "OPROPERTY_SET pname:'#{pname}', value:'#{value.class}', self:'#{self.inspect}'"
       pname = pname.to_sym
       if pname == :name
         self.name = value
@@ -200,7 +200,6 @@ module OMF::SFA::Resource
         self.save
         prop = self.oproperties.first_or_create(:name => pname)
         prop.value = value
-        prop.save
       end
       value
     end
@@ -308,6 +307,13 @@ module OMF::SFA::Resource
       }.to_json(*a)
     end 
     
+    #def self.from_json(o)
+    #  puts "FROM_JSON"
+    #  klass = o['json_class']
+    #  id = o['id']
+    #  eval(klass).first(:id => id)
+    #end
+
     def self.json_create(o)
       klass = o['json_class']
       id = o['id']
@@ -315,7 +321,7 @@ module OMF::SFA::Resource
     end
    
     def to_hash(objs = {}, opts = {})
-      debug "to_hash:opts: #{opts.keys.inspect}::#{objs.keys.inspect}::"
+      #debug "to_hash:opts: #{opts.keys.inspect}::#{objs.keys.inspect}::"
       h = {}
       uuid = h[:uuid] = self.uuid.to_s
       h[:href] = self.href(opts)
@@ -369,12 +375,13 @@ module OMF::SFA::Resource
     def to_json(*a)
       {
         'json_class' => self.class.name,
-        'els' => self.to_a.to_json,
+        'els' => self.to_a.to_json
       }.to_json(*a)
     end 
     
     def self.json_create(o)
-      v = JSON.parse(o['els'])
+      # http://www.ruby-lang.org/en/news/2013/02/22/json-dos-cve-2013-0269/
+      v = JSON.load(o['els'])
       v
     end
     

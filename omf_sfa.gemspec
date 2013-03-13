@@ -32,7 +32,7 @@ Gem::Specification.new do |s|
   s.add_runtime_dependency "dm-sqlite-adapter", "~> 1.2.0"
   s.add_runtime_dependency "nokogiri", "~> 1.5.5"
   s.add_runtime_dependency "uuid", "~> 2.3.5"
-#  s.add_runtime_dependency "json", "~> 1.7.4"
+  s.add_runtime_dependency "json", "~> 1.7.7"
 #
   s.add_runtime_dependency "equivalent-xml", "~> 0.2.9"
   s.add_runtime_dependency "rspec", "~> 2.11.0"
@@ -40,4 +40,7 @@ Gem::Specification.new do |s|
   s.add_runtime_dependency "rack-rpc", "~> 0.0.6"
   s.add_runtime_dependency "data_mapper", "~> 1.2.0"
   s.add_runtime_dependency "bluecloth", "~> 2.2.0"
+  s.add_runtime_dependency "omf_common", "~> 6.0.0.pre.10"
+  s.add_runtime_dependency "eventmachine", "~> 0.12.10"
+  s.add_runtime_dependency "em-minitest-spec", "~> 1.1.1"
 end

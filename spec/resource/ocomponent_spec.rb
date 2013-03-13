@@ -109,42 +109,42 @@ describe OComponent do
       :type=> "group", 
       :href=> "/resources/#{g.uuid}", 
       :resources => [{
-	:name => "n", 
-	:type => "T", 
-	:status=>"unknown", 
-	:domain => "mytestbed.net", 
-	:uuid => n.uuid.to_s,
-	:href=> "/resources/#{n.uuid}", 
+        :name => "n", 
+        :type => "T", 
+        :status=>"unknown", 
+        :domain => "mytestbed.net", 
+        :uuid => n.uuid.to_s,
+        :href=> "/resources/#{n.uuid}", 
       }]
     }
     g.to_sfa_hash().should == {
-    "href" => "/resources/#{g.uuid}", "uuid" => g.uuid.to_s, "sfa_class" => "group",
-    "component_name" => "g", "component_manager_id" => "authority+am", 
-    "component_id" => "urn:publicid:IDN+mytestbed.net+group+#{g.uuid}",
-    "components" => [{
-      "href" => "/resources/#{n.uuid}",
-      "uuid" => n.uuid.to_s,
-	"component_name" => "n",
-	"component_manager_id" => "authority+am",
-	"component_id" => "urn:publicid:IDN+mytestbed.net+T+#{n.uuid}",
-      "sfa_class" => "T"
-    }]
+      "href" => "/resources/#{g.uuid}", "uuid" => g.uuid.to_s, "sfa_class" => "group",
+      "component_name" => "g", "component_manager_id" => "authority+am", 
+      "component_id" => "urn:publicid:IDN+mytestbed.net+group+#{g.uuid}",
+      "components" => [{
+        "href" => "/resources/#{n.uuid}",
+        "uuid" => n.uuid.to_s,
+        "component_name" => "n",
+        "component_manager_id" => "authority+am",
+        "component_id" => "urn:publicid:IDN+mytestbed.net+T+#{n.uuid}",
+        "sfa_class" => "T"
+      }]
     }
     assert_sfa_xml g, %{
-	      <group %s
-		  id="#{g.uuid}"
-		  omf:href="/resources/#{g.uuid}"
-		  component_id="urn:publicid:IDN+mytestbed.net+group+#{g.uuid}" 
-		  component_manager_id="authority+am" component_name="g">
-		<components>
-		  <T 
-		    id="#{n.uuid}" 
-		    omf:href="/resources/#{n.uuid}"
-		    component_id="urn:publicid:IDN+mytestbed.net+T+#{n.uuid}" 
-		    component_manager_id="authority+am" 
-		    component_name="n"/>
-		</components>
-	      </group>                  
+        <group %s
+      id="#{g.uuid}"
+      omf:href="/resources/#{g.uuid}"
+      component_id="urn:publicid:IDN+mytestbed.net+group+#{g.uuid}" 
+      component_manager_id="authority+am" component_name="g">
+    <components>
+      <T 
+        id="#{n.uuid}" 
+        omf:href="/resources/#{n.uuid}"
+        component_id="urn:publicid:IDN+mytestbed.net+T+#{n.uuid}" 
+        component_manager_id="authority+am" 
+        component_name="n"/>
+    </components>
+        </group>                  
     }
   end
 
@@ -158,49 +158,49 @@ describe OComponent do
       :uuid => g.uuid.to_s, 
       :href => "/resources/#{g.uuid}",      
       :resources => [{
-	:name => "g2", 
-	:type => "group", 
-	:href => "/resources/#{g2.uuid}",        
-	:resources => [], 
-	:uuid => g2.uuid.to_s
+  :name => "g2", 
+  :type => "group", 
+  :href => "/resources/#{g2.uuid}",        
+  :resources => [], 
+  :uuid => g2.uuid.to_s
       }]
     }
     g.to_sfa_hash().should == {
-      "component_name" => "g", 
-      "component_manager_id" => "authority+am", 
-      "href" => "/resources/#{g.uuid}", 
-      "uuid" => g.uuid.to_s,
+    "component_name" => "g", 
+    "component_manager_id" => "authority+am", 
+    "href" => "/resources/#{g.uuid}", 
+    "uuid" => g.uuid.to_s,
+    "sfa_class" => "group",
+    "component_id" => "urn:publicid:IDN+mytestbed.net+group+#{g.uuid}",
+    "components" => [{
+      "component_name" => "g2",
+      "href" => "/resources/#{g2.uuid}",
+      "uuid" => g2.uuid.to_s,
       "sfa_class" => "group",
-      "component_id" => "urn:publicid:IDN+mytestbed.net+group+#{g.uuid}",
-      "components" => [{
-	"component_name" => "g2",
-	"href" => "/resources/#{g2.uuid}",
-	"uuid" => g2.uuid.to_s,
-	"sfa_class" => "group",
-	"component_manager_id" => "authority+am",
-	"component_id" => "urn:publicid:IDN+mytestbed.net+group+#{g2.uuid}",
-	"components" => []
-      }]
+      "component_manager_id" => "authority+am",
+      "component_id" => "urn:publicid:IDN+mytestbed.net+group+#{g2.uuid}",
+      "components" => []
+    }]
     }
 
 
     assert_sfa_xml g, %{
-	      <group %s
-		  id="#{g.uuid}" 
+        <group %s
+      id="#{g.uuid}" 
       omf:href="/resources/#{g.uuid}"
-		  component_id="urn:publicid:IDN+mytestbed.net+group+#{g.uuid}" 
-		  component_manager_id="authority+am" component_name="g">
-		<components>
-		  <group 
-		    id="#{g2.uuid}" 
-		    omf:href="/resources/#{g2.uuid}"
-		    component_id="urn:publicid:IDN+mytestbed.net+group+#{g2.uuid}" 
-		    component_manager_id="authority+am" 
-		    component_name="g2">
-		    <components/>
-		  </group>
-		</components>
-	      </group>                  
+      component_id="urn:publicid:IDN+mytestbed.net+group+#{g.uuid}" 
+      component_manager_id="authority+am" component_name="g">
+    <components>
+      <group 
+        id="#{g2.uuid}" 
+        omf:href="/resources/#{g2.uuid}"
+        component_id="urn:publicid:IDN+mytestbed.net+group+#{g2.uuid}" 
+        component_manager_id="authority+am" 
+        component_name="g2">
+        <components/>
+      </group>
+    </components>
+        </group>                  
     }
   end
 
