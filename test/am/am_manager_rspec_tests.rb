@@ -469,7 +469,7 @@ describe AMManager do
 
       r.must_be_empty
       OMF::SFA::Resource::Node.first(:name => 'node1').must_be_nil
-      OMF::SFA::Resource::OLease.first(:name => 'l1').status.must_equal(:cancelled)
+      OMF::SFA::Resource::OLease.first(:name => 'l1').status.must_equal('cancelled')
       
       authorizer.verify
     end

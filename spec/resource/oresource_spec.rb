@@ -1,5 +1,6 @@
 require "#{File.dirname(__FILE__)}/common"
 require 'omf-sfa/resource/oresource'
+require 'omf-sfa/resource/node'
 require 'omf-sfa/resource/ogroup'
 require 'json'
 
@@ -30,7 +31,7 @@ describe OResource do
 
   init_logger
 
-  before :all do
+  before :each do
     init_dm
   end
   
@@ -164,13 +165,13 @@ describe OResource do
     a.bas << b2
     a.save
     a.reload
-    
+
     a.bas.should == [b, b2]
     a.to_hash.should == {
       :type=>"unknown", :uuid=>"#{a.uuid}", :href=>"/resources/#{a.uuid}", :name => 'a',
       :bas => [b.uuid.to_s, b2.uuid.to_s]
     }             
-    
+
     a.bas = []
     a.save
     a.reload
@@ -184,10 +185,24 @@ describe OResource do
     a.b = b
     a.save
     a.reload
-    
+
     a.oproperties_as_hash.should == {'b' => b, 'bas' => [b]}
   end
-  
-  
+
+  it 'can have Time oproperties' do
+    class Bar < OResource
+    end
+
+    class Foo < Bar
+      oproperty :created_at, DataMapper::Property::Time
+    end
+
+    f = Foo.new
+    f.created_at = Time.now
+    f.save
+
+    f.created_at.should be_a_kind_of(Time)
+  end
+
 end
-    
+

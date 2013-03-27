@@ -52,10 +52,8 @@ describe AMScheduler do
 
   describe 'resources' do
 
-    let (:account) { OMF::SFA::Resource::OAccount.first_or_create(:name => 'a1') }
-
     a = scheduler.get_nil_account()
-    #account = OMF::SFA::Resource::OAccount.create({:name => 'a1'})
+    account = OMF::SFA::Resource::OAccount.create({:name => 'a1'})
 
     it 'can create a node' do
       r = OMF::SFA::Resource::Node.create({:name => 'r1', :account => a})
