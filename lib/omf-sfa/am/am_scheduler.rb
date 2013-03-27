@@ -3,6 +3,7 @@ require 'omf_common/lobject'
 require 'omf-sfa/resource'
 require 'omf-sfa/resource/comp_group'
 require 'omf-sfa/am/am_manager'
+require 'omf-sfa/am/am_liaison'
 require 'active_support/inflector'
 
 
@@ -35,7 +36,7 @@ module OMF::SFA::AM
         type = type_to_create.camelize
 
         base_resource = eval("OMF::SFA::Resource::#{type}").first(desc)
-        
+
         if base_resource.nil? || !base_resource.available
           raise UnknownResourceException.new "Resource '#{desc.inspect}' is not available or doesn't exist"
         end
@@ -47,7 +48,7 @@ module OMF::SFA::AM
         vr.provided_by = base_resource
         vr.save
 
-        base_resource.provides = vr
+        base_resource.provides << vr
         base_resource.save
 
         return vr
@@ -92,6 +93,8 @@ module OMF::SFA::AM
 
       component.leases << lease
       component.save
+
+      @am_liaison.enable_lease(lease, component)
     end
 
     # It returns the default account, normally used for admin account.
@@ -104,6 +107,7 @@ module OMF::SFA::AM
 
     def initialize()
       @nil_account = OMF::SFA::Resource::OAccount.new(:name => '__default__', :valid_until => Time.now + 1E10)
+      @am_liaison = OMF::SFA::AM::AMLiaison.new
     end    
 
   end # OMFManager

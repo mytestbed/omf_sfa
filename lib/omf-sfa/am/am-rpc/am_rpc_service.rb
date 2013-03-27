@@ -139,6 +139,7 @@ module OMF::SFA::AM::RPC
     def initialize(opts)
       super
       @manager = opts[:manager]
+      @liaison = opts[:liaison]
     end
 
   end # AMService

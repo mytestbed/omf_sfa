@@ -2,20 +2,22 @@ require 'rubygems'
 require 'rack'
 require 'rack/showexceptions'
 require 'thin'
-require 'data_mapper'
+#require 'data_mapper'
+require 'dm-migrations'
 require 'omf_common/lobject'
 require 'omf_common/load_yaml'
 
 require 'omf-sfa/am/am_runner'
 require 'omf-sfa/am/am_manager'
 require 'omf-sfa/am/am_scheduler'
+require 'omf-sfa/am/am_liaison'
 
-require 'omf_common/lobject'
+#require 'omf_common/lobject'
 
 module OMF::SFA::AM
 
   class AMServer 
-    # Don't use LObject as we haveb't initialized the logging system yet. Happens in 'init_logger'
+    # Don't use LObject as we haven't initialized the logging system yet. Happens in 'init_logger'
     include OMF::Common::Loggable
     extend OMF::Common::Loggable
     
@@ -74,6 +76,7 @@ module OMF::SFA::AM
       am = options[:am][:manager]
       if am.is_a? Proc
         am = am.call
+        options[:am][:manager] = am
       end
     
       require 'omf-sfa/resource/oaccount'
@@ -83,7 +86,7 @@ module OMF::SFA::AM
       require 'omf-sfa/resource/node'
       nodes = []
       3.times do |i|
-        name = "n#{i}"
+        name = "node#{i}"
         uuid = UUIDTools::UUID.sha1_create(UUIDTools::UUID_DNS_NAMESPACE, name)
         nodes << (n = OMF::SFA::Resource::Node.create(:name => name, :uuid => uuid))
         am.manage_resource(n)
@@ -118,6 +121,7 @@ module OMF::SFA::AM
       require 'omf_common/thin/runner'
       OMF::Common::Thin::Runner.new(ARGV, opts).run!
     end
+
   end # class
 end # module
 
@@ -127,7 +131,8 @@ opts = {
   :app_name => 'am_server',
   :port => 8001,
   :am => {
-    :manager => lambda { OMF::SFA::AM::AMManager.new(OMF::SFA::AM::AMScheduler.new) }
+    :manager => lambda { OMF::SFA::AM::AMManager.new(OMF::SFA::AM::AMScheduler.new) },
+    :liaison => OMF::SFA::AM::AMLiaison.new
   },
   :ssl => {
     :cert_file => File.expand_path("~/.gcf/am-cert.pem"), 
