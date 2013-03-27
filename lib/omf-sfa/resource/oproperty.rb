@@ -1,5 +1,32 @@
 require 'omf-sfa/resource/oresource'
-require 'json/add/core' # Time serialization with json and ruby: http://blog.matthewrathbone.com/2010/09/28/ruby-json-serialization-sucks-for-time-objects.html
+require 'json'
+
+# We use the JSON serialization for Time objecs from 'json/add/core' in order to avoid 
+# the conflicts with the 'active_support/core_ext' which is included in 'omf_common' 
+# and overrides Time objects serialization. We want 'JSON.load' to return actual Time 
+# objects instead of Strings.
+#
+class Time
+  def to_json(*args)
+    {
+      JSON.create_id => self.class.name,
+      's' => tv_sec,
+      'n' => respond_to?(:tv_nsec) ? tv_nsec : tv_usec * 1000
+    }.to_json(*args)
+  end
+
+  def self.json_create(object)
+    if usec = object.delete('u') # used to be tv_usec -> tv_nsec
+      object['n'] = usec * 1000
+    end
+    if respond_to?(:tv_nsec)
+      at(*object.values_at('s', 'n'))
+    else
+      at(object['s'], object['n'] / 1000)
+    end
+  end
+end
+
 
 module OMF::SFA::Resource
   

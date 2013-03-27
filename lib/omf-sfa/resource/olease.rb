@@ -16,7 +16,7 @@ module OMF::SFA::Resource
 
     [:pending, :accepted, :active, :past, :cancelled].each do |s|
       define_method(s.to_s + '?') do
-        if self.status.eql?(s)
+        if self.status.eql?(s.to_s)
           true
         else
           false

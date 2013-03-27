@@ -2,7 +2,6 @@ require 'rubygems'
 require 'dm-core'
 require 'dm-types'
 require 'dm-validations'
-require 'json'
 require 'omf_common/lobject'
 require 'set'
 
@@ -18,6 +17,7 @@ autoload :OLease, 'omf-sfa/resource/olease'
   # class OResource; end
 # end
 #require 'omf-sfa/resource/oaccount' 
+
 
 module OMF::SFA::Resource
   
@@ -61,31 +61,34 @@ module OMF::SFA::Resource
 
     has n, :group_memberships, :child_key => [ :o_resource_id ]
     has n, :included_in_groups, 'OGroup', :through => :group_memberships, :via => :o_group
-    
+
     belongs_to :account, :model => 'OAccount', :child_key  => [ :account_id ], :required => false
-    
-    
+
+
     def self.oproperty(name, type, opts = {})
       name = name.to_s
-      
+
       # should check if +name+ is already used
       op = @@oprops[self] ||= {}
       opts[:__type__] = type
-      
+
       if opts[:functional] == false
         # property is an array
         pname = DataMapper::Inflector.pluralize(name)
         op[pname] = opts
-          
+
         define_method pname do 
           res = oproperty_get(pname)
           if res == nil
-            oproperty_set(pname, PropValueArray.new)
+            oproperty_set(pname, res = [])
+            # We make a oproperty_get in order to get the extended Array with
+            # the overidden '<<' method. Check module ArrayProxy in oproperty.rb
             res = oproperty_get(pname)
           end
+          #puts "PROPERTY_GET #{res}"
           res
         end
-        
+
         define_method "#{pname}=" do |v|
           #unless v.kind_of? Enumerable
           #  raise "property '#{pname}' expects a value of type Enumerable"
@@ -95,25 +98,28 @@ module OMF::SFA::Resource
           #puts "RESPOND: '#{respond_to?(pname.to_sym)}' self:'#{self.inspect}'"
           #val = send(pname.to_sym).value#.dup
           #val = oproperty_get(pname)
-          unless v.is_a? PropValueArray
+          #unless v.is_a? PropValueArray
+          unless v.is_a? Array
             # we really want to store it as a PropValueArray
-            c = PropValueArray.new
-            if v.respond_to?(:each)
-              v.each {|e| c << e}
-            else
-              c << v
-            end
-            v = c
+            #c = PropValueArray.new
+            #if v.respond_to?(:each)
+            #  v.each {|e| c << e}
+            #else
+            #  c << v
+            #end
+            #v = c
+            v = [v]
             #puts "VAL is '#{val}'"
           end
           #puts "NAME is '#{name}'"
+          #puts "V is '#{v}'"
           oproperty_set(pname, v)
         end 
 
-                
+
       else  
         op[name] = opts
-        
+
         define_method name do 
           res = oproperty_get(name)
           if res.nil? 
@@ -124,14 +130,14 @@ module OMF::SFA::Resource
           end
           res
         end 
-        
+
         define_method "#{name}=" do |v| 
           oproperty_set(name, v)
         end 
-        
+
       end
     end
-    
+
     # Clone this resource this resource. However, the clone will have a unique UUID
     #
     def clone()
@@ -147,45 +153,45 @@ module OMF::SFA::Resource
       clone.uuid = UUIDTools::UUID.random_create
       return clone
     end
-    
+
     def uuid()
       unless uuid = attribute_get(:uuid)
         uuid = self.uuid = UUIDTools::UUID.random_create
       end
       uuid
     end
-    
+
     def href(opts = {})
       if prefix = opts[:name_prefix]
         href = "#{prefix}/#{self.name || self.uuid.to_s}"                  
         # if self.name.start_with? '_'
-          # h[:href] = prefix
+        # h[:href] = prefix
         # else
-          # h[:href] = "#{prefix}/#{self.name || uuid}"          
+        # h[:href] = "#{prefix}/#{self.name || uuid}"          
         # end
       elsif prefix = opts[:href_prefix] || @@default_href_prefix
         href = "#{prefix}/#{self.uuid.to_s}"
       end
       href
     end
-    
+
     # Return the status of the resource. Should be
     # one of: _configuring_, _ready_, _failed_, and _unknown_
     #
     def status
       'unknown'
     end
-    
+
     def oproperty(pname)
       self.oproperties.first(:name => pname.to_sym)
     end
 
-    
+
     def oproperty_get(pname)
       #puts "OPROPERTY_GET: pname:'#{pname}'"
       pname = pname.to_sym
       return self.name if pname == :name
-      
+
       prop = self.oproperties.first(:name => pname)
       prop.nil? ? nil : prop.value
     end
@@ -204,7 +210,7 @@ module OMF::SFA::Resource
       value
     end
     alias_method :[]=, :oproperty_set 
-    
+
     def oproperties_as_hash
       res = {}
       oproperties.each do |p|
@@ -219,8 +225,8 @@ module OMF::SFA::Resource
 
     # alias_method :_dirty_children?, :dirty_children?
     # def dirty_children?
-      # puts "CHECKING CHILDREN DIRTY: #{_dirty_children?}"
-      # _dirty_children?
+    # puts "CHECKING CHILDREN DIRTY: #{_dirty_children?}"
+    # _dirty_children?
     # end
 
     alias_method :_dirty_self?, :dirty_self?
@@ -235,29 +241,29 @@ module OMF::SFA::Resource
 
     # alias_method :_dirty_attributes, :dirty_attributes
     # def dirty_attributes
-      # dirty = _dirty_attributes
-      # puts "DIRTY ATTRIBUTE #{dirty.inspect}"
-      # dirty
+    # dirty = _dirty_attributes
+    # puts "DIRTY ATTRIBUTE #{dirty.inspect}"
+    # dirty
     # end
-    
+
     # Return true if this resource is a Group
     def group?
       false
     end
-    
-    
+
+
     # Remove this resource from all groups it currently belongs.
     #
     def remove_from_all_groups
       self.group_memberships.each {|m| m.destroy}
     end
-    
+
     # Add this resource and all contained to +set+.
     def all_resources(set = Set.new)
       set << self
       set
     end
-    
+
 
     before :save do
       unless self.uuid
@@ -271,7 +277,7 @@ module OMF::SFA::Resource
         self.urn = GURN.create(name, self.class).to_s
       end
     end
-    
+
     def destroy 
       self.remove_from_all_groups
 
@@ -290,12 +296,12 @@ module OMF::SFA::Resource
       p = self.oproperties.all()
       super
     end
-    
+
     def destroy!
       destroy
       super
     end
-    
+
     def to_json(*a)
       unless self.id
         # need an id, means I haven't been saved yet
@@ -306,7 +312,7 @@ module OMF::SFA::Resource
         'id'       => self.id
       }.to_json(*a)
     end 
-    
+
     #def self.from_json(o)
     #  puts "FROM_JSON"
     #  klass = o['json_class']
@@ -317,9 +323,10 @@ module OMF::SFA::Resource
     def self.json_create(o)
       klass = o['json_class']
       id = o['id']
-      eval(klass).first(:id => id)
+      r = eval(klass).first(:id => id)
+      r
     end
-   
+
     def to_hash(objs = {}, opts = {})
       #debug "to_hash:opts: #{opts.keys.inspect}::#{objs.keys.inspect}::"
       h = {}
@@ -330,18 +337,18 @@ module OMF::SFA::Resource
         h[:name] = self.name
       end 
       h[:type] = self.resource_type || 'unknown'
-      
+
       return h if objs.key?(self)
       objs[self] = true
-      
+
       _oprops_to_hash(h)
       h
     end
-    
+
     def default_href_prefix
       @@default_href_prefix
     end
-    
+
     def _oprops_to_hash(h)
       klass = self.class
       while klass 
@@ -358,7 +365,7 @@ module OMF::SFA::Resource
                   (e.kind_of? OResource) ? e.uuid.to_s : e
                 end
               end
-              
+
               h[k] = value
             end
           end
@@ -368,24 +375,24 @@ module OMF::SFA::Resource
       h
     end
   end
-  
+
   # Extend array to add functionality dealing with property values
-  class PropValueArray < Array
-    
-    def to_json(*a)
-      {
-        'json_class' => self.class.name,
-        'els' => self.to_a.to_json
-      }.to_json(*a)
-    end 
-    
-    def self.json_create(o)
-      # http://www.ruby-lang.org/en/news/2013/02/22/json-dos-cve-2013-0269/
-      v = JSON.load(o['els'])
-      v
-    end
-    
-  end
-  
+  #class PropValueArray < Array
+
+  #  def to_json(*a)
+  #    {
+  #      'json_class' => self.class.name,
+  #      'els' => self.to_a.to_json
+  #    }.to_json(*a)
+  #  end 
+
+  #  def self.json_create(o)
+  #    # http://www.ruby-lang.org/en/news/2013/02/22/json-dos-cve-2013-0269/
+  #    v = JSON.load(o['els'])
+  #    v
+  #  end
+
+  #end
+
 end # OMF::SFA
 
