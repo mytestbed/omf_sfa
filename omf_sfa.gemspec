@@ -20,6 +20,7 @@ Gem::Specification.new do |s|
 
   # specify any dependencies here; for example:
   s.add_development_dependency "minitest", "~> 4.3.3"
+  s.add_runtime_dependency "nokogiri", "= 1.5.5"
   s.add_runtime_dependency "erector", "~> 0.8.3"
   s.add_runtime_dependency "rack", "~> 1.3.5"
   s.add_runtime_dependency "thin", "~> 1.3.1"
@@ -30,7 +31,6 @@ Gem::Specification.new do |s|
   s.add_runtime_dependency "dm-validations", "~> 1.2.0"
   s.add_runtime_dependency "dm-migrations", "~> 1.2.0"
   s.add_runtime_dependency "dm-sqlite-adapter", "~> 1.2.0"
-  s.add_runtime_dependency "nokogiri", "~> 1.5.5"
   s.add_runtime_dependency "uuid", "~> 2.3.5"
   s.add_runtime_dependency "json", "~> 1.7.7"
 #
