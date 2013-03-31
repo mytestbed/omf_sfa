@@ -92,6 +92,12 @@ module OMF::SFA::AM
         am.manage_resource(n)
       end
       #  am.find_resource 'n1', :requester_account => account
+      nodes.first.leases << OMF::SFA::Resource::OLease.create(:name => 'l1', :valid_from => Time.now, :valid_until => Time.now + 3600)
+      nodes.first.leases << OMF::SFA::Resource::OLease.create(:name => 'l2', :valid_from => Time.now + 3600, :valid_until => Time.now + 7200)
+      nodes.first.save
+
+      nodes.last.leases << OMF::SFA::Resource::OLease.create(:name => 'l1', :valid_from => Time.now, :valid_until => Time.now + 3600)
+      nodes.last.save
     end
     
     def run(opts)

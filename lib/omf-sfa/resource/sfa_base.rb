@@ -63,7 +63,7 @@ module OMF::SFA
           name = name.to_s
           props = sfa_defs()
           props[name] = opts
-          descendants.each do |c| c.sfa_defs(false) end 
+          descendants.each { |c| c.sfa_defs(false) } 
         end
                 
         # opts:
@@ -348,7 +348,7 @@ module OMF::SFA
           
           id = sfa_id()
           obj2id[self] = id
-          n.set_attribute('id', id) #if detail_level > 0
+          n.set_attribute('omf:id', id) #if detail_level > 0
           if href = self.href(opts)
             n.set_attribute('omf:href', href)
           end
@@ -366,7 +366,7 @@ module OMF::SFA
             if v.nil?
               v = pdef[:default]
             end
-            unless v.nil?
+            unless v.nil? || (v.is_a?(Array) && v.empty?)
               #if detail_level > 0 || k == 'component_name'
                 _to_sfa_property_xml(k, v, n, pdef, obj2id, opts)
               #end
