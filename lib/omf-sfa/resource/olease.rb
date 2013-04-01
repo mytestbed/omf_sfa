@@ -37,7 +37,7 @@ module OMF::SFA::Resource
     def status
       s = oproperty_get(:status)
       if s.nil?
-        oproperty_set(:status, :pending)
+        oproperty_set(:status, "pending")
       else
         s
       end
