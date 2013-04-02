@@ -200,10 +200,11 @@ module OMF::SFA
         end
         
         def component_id
+          @component_id ||= GURN.create(self.urn, self)
           #@component_id ||= GURN.create(self.component_name, self)
-          @component_id ||= GURN.create(self.uuid.to_s, self)
+          #@component_id ||= GURN.create(self.uuid.to_s, self)
 # 
-          # puts "COMPONENT_ID: #{self.component_name}::#@component_id"
+          #puts "COMPONENT_ID: #{self.component_name}::#@component_id"
           # @component_id
         end
         

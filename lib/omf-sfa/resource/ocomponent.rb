@@ -71,7 +71,7 @@ module OMF::SFA::Resource
 
     def destroy
       if !self.provides.empty?
-        raise MissingImplementationException("Don't know yet how to delete resource which still provides other resources")
+        raise OMF::SFA::AM::MissingImplementationException.new("Don't know yet how to delete resource which still provides other resources")
       end
       provider = self.provided_by      
 
@@ -90,6 +90,10 @@ module OMF::SFA::Resource
       end
 
       super
+    end
+
+    before :save do
+      self.urn = GURN.create(self.name, self)
     end
 
     def destroy!

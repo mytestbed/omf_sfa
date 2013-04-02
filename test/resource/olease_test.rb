@@ -64,4 +64,11 @@ describe 'OLease' do
     l1.cancelled?.must_equal false
     l1.accepted?.must_equal true
   end 
+
+  it "can have time oproperties" do
+    l = OMF::SFA::Resource::OLease.create({:name => 'l1', :valid_from => valid_from, :valid_until => valid_until})
+
+    l.valid_from.must_be_kind_of(Time)
+    l.valid_until.must_be_kind_of(Time)
+  end
 end

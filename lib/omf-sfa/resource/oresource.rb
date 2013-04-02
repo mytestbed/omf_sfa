@@ -273,8 +273,14 @@ module OMF::SFA::Resource
         self.name = self.urn ? GURN.create(self.urn).short_name : "r#{self.object_id}"
       end
       unless self.urn
-        name = self.name
-        self.urn = GURN.create(name, self.class).to_s
+        # The purpose or function of a URN is to provide a globally unique,
+        # persistent identifier used for recognition, for access to
+        # characteristics of the resource or for access to the resource
+        # itself.
+        # source: http://tools.ietf.org/html/rfc1737
+        #
+        #name = self.name
+        self.urn = GURN.create(self.uuid.to_s, self.class).to_s
       end
     end
 
