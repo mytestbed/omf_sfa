@@ -24,10 +24,10 @@ module OMF::SFA::AM::RPC
     #implement ServiceAPI
     implement AMServiceAPI
 
-    def get_version
+    def get_version(options = {})
       debug "GetVersion"
       {
-      	:geni_api => 1,
+      	:geni_api => 2,
       	:omf_am => "0.1",
       	:ad_rspec_versions => [{ 
       	  :type => 'ProtoGENI',
@@ -48,7 +48,11 @@ module OMF::SFA::AM::RPC
 
       authorizer = OMF::SFA::AM::RPC::AMAuthorizer.create_for_web_request(slice_urn, credentials, @request, @manager)
       #@authorizer.check_credentials(slice_urn, credentials.first, @manager)
-      resources = @manager.find_all_components_for_account(authorizer.account, authorizer)
+      if slice_urn
+        resources = @manager.find_all_components_for_account(authorizer.account, authorizer)
+      else
+        resources = @manager.find_all_components_for_account(@manager._get_nil_account, authorizer)
+      end
       # TODO: implement the "available_only" option
 
       # only list independent resources (TODO: What does this mean??)
@@ -59,10 +63,14 @@ module OMF::SFA::AM::RPC
       if compressed
 	      res = Base64.encode64(Zlib::Deflate.deflate(res))
       end
-      res
+      { :code => {
+          :geni_code => 0
+        },
+        :value => res
+      }
     end
 
-    def create_sliver(slice_urn, credentials, rspec_s, users)
+    def create_sliver(slice_urn, credentials, rspec_s, users, options)
       debug 'CreateSliver: SLICE URN: ', slice_urn, ' RSPEC: ', rspec_s, ' USERS: ', users.inspect
       #@authorizer.check_credentials(slice_urn, credentials.first, @manager)
       authorizer = OMF::SFA::AM::RPC::AMAuthorizer.create_for_web_request(slice_urn, credentials, @request, @manager)
@@ -72,10 +80,15 @@ module OMF::SFA::AM::RPC
 
       # TODO: Still need to implement USER handling
 
-      OMF::SFA::Resource::OComponent.sfa_advertisement_xml(resources).to_s
+      res = OMF::SFA::Resource::OComponent.sfa_advertisement_xml(resources).to_s
+      { :code => {
+          :geni_code => 0
+        },
+        :value => res
+      }
     end
 
-    def sliver_status(slice_urn, credentials)
+    def sliver_status(slice_urn, credentials, options)
       debug('SliverStatus for ', slice_urn)
       #@authorizer.check_credentials(slice_urn, credentials.first, @manager)
       authorizer = OMF::SFA::AM::RPC::AMAuthorizer.create_for_web_request(slice_urn, credentials, @request, @manager)
@@ -96,10 +109,14 @@ module OMF::SFA::AM::RPC
       	  'geni_error' => '',          
       	}
       end
-      status
+      { :code => {
+          :geni_code => 0
+        },
+        :value => status
+      }
     end
 
-    def renew_sliver(slice_urn, credentials, expiration_time)
+    def renew_sliver(slice_urn, credentials, expiration_time, options)
       #debug('RenewSliver ', slice_urn, ' until <', expiration_time.to_time.class, '>') 
       expiration_time = expiration_time.to_time # is XMLRP::DateTime         
       debug('RenewSliver ', slice_urn, ' until <', expiration_time, '>')
@@ -107,11 +124,15 @@ module OMF::SFA::AM::RPC
       authorizer = OMF::SFA::AM::RPC::AMAuthorizer.create_for_web_request(slice_urn, credentials, @request, @manager)
       
       @manager.renew_account_until({ :urn => slice_urn }, expiration_time, authorizer)
-      true
+      { :code => {
+          :geni_code => 0
+        },
+        :value => true
+      }
     end
 
     # close the account and release the attached resources
-    def delete_sliver(slice_urn, credentials)
+    def delete_sliver(slice_urn, credentials, options)
       debug('DeleteSliver ', slice_urn)
       #@authorizer.check_credentials(slice_urn, credentials.first, @manager)
       authorizer = OMF::SFA::AM::RPC::AMAuthorizer.create_for_web_request(slice_urn, credentials, @request, @manager)
@@ -121,17 +142,25 @@ module OMF::SFA::AM::RPC
       # TODO: Should this really be here? Seems to be the job of the AM manager.
       @manager.release_all_components_for_account(account, authorizer)
       debug "Slice '#{slice_urn}' associated with account '#{account.id}:#{account.closed_at}'"
-      true
+      { :code => {
+          :geni_code => 0
+        },
+        :value => true
+      }     
     end
 
     # close the account but do not release its resources
-    def shutdown_sliver(slice_urn, credentials)
+    def shutdown_sliver(slice_urn, credentials, options)
       #@authorizer.check_credentials(slice_urn, credentials.first, @manager)
       authorizer = OMF::SFA::AM::RPC::AMAuthorizer.create_for_web_request(slice_urn, credentials, @request, @manager)
       
       #puts "SLICE URN: #{slice_urn}"
       account = @manager.close_account({ :urn => slice_urn }, authorizer)
-      true
+      { :code => {
+          :geni_code => 0
+        },
+        :value => true
+      }
     end
 
     private 
