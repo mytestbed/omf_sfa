@@ -74,116 +74,116 @@ describe AMManager do
   
   describe 'leases' do
 
-    it 'will create a lease from rspec' do
-      authorizer = Minitest::Mock.new 
-      rspec = %{
-      <rspec xmlns="http://www.protogeni.net/resources/rspec/2" xmlns:omf="http://schema.mytestbed.net/sfa/rspec/1" xmlns:olx="http://schema.ict-openlab.eu/sfa/rspec/1" type="request">
-        <olx:lease lease_name="l1" olx:valid_from="2013-01-08T19:00:00Z" olx:valid_until="2013-01-08T20:00:00Z"/>
-      </rspec>
-      }
-      req = Nokogiri.XML(rspec)
+    #it 'will create a lease from rspec' do
+    #  authorizer = Minitest::Mock.new 
+    #  rspec = %{
+    #  <rspec xmlns="http://www.protogeni.net/resources/rspec/2" xmlns:omf="http://schema.mytestbed.net/sfa/rspec/1" xmlns:olx="http://schema.ict-openlab.eu/sfa/rspec/1" type="request">
+    #    <olx:lease lease_name="l1" olx:valid_from="2013-01-08T19:00:00Z" olx:valid_until="2013-01-08T20:00:00Z"/>
+    #  </rspec>
+    #  }
+    #  req = Nokogiri.XML(rspec)
 
-      authorizer.expect(:can_create_resource?, true, [Hash, String])
-      lease_elements = req.xpath('//ol:lease', 'ol' => OL_NAMESPACE)
-      lease = manager.update_lease_from_rspec(lease_elements.first, authorizer)
-      lease.must_be_kind_of(OMF::SFA::Resource::OLease)
-      lease.name.must_equal('l1')
-      lease.valid_from.must_equal(Time.parse('2013-01-08T19:00:00Z'))
-      lease.valid_until.must_equal(Time.parse('2013-01-08T20:00:00Z'))
-      authorizer.verify
-    end
+    #  authorizer.expect(:can_create_resource?, true, [Hash, String])
+    #  lease_elements = req.xpath('//ol:lease', 'ol' => OL_NAMESPACE)
+    #  lease = manager.update_lease_from_rspec(lease_elements.first, authorizer)
+    #  lease.must_be_kind_of(OMF::SFA::Resource::OLease)
+    #  lease.name.must_equal('l1')
+    #  lease.valid_from.must_equal(Time.parse('2013-01-08T19:00:00Z'))
+    #  lease.valid_until.must_equal(Time.parse('2013-01-08T20:00:00Z'))
+    #  authorizer.verify
+    #end
 
-    it 'will modify lease from rspec' do
-      authorizer = Minitest::Mock.new 
-      l = OMF::SFA::Resource::OLease.new({ :name => 'l1'})
-      l.valid_from = Time.parse('2013-01-08T19:00:00Z')
-      l.valid_until = Time.parse('2013-01-08T20:00:00Z')
-      l.save
-      rspec = %{
-      <rspec xmlns="http://www.protogeni.net/resources/rspec/2" xmlns:omf="http://schema.mytestbed.net/sfa/rspec/1" xmlns:ol="http://schema.ict-openlab.eu/sfa/rspec/1" type="request">
-        <ol:lease uuid="#{l.uuid}" ol:valid_from="2013-01-08T19:00:00Z" ol:valid_until="2013-01-08T21:00:00Z"/>
-      </rspec>
-      }
-      req = Nokogiri.XML(rspec)
+    #it 'will modify lease from rspec' do
+    #  authorizer = Minitest::Mock.new 
+    #  l = OMF::SFA::Resource::OLease.new({ :name => 'l1'})
+    #  l.valid_from = Time.parse('2013-01-08T19:00:00Z')
+    #  l.valid_until = Time.parse('2013-01-08T20:00:00Z')
+    #  l.save
+    #  rspec = %{
+    #  <rspec xmlns="http://www.protogeni.net/resources/rspec/2" xmlns:omf="http://schema.mytestbed.net/sfa/rspec/1" xmlns:ol="http://schema.ict-openlab.eu/sfa/rspec/1" type="request">
+    #    <ol:lease uuid="#{l.uuid}" ol:valid_from="2013-01-08T19:00:00Z" ol:valid_until="2013-01-08T21:00:00Z"/>
+    #  </rspec>
+    #  }
+    #  req = Nokogiri.XML(rspec)
 
-      authorizer.expect(:can_view_lease?, true, [OMF::SFA::Resource::OLease])
-      authorizer.expect(:can_modify_lease?, true, [OMF::SFA::Resource::OLease])
+    #  authorizer.expect(:can_view_lease?, true, [OMF::SFA::Resource::OLease])
+    #  authorizer.expect(:can_modify_lease?, true, [OMF::SFA::Resource::OLease])
 
-      lease_elements = req.xpath('//ol:lease')
-      lease = manager.update_lease_from_rspec(lease_elements.first, authorizer)
-      lease.must_be_kind_of(OMF::SFA::Resource::OLease)
-      lease.name.must_equal('l1')
-      lease.valid_from.must_equal(Time.parse('2013-01-08T19:00:00Z'))
-      lease.valid_until.must_equal(Time.parse('2013-01-08T21:00:00Z'))
-      authorizer.verify
-    end
+    #  lease_elements = req.xpath('//ol:lease')
+    #  lease = manager.update_lease_from_rspec(lease_elements.first, authorizer)
+    #  lease.must_be_kind_of(OMF::SFA::Resource::OLease)
+    #  lease.name.must_equal('l1')
+    #  lease.valid_from.must_equal(Time.parse('2013-01-08T19:00:00Z'))
+    #  lease.valid_until.must_equal(Time.parse('2013-01-08T21:00:00Z'))
+    #  authorizer.verify
+    #end
 
-    it 'will create two different leases from rspec' do
-      authorizer = Minitest::Mock.new 
-      rspec = %{
-      <rspec xmlns="http://www.protogeni.net/resources/rspec/2" xmlns:omf="http://schema.mytestbed.net/sfa/rspec/1" xmlns:ol="http://schema.ict-openlab.eu/sfa/rspec/1" type="request">
-        <ol:lease ol:lease_name="l1" ol:valid_from="2013-01-08T19:00:00Z" ol:valid_until="2013-01-08T21:00:00Z"/>
-        <ol:lease ol:lease_name="l2" ol:valid_from="2013-01-08T12:00:00Z" ol:valid_until="2013-01-08T14:00:00Z"/>
-      </rspec>
-      }
-      req = Nokogiri.XML(rspec)
+    #it 'will create two different leases from rspec' do
+    #  authorizer = Minitest::Mock.new 
+    #  rspec = %{
+    #  <rspec xmlns="http://www.protogeni.net/resources/rspec/2" xmlns:omf="http://schema.mytestbed.net/sfa/rspec/1" xmlns:ol="http://schema.ict-openlab.eu/sfa/rspec/1" type="request">
+    #    <ol:lease ol:lease_name="l1" ol:valid_from="2013-01-08T19:00:00Z" ol:valid_until="2013-01-08T21:00:00Z"/>
+    #    <ol:lease ol:lease_name="l2" ol:valid_from="2013-01-08T12:00:00Z" ol:valid_until="2013-01-08T14:00:00Z"/>
+    #  </rspec>
+    #  }
+    #  req = Nokogiri.XML(rspec)
 
-      authorizer.expect(:can_create_resource?, true, [Hash, String])
-      authorizer.expect(:can_create_resource?, true, [Hash, String])
+    #  authorizer.expect(:can_create_resource?, true, [Hash, String])
+    #  authorizer.expect(:can_create_resource?, true, [Hash, String])
 
-      lease_elements = req.xpath('//ol:lease')
+    #  lease_elements = req.xpath('//ol:lease')
 
-      leases = []
-      lease_elements.each do |l|
-        leases << manager.update_lease_from_rspec(l, authorizer)
-      end
+    #  leases = []
+    #  lease_elements.each do |l|
+    #    leases << manager.update_lease_from_rspec(l, authorizer)
+    #  end
 
-      leases[0].name.must_equal('l1')
-      leases[0].valid_from.must_equal(Time.parse('2013-01-08T19:00:00Z'))
-      leases[0].valid_until.must_equal(Time.parse('2013-01-08T21:00:00Z'))
+    #  leases[0].name.must_equal('l1')
+    #  leases[0].valid_from.must_equal(Time.parse('2013-01-08T19:00:00Z'))
+    #  leases[0].valid_until.must_equal(Time.parse('2013-01-08T21:00:00Z'))
 
-      leases[1].name.must_equal('l2')
-      leases[1].valid_from.must_equal(Time.parse('2013-01-08T12:00:00Z'))
-      leases[1].valid_until.must_equal(Time.parse('2013-01-08T14:00:00Z'))
+    #  leases[1].name.must_equal('l2')
+    #  leases[1].valid_from.must_equal(Time.parse('2013-01-08T12:00:00Z'))
+    #  leases[1].valid_until.must_equal(Time.parse('2013-01-08T14:00:00Z'))
 
-      authorizer.verify
-    end
+    #  authorizer.verify
+    #end
 
-    it 'will create a new lease and modify an old one from rspec' do
-      authorizer = Minitest::Mock.new 
-      l1 = OMF::SFA::Resource::OLease.new({ :name => 'l1'})
-      l1.valid_from = '2013-01-08T19:00:00Z'
-      l1.valid_until = '2013-01-08T20:00:00Z'
-      l1.save
-      rspec = %{
-      <rspec xmlns="http://www.protogeni.net/resources/rspec/2" xmlns:omf="http://schema.mytestbed.net/sfa/rspec/1" xmlns:ol="http://schema.ict-openlab.eu/sfa/rspec/1" type="request">
-        <ol:lease uuid="#{l1.uuid}" ol:valid_from="2013-01-08T20:00:00Z" ol:valid_until="2013-01-08T21:00:00Z"/>
-        <ol:lease ol:lease_name="l2" ol:valid_from="2013-01-08T12:00:00Z" ol:valid_until="2013-01-08T14:00:00Z"/>
-      </rspec>
-      }
-      req = Nokogiri.XML(rspec)
+    #it 'will create a new lease and modify an old one from rspec' do
+    #  authorizer = Minitest::Mock.new 
+    #  l1 = OMF::SFA::Resource::OLease.new({ :name => 'l1'})
+    #  l1.valid_from = '2013-01-08T19:00:00Z'
+    #  l1.valid_until = '2013-01-08T20:00:00Z'
+    #  l1.save
+    #  rspec = %{
+    #  <rspec xmlns="http://www.protogeni.net/resources/rspec/2" xmlns:omf="http://schema.mytestbed.net/sfa/rspec/1" xmlns:ol="http://schema.ict-openlab.eu/sfa/rspec/1" type="request">
+    #    <ol:lease uuid="#{l1.uuid}" ol:valid_from="2013-01-08T20:00:00Z" ol:valid_until="2013-01-08T21:00:00Z"/>
+    #    <ol:lease ol:lease_name="l2" ol:valid_from="2013-01-08T12:00:00Z" ol:valid_until="2013-01-08T14:00:00Z"/>
+    #  </rspec>
+    #  }
+    #  req = Nokogiri.XML(rspec)
 
-      authorizer.expect(:can_view_lease?, true, [OMF::SFA::Resource::OLease])
-      authorizer.expect(:can_modify_lease?, true, [OMF::SFA::Resource::OLease])
-      authorizer.expect(:can_create_resource?, true, [Hash, String])
+    #  authorizer.expect(:can_view_lease?, true, [OMF::SFA::Resource::OLease])
+    #  authorizer.expect(:can_modify_lease?, true, [OMF::SFA::Resource::OLease])
+    #  authorizer.expect(:can_create_resource?, true, [Hash, String])
 
-      lease_elements = req.xpath('//ol:lease')
+    #  lease_elements = req.xpath('//ol:lease')
 
-      leases = []
-      lease_elements.each do |l|
-        leases << manager.update_lease_from_rspec(l, authorizer)
-      end
+    #  leases = []
+    #  lease_elements.each do |l|
+    #    leases << manager.update_lease_from_rspec(l, authorizer)
+    #  end
 
-      leases[0].name.must_equal('l1')
-      leases[0].valid_from.must_equal(Time.parse('2013-01-08T20:00:00Z'))
-      leases[0].valid_until.must_equal(Time.parse('2013-01-08T21:00:00Z'))
+    #  leases[0].name.must_equal('l1')
+    #  leases[0].valid_from.must_equal(Time.parse('2013-01-08T20:00:00Z'))
+    #  leases[0].valid_until.must_equal(Time.parse('2013-01-08T21:00:00Z'))
 
-      leases[1].name.must_equal('l2')
-      leases[1].valid_from.must_equal(Time.parse('2013-01-08T12:00:00Z'))
-      leases[1].valid_until.must_equal(Time.parse('2013-01-08T14:00:00Z'))
+    #  leases[1].name.must_equal('l2')
+    #  leases[1].valid_from.must_equal(Time.parse('2013-01-08T12:00:00Z'))
+    #  leases[1].valid_until.must_equal(Time.parse('2013-01-08T14:00:00Z'))
 
-      authorizer.verify
-    end
+    #  authorizer.verify
+    #end
 
   end # leases
 
@@ -193,8 +193,8 @@ describe AMManager do
       authorizer = Minitest::Mock.new 
       rspec = %{
       <rspec xmlns="http://www.protogeni.net/resources/rspec/2" xmlns:omf="http://schema.mytestbed.net/sfa/rspec/1" xmlns:ol="http://schema.ict-openlab.eu/sfa/rspec/1" type="request">
-        <ol:lease lease_name="l1" olx:valid_from="2013-01-08T19:00:00Z" olx:valid_until="2013-01-08T20:00:00Z"/>
-        <node component_id="urn:publicid:IDN+openlab+node+node1" component_name="node1" ol:lease_name="l1">
+        <node component_id="urn:publicid:IDN+openlab+node+node1" component_name="node1" component_manager_id="urn:publicid:IDN+openlab+authority+am">
+          <ol:lease olx:valid_from="2013-01-08T19:00:00Z" olx:valid_until="2013-01-08T20:00:00Z"/>
         </node>
       </rspec>
       }
@@ -203,7 +203,7 @@ describe AMManager do
       #authorizer.expect(:can_view_lease?, true, [OMF::SFA::Resource::OLease])
       authorizer.expect(:can_create_resource?, true, [Hash, String])
       authorizer.expect(:can_create_resource?, true, [Hash, String])
-      authorizer.expect(:account, account)
+      2.times {authorizer.expect(:account, account)}
 
       r = manager.update_resources_from_rspec(req.root, false, authorizer)
 
@@ -217,7 +217,7 @@ describe AMManager do
 
       lease = node.leases.first
       lease.must_be_kind_of(OMF::SFA::Resource::OLease)
-      lease.name.must_equal('l1')
+      lease.name.must_equal(a.name)
       lease.valid_from.must_equal(Time.parse('2013-01-08T19:00:00Z'))
       lease.valid_until.must_equal(Time.parse('2013-01-08T20:00:00Z'))
       lease.components.first.must_be_kind_of(OMF::SFA::Resource::Node)
@@ -228,21 +228,24 @@ describe AMManager do
 
     it 'will create a node with an already known lease attached to it' do
       authorizer = Minitest::Mock.new 
-      l = OMF::SFA::Resource::OLease.new({ :name => 'l1'})
-      l.valid_from = '2013-01-08T19:00:00Z'
-      l.valid_until = '2013-01-08T20:00:00Z'
+      l = OMF::SFA::Resource::OLease.new({ :name => account.name})
+      valid_from = Time.parse('2013-01-08T19:00:00Z')
+      valid_until = Time.parse('2013-01-08T20:00:00Z')
+      l.valid_from = valid_from
+      l.valid_until = valid_until
       l.save
       rspec = %{
       <rspec xmlns="http://www.protogeni.net/resources/rspec/2" xmlns:omf="http://schema.mytestbed.net/sfa/rspec/1" xmlns:ol="http://schema.ict-openlab.eu/sfa/rspec/1" type="request">
-        <node component_id="urn:publicid:IDN+openlab+node+node1" component_name="node1" ol:lease_uuid="#{l.uuid}">
+        <node component_id="urn:publicid:IDN+openlab+node+node1" component_name="node1" component_manager_id="urn:publicid:IDN+openlab+authority+am">
+          <ol:lease uuid="#{l.uuid}" olx:valid_from="2013-01-08T19:00:00Z" olx:valid_until="2013-01-08T20:00:00Z"/>
         </node>
       </rspec>
       }
       req = Nokogiri.XML(rspec)
 
       authorizer.expect(:can_view_lease?, true, [OMF::SFA::Resource::OLease])
-      authorizer.expect(:can_create_resource?, true, [Hash, String])
-      authorizer.expect(:account, account)
+      2.times {authorizer.expect(:can_create_resource?, true, [Hash, String])}
+      2.times {authorizer.expect(:account, account)}
 
       r = manager.update_resources_from_rspec(req.root, false, authorizer)
 
@@ -256,9 +259,10 @@ describe AMManager do
 
       lease = node.leases.first
       lease.must_be_kind_of(OMF::SFA::Resource::OLease)
-      lease.name.must_equal('l1')
-      lease.valid_from.must_equal('2013-01-08T19:00:00Z')
-      lease.valid_until.must_equal('2013-01-08T20:00:00Z')
+      lease.must_equal(l)
+      lease.name.must_equal(a.name)
+      lease.valid_from.must_equal(valid_from)
+      lease.valid_until.must_equal(valid_until)
       lease.components.first.must_be_kind_of(OMF::SFA::Resource::Node)
 
       authorizer.verify
@@ -266,15 +270,16 @@ describe AMManager do
 
     it 'will create a node with an already known lease attached to it (included in rspecs)' do
       authorizer = Minitest::Mock.new 
-      l = OMF::SFA::Resource::OLease.new({ :name => 'l1'})
+      l = OMF::SFA::Resource::OLease.new({ :name => account.name })
       l.valid_from = '2013-01-08T19:00:00Z'
       l.valid_until = '2013-01-08T20:00:00Z'
       l.save
 
       rspec = %{
       <rspec xmlns="http://www.protogeni.net/resources/rspec/2" xmlns:omf="http://schema.mytestbed.net/sfa/rspec/1" xmlns:ol="http://schema.ict-openlab.eu/sfa/rspec/1" type="request">
-        <ol:lease uuid="#{l.uuid}" ol:valid_from="2013-01-08T19:00:00Z" ol:valid_until="2013-01-08T20:00:00Z"/>
-        <node component_id="urn:publicid:IDN+openlab+node+node1" component_name="node1" ol:lease_uuid="#{l.uuid}"/>
+        <node component_id="urn:publicid:IDN+openlab+node+node1" component_name="node1" component_manager_id="urn:publicid:IDN+openlab+authority+am">
+          <ol:lease uuid="#{l.uuid}" ol:valid_from="2013-01-08T19:00:00Z" ol:valid_until="2013-01-08T20:00:00Z"/>
+        </node>
       </rspec>
       }
       req = Nokogiri.XML(rspec)
@@ -296,7 +301,7 @@ describe AMManager do
 
       lease = node.leases.first
       lease.must_be_kind_of(OMF::SFA::Resource::OLease)
-      lease.name.must_equal('l1')
+      lease.name.must_equal(a.name)
       lease.valid_from.must_equal(Time.parse('2013-01-08T19:00:00Z'))
       lease.valid_until.must_equal(Time.parse('2013-01-08T20:00:00Z'))
       lease.components.first.must_be_kind_of(OMF::SFA::Resource::Node)
@@ -306,27 +311,28 @@ describe AMManager do
 
     it 'will attach 2 leases(1 new and 1 old) to 2 nodes' do
       authorizer = Minitest::Mock.new 
-      l1 = OMF::SFA::Resource::OLease.new({ :name => 'l1'})
+      l1 = OMF::SFA::Resource::OLease.new({ :name => account.name})
       l1.valid_from = Time.parse('2013-01-08T19:00:00Z')
       l1.valid_until = Time.parse('2013-01-08T20:00:00Z')
       l1.save
 
       rspec = %{
       <rspec xmlns="http://www.protogeni.net/resources/rspec/2" xmlns:omf="http://schema.mytestbed.net/sfa/rspec/1" xmlns:ol="http://schema.ict-openlab.eu/sfa/rspec/1" type="request">
-        <ol:lease uuid="#{l1.uuid}" ol:valid_from="2013-01-08T19:00:00Z" ol:valid_until="2013-01-08T20:00:00Z"/>
-        <ol:lease ol:lease_name="l2" ol:valid_from="2013-01-08T12:00:00Z" ol:valid_until="2013-01-08T14:00:00Z"/>
-        <node component_id="urn:publicid:IDN+openlab+node+node1" component_name="node1" ol:lease_uuid="#{l1.uuid}"/>
-        <node component_id="urn:publicid:IDN+openlab+node+node2" component_name="node2" ol:lease_name="l2"/>
+        <node component_id="urn:publicid:IDN+openlab+node+node1" component_name="node1" component_manager_id="urn:publicid:IDN+openlab+authority+am">
+          <ol:lease uuid="#{l1.uuid}" ol:valid_from="2013-01-08T19:00:00Z" ol:valid_until="2013-01-08T20:00:00Z"/>
+        </node>
+        <node component_id="urn:publicid:IDN+openlab+node+node2" component_name="node2" component_manager_id="urn:publicid:IDN+openlab+authority+am">
+          <ol:lease ol:valid_from="2013-01-08T12:00:00Z" ol:valid_until="2013-01-08T14:00:00Z"/>
+        </node>
       </rspec>
       }
       req = Nokogiri.XML(rspec)
 
-      authorizer.expect(:can_view_lease?, true, [OMF::SFA::Resource::OLease])
+      3.times {authorizer.expect(:can_view_lease?, true, [OMF::SFA::Resource::OLease])}
       authorizer.expect(:can_create_resource?, true, [Hash, String])
       authorizer.expect(:can_create_resource?, true, [Hash, String])
       authorizer.expect(:can_create_resource?, true, [Hash, String])
-      authorizer.expect(:account, account)
-      authorizer.expect(:account, account)
+      4.times {authorizer.expect(:account, account)}
 
       r = manager.update_resources_from_rspec(req.root, false, authorizer)
 
@@ -340,7 +346,7 @@ describe AMManager do
 
       lease = node.leases.first
       lease.must_be_kind_of(OMF::SFA::Resource::OLease)
-      lease.name.must_equal('l1')
+      lease.name.must_equal(a.name)
       lease.valid_from.must_equal(Time.parse('2013-01-08T19:00:00Z'))
       lease.valid_until.must_equal(Time.parse('2013-01-08T20:00:00Z'))
       lease.components.first.must_be_kind_of(OMF::SFA::Resource::Node)
@@ -355,7 +361,7 @@ describe AMManager do
 
       lease = node.leases.first
       lease.must_be_kind_of(OMF::SFA::Resource::OLease)
-      lease.name.must_equal('l2')
+      lease.name.must_equal(a.name)
       lease.valid_from.must_equal(Time.parse('2013-01-08T12:00:00Z'))
       lease.valid_until.must_equal(Time.parse('2013-01-08T14:00:00Z'))
       lease.components.first.must_be_kind_of(OMF::SFA::Resource::Node)
@@ -368,7 +374,7 @@ describe AMManager do
 
     it 'will create a new node and lease without deleting the previous records' do
       authorizer = Minitest::Mock.new 
-      l = OMF::SFA::Resource::OLease.create({ :name => "l1", :account => account})
+      l = OMF::SFA::Resource::OLease.create({ :name => account.name, :account => account})
       l.valid_from = '2013-01-08T19:00:00Z'
       l.valid_until = '2013-01-08T20:00:00Z'
       l.save
@@ -379,30 +385,32 @@ describe AMManager do
 
       rspec = %{
       <rspec xmlns="http://www.protogeni.net/resources/rspec/2" xmlns:omf="http://schema.mytestbed.net/sfa/rspec/1" xmlns:ol="http://schema.ict-openlab.eu/sfa/rspec/1" type="request">
-        <ol:lease ol:lease_name="l2" ol:valid_from="2013-01-08T12:00:00Z" ol:valid_until="2013-01-08T14:00:00Z"/>
-        <node component_id="urn:publicid:IDN+openlab+node+node2" component_name="node2" ol:lease_name="l2"/>
+        <node component_id="urn:publicid:IDN+openlab+node+node2" component_name="node2" component_manager_id="urn:publicid:IDN+openlab+authority+am">
+          <ol:lease ol:valid_from="2013-01-08T12:00:00Z" ol:valid_until="2013-01-08T14:00:00Z"/>
+        </node>
       </rspec>
       }
       req = Nokogiri.XML(rspec)
 
       authorizer.expect(:can_create_resource?, true, [Hash, String])
       authorizer.expect(:can_create_resource?, true, [Hash, String])
-      authorizer.expect(:account, account)
+      2.times { authorizer.expect(:account, account) }
 
       res = manager.update_resources_from_rspec(req.root, false, authorizer)
 
       res.length.must_equal 1
       r1 = res.first
       r1.name.must_equal('node2')
-      r1.leases.first.name.must_equal('l2')
+      r1.leases.first.name.must_equal(account.name)
 
-      OMF::SFA::Resource::OLease.first(:name => 'l1').wont_be_nil
-      OMF::SFA::Resource::Node.first(:name => 'node1').wont_be_nil
+      node = OMF::SFA::Resource::Node.first(:name => 'node1')
+      node.wont_be_nil
+      node.leases.first.wont_be_nil
 
       authorizer.verify
     end
 
-    it 'will unlink a node from a lease and release the node' do
+    it 'will unlink a node from a lease and release both' do
       authorizer = Minitest::Mock.new 
       l = OMF::SFA::Resource::OLease.create({:name => 'l1', :account => account})
       l.valid_from = '2013-01-08T19:00:00Z'
@@ -415,16 +423,15 @@ describe AMManager do
 
       rspec = %{
       <rspec xmlns="http://www.protogeni.net/resources/rspec/2" xmlns:omf="http://schema.mytestbed.net/sfa/rspec/1" xmlns:ol="ht    tp://schema.ict-openlab.eu/sfa/rspec/1" type="request">
-        <ol:lease uuid="#{l.uuid}" ol:valid_from="2013-01-08T19:00:00Z" ol:valid_until="2013-01-08T20:00:00Z"/>
       </rspec>
       }
       req = Nokogiri.XML(rspec)
 
       authorizer.expect(:can_view_resource?, true, [OMF::SFA::Resource::Node])
-      #authorizer.expect(:can_view_lease?, true, [OMF::SFA::Resource::OLease])
-      #authorizer.expect(:can_modify_lease?, true)
+      authorizer.expect(:can_view_lease?, true, [OMF::SFA::Resource::OLease])
+      authorizer.expect(:can_release_lease?, true, [OMF::SFA::Resource::OLease])
       authorizer.expect(:can_release_resource?, true, [OMF::SFA::Resource::Node])
-      authorizer.expect(:account, account)
+      2.times {authorizer.expect(:account, account)}
 
       r = manager.update_resources_from_rspec(req.root, true, authorizer)
       r.must_be_empty
@@ -435,44 +442,45 @@ describe AMManager do
       l.components.first.must_be_nil
 
       OMF::SFA::Resource::OLease.first(:name => 'l1').wont_be_nil
+      OMF::SFA::Resource::OLease.first(:name => 'l1').status.must_equal("cancelled")
 
       authorizer.verify
     end
 
-    it 'will release a node and a lease' do
-      authorizer = Minitest::Mock.new 
-      l = OMF::SFA::Resource::OLease.create({:name => 'l1', :account => account})
-      l.valid_from = '2013-01-08T19:00:00Z'
-      l.valid_until = '2013-01-08T20:00:00Z'
-      l.save
+    #it 'will release a node and a lease' do
+    #  authorizer = Minitest::Mock.new 
+    #  l = OMF::SFA::Resource::OLease.create({:name => 'l1', :account => account})
+    #  l.valid_from = '2013-01-08T19:00:00Z'
+    #  l.valid_until = '2013-01-08T20:00:00Z'
+    #  l.save
 
-      r = OMF::SFA::Resource::Node.create({:name => 'node1', :account => account})
-      r.leases << l
-      r.save
+    #  r = OMF::SFA::Resource::Node.create({:name => 'node1', :account => account})
+    #  r.leases << l
+    #  r.save
 
-      l.components.first.must_equal(r)
+    #  l.components.first.must_equal(r)
 
-      rspec = %{
-      <rspec xmlns="http://www.protogeni.net/resources/rspec/2" xmlns:omf="http://schema.mytestbed.net/sfa/rspec/1" xmlns:ol="http://schema.ict-openlab.eu/sfa/rspec/1" type="request">
-      </rspec>
-      }
-      req = Nokogiri.XML(rspec)
+    #  rspec = %{
+    #  <rspec xmlns="http://www.protogeni.net/resources/rspec/2" xmlns:omf="http://schema.mytestbed.net/sfa/rspec/1" xmlns:ol="http://schema.ict-openlab.eu/sfa/rspec/1" type="request">
+    #  </rspec>
+    #  }
+    #  req = Nokogiri.XML(rspec)
 
-      authorizer.expect(:can_view_resource?, true, [OMF::SFA::Resource::Node])
-      authorizer.expect(:can_view_lease?, true, [OMF::SFA::Resource::OLease])
-      authorizer.expect(:can_release_lease?, true, [OMF::SFA::Resource::OLease])
-      authorizer.expect(:can_release_resource?, true, [OMF::SFA::Resource::Node])
-      authorizer.expect(:account, account)
-      authorizer.expect(:account, account)
+    #  authorizer.expect(:can_view_resource?, true, [OMF::SFA::Resource::Node])
+    #  authorizer.expect(:can_view_lease?, true, [OMF::SFA::Resource::OLease])
+    #  authorizer.expect(:can_release_lease?, true, [OMF::SFA::Resource::OLease])
+    #  authorizer.expect(:can_release_resource?, true, [OMF::SFA::Resource::Node])
+    #  authorizer.expect(:account, account)
+    #  authorizer.expect(:account, account)
 
-      r = manager.update_resources_from_rspec(req.root, true, authorizer)
+    #  r = manager.update_resources_from_rspec(req.root, true, authorizer)
 
-      r.must_be_empty
-      OMF::SFA::Resource::Node.first(:name => 'node1').must_be_nil
-      OMF::SFA::Resource::OLease.first(:name => 'l1').status.must_equal('cancelled')
-      
-      authorizer.verify
-    end
+    #  r.must_be_empty
+    #  OMF::SFA::Resource::Node.first(:name => 'node1').must_be_nil
+    #  OMF::SFA::Resource::OLease.first(:name => 'l1').status.must_equal('cancelled')
+    #  
+    #  authorizer.verify
+    #end
   end # clean state flag
 
 end
