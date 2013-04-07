@@ -1,0 +1,10 @@
+default namespace = "http://nitlab.inf.uth.gr/schema/sfa/rspec/1"
+
+Lease = element node_lease {
+  attribute uuid { text }? &
+  attribute name { text }? &
+  attribute valid_from { xsd:dateTime } &
+  attribute valid_until { xsd:dateTime } 
+}
+
+start = Lease

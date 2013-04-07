@@ -11,6 +11,7 @@ module OMF::SFA::Resource
     oproperty :available, Boolean, :default => true
     #oproperty :sliver_type, String, :required => false
     oproperty :interfaces, :interface, :functional => false
+    oproperty :exclusive, Boolean, :default => true
     #belongs_to :sliver
 
     sfa_class 'node'
@@ -18,6 +19,7 @@ module OMF::SFA::Resource
     sfa :available, :attr_value => 'now'  # <available now="true">
     #sfa :sliver_type, :attr_value => 'name'
     sfa :interfaces, :inline => true, :has_many => true
+    sfa :exclusive, :attribute => true
     
     # Override xml serialization of 'interface' 
     def _to_sfa_property_xml(pname, value, res_el, pdef, obj2id, opts)
@@ -38,6 +40,9 @@ module OMF::SFA::Resource
       end
     end
     
+    before :save do
+      resource_type |= 'node'
+    end
     
   end
   

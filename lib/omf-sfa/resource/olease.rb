@@ -20,9 +20,10 @@ module OMF::SFA::Resource
     sfa_add_namespace :omf, 'http://schema.mytestbed.net/sfa/rspec/1'
 
     sfa_class 'lease', :namespace => :omf
-    sfa :name, :attribute => true, :namespace => :omf
-    sfa :valid_from, :attribute => true, :namespace => :omf
-    sfa :valid_until, :attribute => true, :namespace => :omf
+    sfa :name, :attribute => true
+    sfa :uuid, :attribute => true
+    sfa :valid_from, :attribute => true
+    sfa :valid_until, :attribute => true
 
     [:pending, :accepted, :active, :past, :cancelled].each do |s|
       define_method(s.to_s + '?') do

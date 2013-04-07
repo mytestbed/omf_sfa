@@ -13,7 +13,7 @@ module OMF::SFA
   
     module Base
       
-      SFA_NAMESPACE_URI = "http://www.protogeni.net/resources/rspec/2"
+      SFA_NAMESPACE_URI = "http://www.geni.net/resources/rspec/3"
   
       module ClassMethods
         
@@ -71,9 +71,11 @@ module OMF::SFA
         #
         def sfa_advertisement_xml(resources, opts = {})
           doc = Nokogiri::XML::Document.new
-          #<rspec expires="2011-09-13T09:07:09Z" generated="2011-09-13T09:07:09Z" type="advertisement" xmlns="http://www.protogeni.net/resources/rspec/2" xmlns:emulab="http://www.protogeni.net/resources/rspec/ext/emulab/1" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.protogeni.net/resources/rspec/2 http://www.protogeni.net/resources/rspec/2/ad.xsd http://www.protogeni.net/resources/rspec/ext/emulab/1 http://www.protogeni.net/resources/rspec/ext/emulab/1/ptop_extension.xsd http://company.com/rspec/ext/stitch/1 http://company.com/rspec/ext/stitch/1/ad.xsd ">  
+          #<rspec expires="2011-09-13T09:07:09Z" generated="2011-09-13T09:07:09Z" type="advertisement" xmlns="http://www.geni.net/resources/rspec/3" xmlns:omf="http://nitlab.inf.uth.gr/schema/sfa/rspec/1" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.geni.net/resources/rspec/3 http://www.geni.net/resources/rspec/3/ad.xsd http://nitlab.inf.uth.gr/schema/sfa/rspec/1 http://nitlab.inf.uth.gr/schema/sfa/rspec/1/ad-reservation.xsd">
           root = doc.add_child(Nokogiri::XML::Element.new('rspec', doc))
           root.add_namespace(nil, SFA_NAMESPACE_URI)
+          root.add_namespace('xsi', "http://www.w3.org/2001/XMLSchema-instance")
+          root['xsi:schemaLocation'] = "#{SFA_NAMESPACE_URI} #{SFA_NAMESPACE_URI}/ad.xsd #{@@sfa_namespaces[:omf]} #{@@sfa_namespaces[:omf]}/ad-reservation.xsd"
           @@sfa_namespaces.each do |prefix, urn|
             root.add_namespace(prefix.to_s, urn)
           end
@@ -349,10 +351,10 @@ module OMF::SFA
           
           id = sfa_id()
           obj2id[self] = id
-          n.set_attribute('omf:id', id) #if detail_level > 0
-          if href = self.href(opts)
-            n.set_attribute('omf:href', href)
-          end
+          #n.set_attribute('omf:id', id) #if detail_level > 0
+          #if href = self.href(opts)
+          #  n.set_attribute('omf:href', href)
+          #end
           level = opts[:level] ? opts[:level] : 0
           opts[:level] = level + 1
           defs.keys.sort.each do |k|
@@ -369,6 +371,9 @@ module OMF::SFA
             end
             unless v.nil? || (v.is_a?(Array) && v.empty?)
               #if detail_level > 0 || k == 'component_name'
+              if v.is_a?(Time)
+                v = v.xmlschema # xs:dateTime
+              end
                 _to_sfa_property_xml(k, v, n, pdef, obj2id, opts)
               #end
             end

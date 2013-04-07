@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<grammar ns="http://nitlab.inf.uth.gr/schema/sfa/rspec/1" xmlns="http://relaxng.org/ns/structure/1.0" datatypeLibrary="http://www.w3.org/2001/XMLSchema-datatypes">
+  <start>
+    <ref name="Lease"/>
+  </start>
+  <define name="Lease">
+    <element name="lease">
+      <interleave>
+        <attribute name="uuid"/>
+        <attribute name="name"/>
+        <attribute name="valid_from">
+          <data type="dateTime"/>
+        </attribute>
+        <attribute name="valid_until">
+          <data type="dateTime"/>
+        </attribute>
+      </interleave>
+    </element>
+  </define>
+</grammar>

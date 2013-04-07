@@ -30,14 +30,13 @@ module OMF::SFA::Resource
     extend OMF::SFA::Resource::Base::ClassMethods
     include OMF::SFA::Resource::Base::InstanceMethods
 
-    sfa_add_namespace :omf, 'http://schema.mytestbed.net/sfa/rspec/1'
+    #sfa_add_namespace :omf, 'http://schema.mytestbed.net/sfa/rspec/1'
+    sfa_add_namespace :omf, 'http://nitlab.inf.uth.gr/schema/sfa/rspec/1'
 
     sfa :component_id, :attribute => true # "urn:publicid:IDN+plc:cornell+node+planetlab3-dsl.cs.cornell.edu" 
     sfa :component_manager_id, :attribute => true # "urn:publicid:IDN+plc+authority+am" 
     sfa :component_name, :attribute => true # "plane
-    sfa :exclusive, :attribute => false 
-    sfa :lease, :inline => true, :has_many => true
-    alias_method :lease, :leases
+    sfa :leases, :inline => true, :has_many => true
 
     # def component_id
     # res = oproperty_get(:id)
