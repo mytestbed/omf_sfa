@@ -3,10 +3,10 @@ This directory contains the implementations of various SFA APIs and services.
 Aggregate Manager
 =================
 
-To start a AM from this directory, run the following:
+To start an AM from this directory, run the following:
 
     % cd $OMF_HOME/omf-sfa
-    % ruby -I lib/omf_common/ruby -I lib lib/omf-sfa/am/am_server.rb --dm-db sqlite:/tmp/test.sq3 --dm-auto-upgrade --test-load-am --print-options start
+    % bundle exec ruby -I lib lib/omf-sfa/am/am_server.rb --dm-db sqlite:/tmp/test.sq3 --dm-auto-upgrade --test-load-am --print-options start
 
 Testing with GCF
 ----------------
@@ -22,15 +22,14 @@ In a shell start the CF (make sure you installed the credentials in ~/.gcf):
     INFO:cred-verifier:Combined dir of 1 trusted certs ~/.gcf/trusted_roots into file ~/.gcf/trusted_roots/CATedCACerts.pem for Python SSL support
     INFO:gcf-ch:GENI CH Listening on port 8000...
 
-Then run the 'gcf-test' app in another shell
+    Then run the AM acceptance tests. Follow the instructions in Readme files to make sure you have set up 'omni' correctly and then run the tests 'python am_api_accept.py -a am-undertest':
 
-    $ python src/gcf-test.py --am https://0.0.0.0:8001/RPC2
-    INFO:gcf-test:CH Server is https://127.0.0.1:8000/. Using keyfile ~/.gcf/alice-key.pem, certfile ~/.gcf/alice-cert.pem
-    INFO:gcf-test:AM Server is https://0.0.0.0:8001/RPC2. Using keyfile ~/.gcf/alice-key.pem, certfile ~/.gcf/alice-cert.pem
-    Slice Creation SUCCESS: URN = urn:publicid:IDN+geni:gpo:gcf+slice+34ac-b58:127.0.0.1%3A8000
-    Testing GetVersion... passed
-    Testing ListResources... passed
-    Testing CreateSliver... passed
+    python am_api_accept.py -a am-undertest                                           
+    .............
+    ----------------------------------------------------------------------
+    Ran 13 tests in 959.389s
+
+    OK
 
 Using OMNI
 ==========
@@ -38,38 +37,40 @@ Using OMNI
 Create Sliver
 -------------
 
-    $ python src/omni.py -a https://0.0.0.0:8001 -q createsliver test1 $OMF_HOME/omf-sfa/test/req-sfa.xml
+    $ python src/omni.py -a https://0.0.0.0:8001 -q createsliver test1 $OMF_HOME/omf-sfa/test/sfa_requests/request.xml
     ...
-    INFO:omni:Asked https://0.0.0.0:8001 to reserve resources. Result:
-    INFO:omni:<?xml version="1.0" ?>
-    INFO:omni:<!-- Reserved resources for:
+    INFO:omni:Got return from CreateSliver for slice test1 at https://0.0.0.0:8001:
+    INFO:omni:<?xml version="1.0"?>
+    INFO:omni:  <!-- Reserved resources for:
             Slice: test1
-            At AM:
+            at AM:
+            URN: unspecified_AM_URN
             URL: https://0.0.0.0:8001
      -->
-    INFO:omni:<rspec expires="2012-04-30T11:54:39-03:00" generated="2012-04-30T11:44:39-03:00" type="advertisement" xmlns="http://www.protog
-    eni.net/resources/rspec/2" xmlns:omf="http://schema.mytestbed.net/sfa/rspec/1">  
-        <node component_id="urn:publicid:IDN+mytestbed.net+node+aea0b9a5-e90e-5fd6-9224-847f0a1b37cb" component_manager_id="authority+am" component_name="node0" id="aea0b9a5-e90e-5fd6-9224-847f0a1b37cb" omf:href="/resources/aea0b9a5-e90e-5fd6-9224-847f0a1b37cb">    
-            <available now="true"/>    
-        </node>  
+    INFO:omni:  
+    <rspec xmlns="http://www.geni.net/resources/rspec/3" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:omf="http://nitlab.inf.uth.gr/schema/sfa/rspec/1" xsi:schemaLocation="http://www.geni.net/resources/rspec/3 http://www.geni.net/resources/rspec/3/manifest.xsd http://nitlab.inf.uth.gr/schema/sfa/rspec/1 http://nitlab.inf.uth.gr/schema/sfa/rspec/1/ad-reservation.xsd" type="manifest" generated="2013-04-12T19:46:05+03:00" expires="2013-04-12T19:56:05+03:00">
+      <node client_id="node0" component_id="urn:publicid:IDN+omf:nitos+node+node0" component_manager_id="urn:publicid:IDN+omf:nitos+authority+am" component_name="node0" exclusive="true">
+        <available now="true"/>
+      </node>
     </rspec>
 
 Sliver Status
 -------------
 
     $ python src/omni.py -a https://0.0.0.0:8001 -q sliverstatus test1
-    INFO:omni:Loading config file omni_config
-    INFO:omni:Using control framework my_gcf
-    WARNING:omni:Slice urn:publicid:IDN+geni:gpo:gcf+slice+test1 expires in <= 3 hours
-    INFO:omni:Slice urn:publicid:IDN+geni:gpo:gcf+slice+test1 expires on 2012-04-30 14:58:08 UTC
-    INFO:omni:Status of Slice urn:publicid:IDN+geni:gpo:gcf+slice+test1:
     INFO:omni:Sliver status for Slice urn:publicid:IDN+geni:gpo:gcf+slice+test1 at AM URL https://0.0.0.0:8001
-    INFO:omni:{'geni_resources': [{'geni_status': 'unknown',
-                         'geni_urn': 'urn:publicid:IDN+mytestbed.net+node+node0'}],
-     'geni_status': 'unknown',
-     'geni_urn': 'urn:publicid:IDN+geni:gpo:gcf+slice+test1'}
- 
- 
+    INFO:omni:{
+      "geni_urn": "urn:publicid:IDN+geni:gpo:gcf+slice+test1", 
+      "geni_resources": [
+        {
+          "geni_urn": "urn:publicid:IDN+omf:nitos+node+node0", 
+          "geni_error": "", 
+          "geni_status": "unknown"
+        }
+      ], 
+      "omf_expires_at": "20130412154532Z", 
+      "geni_status": "unknown"
+    }
 
 
 Debugging hints

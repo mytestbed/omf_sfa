@@ -18,7 +18,7 @@ module OMF::SFA::AM
   class MissingImplementationException < Exception; end
   class UknownLeaseException < Exception; end
 
-  OL_NAMESPACE = "http://schema.ict-openlab.eu/sfa/rspec/1"
+  OL_NAMESPACE = "http://nitlab.inf.uth.gr/schema/sfa/rspec/1"
 
   # The manager is where all the AM related policies and 
   # resource management is concentrated. Testbeds with their own 
@@ -172,7 +172,7 @@ module OMF::SFA::AM
     # @raise [InsufficientPrivilegesException] if permission is not granted
     #
     def close_account(account_descr, authorizer)
-      account = find_active_account(account_descr, authorizer)
+      account = find_account(account_descr, authorizer)
       authorizer.can_close_account?(account)
       # TODO: Free all resources associated with this account!!!!
       # OMF::SFA::Resource::OComponent.all(:account => account).each do |c|
@@ -577,7 +577,22 @@ module OMF::SFA::AM
     #
     def update_resources_from_rspec(descr_el, clean_state, authorizer)
       debug "update_resources_from_rspec: descr_el:'#{descr_el.inspect}' clean_state:'#{clean_state}' authorizer:'#{authorizer.inspect}'"
-      if descr_el.name.downcase == 'rspec'
+      if !descr_el.nil? && descr_el.name.downcase == 'rspec'
+        xsd_path = File.join(File.dirname(__FILE__), '../../../schema/rspec-v3', 'request.xsd')
+        schema = Nokogiri::XML::Schema(File.open(xsd_path))
+
+        res = schema.validate(descr_el.document)
+        raise FormatException.new("RSpec format is not valid: '#{res}'") unless res.empty?
+
+        unless descr_el.xpath('//ol:*', 'ol' => OL_NAMESPACE).empty?
+          lease_xsd_path = File.join(File.dirname(__FILE__), '../../../schema/rspec-v3', 'request-reservation.xsd')
+          lease_schema = Nokogiri::XML::Schema(File.open(xsd_path))
+
+          res = lease_schema.validate(descr_el.document)
+          raise FormatException.new("RSpec format is not valid: '#{res}'") unless res.empty?
+        end
+
+
         #if descr_el.namespaces.values.include?(OL_NAMESPACE)
         #  leases = descr_el.xpath('//ol:lease', 'ol' => OL_NAMESPACE)
         #  leases = update_leases_from_rspec(leases, clean_state, authorizer)
@@ -623,7 +638,7 @@ module OMF::SFA::AM
         end
         return resources
       else 
-        raise FormatException.new "Unknown resources description root '#{descr_el.name}'"
+        raise FormatException.new "Unknown resources description root '#{descr_el}'"
       end
     end    
 

@@ -19,7 +19,9 @@ module OMF::SFA::Resource
     sfa :available, :attr_value => 'now'  # <available now="true">
     #sfa :sliver_type, :attr_value => 'name'
     sfa :interfaces, :inline => true, :has_many => true
+    sfa :client_id, :attribute => true
     sfa :exclusive, :attribute => true
+    alias_method :client_id, :name
     
     # Override xml serialization of 'interface' 
     def _to_sfa_property_xml(pname, value, res_el, pdef, obj2id, opts)

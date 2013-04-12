@@ -75,12 +75,19 @@ module OMF::SFA
           root = doc.add_child(Nokogiri::XML::Element.new('rspec', doc))
           root.add_namespace(nil, SFA_NAMESPACE_URI)
           root.add_namespace('xsi', "http://www.w3.org/2001/XMLSchema-instance")
-          root['xsi:schemaLocation'] = "#{SFA_NAMESPACE_URI} #{SFA_NAMESPACE_URI}/ad.xsd #{@@sfa_namespaces[:omf]} #{@@sfa_namespaces[:omf]}/ad-reservation.xsd"
+
+          opts[:type] = 'advertisement' unless opts[:type]
+          if opts[:type] == 'manifest'
+            schema = 'manifest.xsd'
+          else
+            schema = 'ad.xsd'
+          end
+          root['xsi:schemaLocation'] = "#{SFA_NAMESPACE_URI} #{SFA_NAMESPACE_URI}/#{schema} #{@@sfa_namespaces[:omf]} #{@@sfa_namespaces[:omf]}/ad-reservation.xsd"
           @@sfa_namespaces.each do |prefix, urn|
             root.add_namespace(prefix.to_s, urn)
           end
 
-          root.set_attribute('type', "advertisement")
+          root.set_attribute('type', opts[:type])
           now = Time.now
           root.set_attribute('generated', now.iso8601)
           root.set_attribute('expires', (now + (opts[:valid_for] || 600)).iso8601)

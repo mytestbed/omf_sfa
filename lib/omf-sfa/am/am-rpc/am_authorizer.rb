@@ -51,10 +51,15 @@ module OMF::SFA::AM::RPC
       user = am_manager.find_or_create_user({:uuid => peer.user_uuid, :urn => peer.user_urn})
 
       creds = credentials.map do |cs|
-        OMF::SFA::AM::PrivilegeCredential.unmarshall(cs)
+        cs = OMF::SFA::AM::PrivilegeCredential.unmarshall(cs)
+        cs.tap do |c|
+          unless c.valid_at?
+            OMF::SFA::AM::InsufficientPrivilegesException.new "The credentials have expired or not valid yet. Check the dates."
+          end
+        end
       end
 
-      
+            
       self.new(account_urn, peer, creds, am_manager)
     end
 
@@ -62,11 +67,11 @@ module OMF::SFA::AM::RPC
     ##### ACCOUNT
 
     def can_renew_account?(account, expiration_time)
-      debug "Check permission 'can_renew_account?' (#{account == @account}, #{@permissions[:can_renew_account?]}, #{@user_cert.valid_at?(expiration_time)})"
+      debug "Check permission 'can_renew_account?' (#{account == @account}, #{@permissions[:can_renew_account?]}, #{@user_cred.valid_at?(expiration_time)})"
       unless account == @account && 
           @permissions[:can_renew_account?] && 
-          @user_cert.valid_at?(expiration_time) # not sure if this is the right check
-        raise OMF::SFA::AM::InsufficientPrivilegesException.new
+          @user_cred.valid_at?(expiration_time) # not sure if this is the right check
+        raise OMF::SFA::AM::InsufficientPrivilegesException.new("Can't renew account after the expiration of the credentials")
       end
     end
         
@@ -92,6 +97,7 @@ module OMF::SFA::AM::RPC
         raise OMF::SFA::AM::InsufficientPrivilegesException.new "User urn mismatch in certificate and credentials" 
       end
       
+      @user_cred = credential
       
       
       if credential.type == 'slice'
@@ -117,6 +123,14 @@ module OMF::SFA::AM::RPC
         end 
 
         @account = am_manager.find_or_create_account({:urn => account_urn}, self)
+        @account.valid_until = @user_cred.valid_until
+        if @account.closed?
+          if @permissions[:can_create_account?]
+            @account.closed_at = nil
+          else
+            raise OMF::SFA::AM::InsufficientPrivilegesException.new("You don't have the privilege to enable a closed account")
+          end
+        end
         # XXX: decide where/when to create the Project. Right now we are creating it along with the account in the above method
         @project = @account.project
       end

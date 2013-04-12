@@ -285,6 +285,7 @@ module OMF::SFA::Resource
     end
 
     def destroy 
+      #debug "ORESOURCE destroy #{self}"
       self.remove_from_all_groups
 
       #if p = self.provided_by
@@ -296,14 +297,16 @@ module OMF::SFA::Resource
 
       # first destroy all properties
       self.oproperties.all().each do |p|
+        #debug "ORESOURCE destroying property '#{p.inspect}'"
         r = p.destroy
         r
       end
-      p = self.oproperties.all()
+      #p = self.oproperties.all()
       super
     end
 
     def destroy!
+      #debug "ORESOURCE destroy! #{self}"
       destroy
       super
     end

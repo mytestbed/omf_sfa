@@ -108,12 +108,45 @@ module OMF::SFA::AM::RPC::AMServiceAPI
       }
     ],
     :return => {
-      :type => :text_xml,
+      :type => :hash,
       :description => %{
-        The return value is an RSPEC in plain xml format if _geni_compressed_ is
-        unspecified or set to false. The return value will be a base 64
-        encoded if _geni_compressed_ is specified and set to true.
-      }
+        For ListResources, value is an RSpec listing and describing resources 
+        at this aggregate. Depending on the arguments, this may be an advertisement
+        RSpec showing all local resources, or one showing only available local resources, 
+        or a manifest RSpec of resources reserved for a particular slice.
+      },
+      :params => [
+        { 
+          :name => 'code',
+          :type => :hash,
+          :description => %{
+            A struct indicating the success or failure of this call at 
+            the Aggregate Manager. It consists of 1 required field and 2 optional fields. 
+          },
+          :params => [
+            {
+              :name => 'geni_code',
+              :type => :integer,
+              :description => %{
+                An integer supplying the GENI standard return code indicating 
+                the success or failure of this call. Error codes are standardized 
+                and defined in the attached XML document. Codes may be negative. 
+                A success return is defined as geni_code of 0.
+              }
+            }
+          ]
+        },
+        {
+          :name => 'value',
+          :type => :text_xml,
+          :description => %{
+            For ListResources, value is an RSpec listing and describing resources at 
+            this aggregate. Depending on the arguments, this may be an advertisement 
+            RSpec showing all local resources, or one showing only available local 
+            resources, or a manifest RSpec of resources reserved for a particular slice. 
+          }
+        }
+      ]
     }
   }
 

@@ -1,5 +1,4 @@
 
-
 require 'omf-sfa/am/credential'
 
 module OMF::SFA::AM
@@ -13,7 +12,7 @@ module OMF::SFA::AM
       cert = OpenSSL::X509::Certificate.new(cert_s)
       #puts cert
       unless OpenSSL::SSL::SSLContext::DEFAULT_CERT_STORE.verify(cert)
-        raise "Non valid user cert"
+        raise OMF::SFA::AM::InsufficientPrivilegesException.new("Non valid user cert")
       end
       self.new(cert)
     end
@@ -48,7 +47,7 @@ module OMF::SFA::AM
 
     def valid_at?(time = Time.now)
       debug "valid?  #{@cert.not_before} < #{time} < #{@cert.not_after}"
-      time > @cert.not_before  && time < @cert.not_after      
+      time >= @cert.not_before && time <= @cert.not_after      
     end
 
   end # UserCredential

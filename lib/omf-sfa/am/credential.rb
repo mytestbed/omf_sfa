@@ -4,7 +4,9 @@ require 'omf_common/lobject'
 module OMF::SFA::AM
   class Credential < OMF::Common::LObject
 
-    @@root_certs = '~/.gcf/trusted_roots/CATedCACerts.pem'
+
+    @@root_certs = ['~/.gcf/trusted_roots/CATedCACerts.pem', '/etc/sfa/trusted_roots/topdomain.gid']
+    #@@root_certs = '~/.gcf/trusted_roots/CATedCACerts.pem'
     #@@root_certs = '~/.sfi/trusted_certificates'
     @@xmlsec = 'xmlsec1'
    
@@ -62,7 +64,11 @@ module OMF::SFA::AM
         tf = Tempfile.open('omf-am-rpc')
         tf << content
         tf.close
-        cmd = "#{@@xmlsec} verify --trusted-pem #{@@root_certs} --print-xml-debug #{tf.path} 2> /dev/null"
+        trusted_pems = @@root_certs.map do |r|
+          "--trusted-pem #{r}"
+        end.join(' ')
+        cmd = "#{@@xmlsec} verify --enabled-key-data 'x509' #{trusted_pems} --print-xml-debug #{tf.path} 2> /dev/null"
+        #cmd = "#{@@xmlsec} verify --trusted-pem #{@@root_certs} --print-xml-debug #{tf.path} 2> /dev/null"
         out = []
         result = nil
         IO.popen(cmd) do |so| 
@@ -70,7 +76,7 @@ module OMF::SFA::AM
           #debug result
         end 
         unless (result.xpath('/VerificationContext')[0]['status'] == 'succeeded')
-          raise "Error: Signature doesn't verify"#\n#{@signature.to_xml}"
+          raise OMF::SFA::AM::InsufficientPrivilegesException.new("Error: Signature doesn't verify")#\n#{@signature.to_xml}"
         end
           # <Certificate>
           #   <SubjectName>/CN=geni//gpo//gcf.authority.sa</SubjectName>
@@ -93,10 +99,11 @@ module OMF::SFA::AM
     attr_reader :owner_urn
     attr_reader :target_urn    
     attr_reader :signer_urn 
+    attr_reader :valid_until
 
     def valid_at?(time = Time.now)
-      puts ">>>> #{valid_until}"
-      time < @valid_until     
+      #debug ">>>> #{valid_until}"
+      time <= @valid_until     
     end
 
     protected

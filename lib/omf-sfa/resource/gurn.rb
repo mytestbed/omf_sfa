@@ -5,7 +5,7 @@ module OMF::SFA::Resource
 #   
   class GURN #< OMF::Common::MObject
   
-    @@def_domain = 'mytestbed.net'    
+    @@def_domain = 'omf:nitos'    
     @@name2obj = {}
     
     def self.create(name, model = nil)

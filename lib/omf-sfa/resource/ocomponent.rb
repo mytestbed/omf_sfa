@@ -68,7 +68,18 @@ module OMF::SFA::Resource
       true
     end
 
+    def clone
+      clone = super
+      # we don't want to clone the following attributes
+      # from the base resource
+      clone.provides = []
+      clone.component_leases = []
+      clone.leases = []
+      clone
+    end
+
     def destroy
+      #debug "OCOMPONENT destroy #{self}"
       if !self.provides.empty?
         raise OMF::SFA::AM::MissingImplementationException.new("Don't know yet how to delete resource which still provides other resources")
       end
@@ -77,6 +88,7 @@ module OMF::SFA::Resource
       if provider
         pa = provider.provides
         pa.delete self
+        provider.provides = pa
         # This assumes that base resources can only provide one virtual resource
         # TODO: This doesn't really test if the provider is a base resource
         provider.available = true
@@ -96,7 +108,8 @@ module OMF::SFA::Resource
     end
 
     def destroy!
-      destroy
+      #debug "OCOMPONENT destroy! #{self}"
+      #destroy #no need for this. OResource.destroy! will call OComponent.destroy -> OResource.destroy
       super
     end
   end  # OComponent
