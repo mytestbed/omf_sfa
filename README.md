@@ -5,7 +5,7 @@ Aggregate Manager
 
 To start an AM from this directory, run the following:
 
-    % cd $OMF_HOME/omf-sfa
+    % cd $OMF_HOME/omf_sfa
     % bundle exec ruby -I lib lib/omf-sfa/am/am_server.rb --dm-db sqlite:/tmp/test.sq3 --dm-auto-upgrade --test-load-am --print-options start
 
 Testing with GCF
@@ -22,7 +22,7 @@ In a shell start the CF (make sure you installed the credentials in ~/.gcf):
     INFO:cred-verifier:Combined dir of 1 trusted certs ~/.gcf/trusted_roots into file ~/.gcf/trusted_roots/CATedCACerts.pem for Python SSL support
     INFO:gcf-ch:GENI CH Listening on port 8000...
 
-    Then run the AM acceptance tests. Follow the instructions in Readme files to make sure you have set up 'omni' correctly and then run the tests 'python am_api_accept.py -a am-undertest':
+Then run the AM acceptance tests. Follow the instructions in Readme files to make sure you have set up 'omni' correctly and then run the tests 'python am_api_accept.py -a am-undertest'. Use the "requests" found under '$OMF_HOME/omf_sfa/test/sfa_requests/':
 
     python am_api_accept.py -a am-undertest                                           
     .............
@@ -37,7 +37,7 @@ Using OMNI
 Create Sliver
 -------------
 
-    $ python src/omni.py -a https://0.0.0.0:8001 -q createsliver test1 $OMF_HOME/omf-sfa/test/sfa_requests/request.xml
+    $ python src/omni.py -a https://0.0.0.0:8001 -q createsliver test1 $OMF_HOME/omf_sfa/test/sfa_requests/request.xml
     ...
     INFO:omni:Got return from CreateSliver for slice test1 at https://0.0.0.0:8001:
     INFO:omni:<?xml version="1.0"?>
