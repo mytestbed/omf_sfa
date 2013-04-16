@@ -10,3 +10,4 @@ omf_sfa_am:
         cert_chain_file: ~/.gcf/am-cert.pem 
         private_key_file: ~/.gcf/am-key.pem 
         verify_peer: true
+      trusted_roots: ~/.omf/trusted_roots

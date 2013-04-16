@@ -5,9 +5,17 @@ module OMF::SFA::AM
   class Credential < OMF::Common::LObject
 
 
-    @@root_certs = ['~/.gcf/trusted_roots/CATedCACerts.pem', '/etc/sfa/trusted_roots/topdomain.gid']
-    #@@root_certs = '~/.gcf/trusted_roots/CATedCACerts.pem'
-    #@@root_certs = '~/.sfi/trusted_certificates'
+    @config = OMF::Common::YAML.load('omf-sfa-am', :path => [File.dirname(__FILE__) + '/../../../etc/omf-sfa'])[:omf_sfa_am]
+
+    rpc = @config[:endpoints].select { |v| v[:type] == 'xmlrpc' }.first
+    trusted_roots = File.expand_path(rpc[:trusted_roots])
+    certs = Dir.entries(trusted_roots)
+    certs.delete("..")
+    certs.delete(".")
+    @@root_certs = certs.collect do |v|
+      v = File.join(trusted_roots, v)
+    end
+
     @@xmlsec = 'xmlsec1'
    
     # <?xml version="1.0"?>

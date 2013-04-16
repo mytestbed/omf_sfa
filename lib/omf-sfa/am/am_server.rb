@@ -2,7 +2,6 @@ require 'rubygems'
 require 'rack'
 require 'rack/showexceptions'
 require 'thin'
-#require 'data_mapper'
 require 'dm-migrations'
 require 'omf_common/lobject'
 require 'omf_common/load_yaml'
@@ -12,7 +11,6 @@ require 'omf-sfa/am/am_manager'
 require 'omf-sfa/am/am_scheduler'
 require 'omf-sfa/am/am_liaison'
 
-#require 'omf_common/lobject'
 
 module OMF::SFA::AM
 
@@ -28,18 +26,19 @@ module OMF::SFA::AM
     end
     
     def load_trusted_cert_roots
-      # Add additional cert roots. TODO:Should really come from the config file
       
-      [ '~/.gcf/trusted_roots/CATedCACerts.pem', 
-        '~/.sfi/topdomain.subdomain.authority.cred', 
-        '/etc/sfa/trusted_roots/topdomain.gid'
-      ].each do |fn|
-        fne = File.expand_path(fn)
+      rpc = @config[:endpoints].select { |v| v[:type] == 'xmlrpc' }.first
+      trusted_roots = File.expand_path(rpc[:trusted_roots])
+      certs = Dir.entries(trusted_roots)
+      certs.delete("..")
+      certs.delete(".")
+      certs.each do |fn|
+        fne = File.join(trusted_roots, fn)
         if File.readable?(fne)
           trusted_cert = OpenSSL::X509::Certificate.new(File.read(fne))
           OpenSSL::SSL::SSLContext::DEFAULT_CERT_STORE.add_cert(trusted_cert)
         else
-          warn "Can't find trusted root cert '#{fne}'"
+          warn "Can't find trusted root cert '#{trusted_roots}/#{fne}'"
         end
       end
     end
