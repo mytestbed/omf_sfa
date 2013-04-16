@@ -19,16 +19,20 @@ module OMF::SFA::AM
     include OMF::Common::Loggable
     extend OMF::Common::Loggable
     
-    def init_logger
-      OMF::Common::Loggable.init_log 'am_server', :searchPath => File.join(File.dirname(__FILE__), 'am_server')
-      
-      @config = OMF::Common::YAML.load('omf-sfa-am', :path => [File.dirname(__FILE__) + '/../../../etc/omf-sfa'])[:omf_sfa_am]
+    @@config = OMF::Common::YAML.load('omf-sfa-am', :path => [File.dirname(__FILE__) + '/../../../etc/omf-sfa'])[:omf_sfa_am]
+    @@rpc = @@config[:endpoints].select { |v| v[:type] == 'xmlrpc' }.first
+
+    def self.rpc_config
+      @@rpc
     end
     
+    def init_logger
+      OMF::Common::Loggable.init_log 'am_server', :searchPath => File.join(File.dirname(__FILE__), 'am_server')  
+    end
+
     def load_trusted_cert_roots
       
-      rpc = @config[:endpoints].select { |v| v[:type] == 'xmlrpc' }.first
-      trusted_roots = File.expand_path(rpc[:trusted_roots])
+      trusted_roots = File.expand_path(@@rpc[:trusted_roots])
       certs = Dir.entries(trusted_roots)
       certs.delete("..")
       certs.delete(".")
@@ -132,6 +136,7 @@ end # module
 
 # Configure the web server
 #
+rpc = OMF::SFA::AM::AMServer.rpc_config()
 opts = {
   :app_name => 'am_server',
   :port => 8001,
@@ -140,16 +145,15 @@ opts = {
     :liaison => OMF::SFA::AM::AMLiaison.new
   },
   :ssl => {
-    :cert_file => File.expand_path("~/.gcf/am-cert.pem"), 
-    :key_file => File.expand_path("~/.gcf/am-key.pem"), 
+    :cert_file => File.expand_path(rpc[:ssl][:cert_chain_file]), 
+    :key_file => File.expand_path(rpc[:ssl][:private_key_file]), 
     :verify_peer => true
     #:verify_peer => false
   },
   #:log => '/tmp/am_server.log',
   :dm_db => 'sqlite:///tmp/am_test.db',
   :dm_log => '/tmp/am_server-dm.log',
-  :rackup => File.dirname(__FILE__) + '/config.ru',
-  
+  :rackup => File.dirname(__FILE__) + '/config.ru',  
 }
 OMF::SFA::AM::AMServer.new.run(opts)
 
