@@ -23,8 +23,9 @@ module OMF::SFA::AM
       @cert.extensions.each do |e|
         if e.oid == 'subjectAltName'
           #URI:urn:publicid:IDN+topdomain:subdomain+user+pi, URI:urn:uuid:759ae077-2fda-4d02-8921-ab0235a09920
-          e.value.split('URI:').each do |u|
-            @user_urn = u.chomp(', ') if u.start_with?('urn:publicid:IDN')
+          e.value.split(',').each do |u|
+            u.slice!('URI:')
+            @user_urn = u.strip if u.start_with?('urn:publicid:IDN')
             @user_uuid = u.match(/^urn:uuid:(.*)/)[1] if u.start_with?('urn:uuid')
           end
           #e.value.split('URI:urn:').each do |u|

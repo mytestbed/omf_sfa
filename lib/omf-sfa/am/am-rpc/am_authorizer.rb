@@ -92,9 +92,9 @@ module OMF::SFA::AM::RPC
       
       # NOTE: We only look at the first cred
       credential = credentials[0]
-      debug "cred: #{credential.class}"
+      debug "cred: #{credential.inspect}"
       unless (user_cert.user_urn == credential.user_urn)
-        raise OMF::SFA::AM::InsufficientPrivilegesException.new "User urn mismatch in certificate and credentials" 
+        raise OMF::SFA::AM::InsufficientPrivilegesException.new "User urn mismatch in certificate and credentials. cert:'#{user_cert.user_urn}' cred:'#{credential.user_urn}'" 
       end
       
       @user_cred = credential
