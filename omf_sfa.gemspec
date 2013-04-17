@@ -40,7 +40,7 @@ Gem::Specification.new do |s|
   s.add_runtime_dependency "rack-rpc", "~> 0.0.6"
   s.add_runtime_dependency "data_mapper", "~> 1.2.0"
   s.add_runtime_dependency "bluecloth", "~> 2.2.0"
-  s.add_runtime_dependency "omf_common", "~> 6.0.0.pre.10"
+  s.add_runtime_dependency "omf_common", "= 6.0.0.pre.10"
   s.add_runtime_dependency "eventmachine", "~> 0.12.10"
   s.add_runtime_dependency "em-minitest-spec", "~> 1.1.1"
 end
