@@ -30,6 +30,10 @@ module OMF::SFA::AM
       OMF::Common::Loggable.init_log 'am_server', :searchPath => File.join(File.dirname(__FILE__), 'am_server')  
     end
 
+    def check_dependencies
+      raise "xmlsec1 is not installed!" unless system('which xmlsec1 > /dev/null 2>&1')
+    end
+
     def load_trusted_cert_roots
       
       trusted_roots = File.expand_path(@@rpc[:trusted_roots])
@@ -95,12 +99,12 @@ module OMF::SFA::AM
         am.manage_resource(n)
       end
       #  am.find_resource 'n1', :requester_account => account
-      nodes.first.leases << OMF::SFA::Resource::OLease.create(:name => 'l1', :valid_from => Time.now, :valid_until => Time.now + 3600)
-      nodes.first.leases << OMF::SFA::Resource::OLease.create(:name => 'l2', :valid_from => Time.now + 3600, :valid_until => Time.now + 7200)
-      nodes.first.save
+      #nodes.first.leases << OMF::SFA::Resource::OLease.create(:name => 'l1', :valid_from => Time.now, :valid_until => Time.now + 3600)
+      #nodes.first.leases << OMF::SFA::Resource::OLease.create(:name => 'l2', :valid_from => Time.now + 3600, :valid_until => Time.now + 7200)
+      #nodes.first.save
 
-      nodes.last.leases << OMF::SFA::Resource::OLease.create(:name => 'l1', :valid_from => Time.now, :valid_until => Time.now + 3600)
-      nodes.last.save
+      #nodes.last.leases << OMF::SFA::Resource::OLease.create(:name => 'l1', :valid_from => Time.now, :valid_until => Time.now + 3600)
+      #nodes.last.save
     end
     
     def run(opts)
@@ -123,6 +127,7 @@ module OMF::SFA::AM
           init_logger()
           load_trusted_cert_roots()
           init_data_mapper(opts)    
+          check_dependencies()
         end
       }
 
