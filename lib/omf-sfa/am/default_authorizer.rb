@@ -30,7 +30,7 @@ module OMF::SFA::AM
       :can_release_lease?, # (lease)
     ].each do |m|
       define_method(m) do |*args|
-        debug "Check permission '#{m}' (#{@permissions.keys.inspect})"
+        debug "Check permission '#{m}' (#{@permissions.inspect})"
         unless @permissions[m]
           raise InsufficientPrivilegesException.new
         end

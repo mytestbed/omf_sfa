@@ -101,21 +101,39 @@ module OMF::SFA::AM::RPC
       
       
       if credential.type == 'slice'
-        @permissions[:can_create_account?] = credential.privilege?('control')
-        @permissions[:can_view_account?] = credential.privilege?('info')
-        @permissions[:can_renew_account?] = credential.privilege?('refresh')
-        @permissions[:can_close_account?] = credential.privilege?('control')
+        if credential.privilege?('*')
+          @permissions[:can_create_account?] = true 
+          @permissions[:can_view_account?] = true
+          @permissions[:can_renew_account?] = true
+          @permissions[:can_close_account?] = true
+        else
+          @permissions[:can_create_account?] = credential.privilege?('control')
+          @permissions[:can_view_account?] = credential.privilege?('info')
+          @permissions[:can_renew_account?] = credential.privilege?('refresh')
+          @permissions[:can_close_account?] = credential.privilege?('control')
+        end
       end
 
-      @permissions[:can_create_resource?] = credential.privilege?('refresh')
-      @permissions[:can_view_resource?] = credential.privilege?('info')
-      @permissions[:can_release_resource?] = credential.privilege?('refresh')
+      if credential.privilege?('*')
+        @permissions[:can_create_resource?] = true
+        @permissions[:can_view_resource?] = true
+        @permissions[:can_release_resource?] = true
 
-      @permissions[:can_view_lease?] = credential.privilege?('info')
-      @permissions[:can_modify_lease?] = credential.privilege?('refresh')
-      @permissions[:can_release_lease?] = credential.privilege?('refresh')
+        @permissions[:can_view_lease?] = true
+        @permissions[:can_modify_lease?] = true
+        @permissions[:can_release_lease?] = true
+      else
+        @permissions[:can_create_resource?] = credential.privilege?('refresh')
+        @permissions[:can_view_resource?] = credential.privilege?('info')
+        @permissions[:can_release_resource?] = credential.privilege?('refresh')
+
+        @permissions[:can_view_lease?] = credential.privilege?('info')
+        @permissions[:can_modify_lease?] = credential.privilege?('refresh')
+        @permissions[:can_release_lease?] = credential.privilege?('refresh')
+      end
+
       
-      debug "Have permission '#{@permissions.keys.inspect}'"
+      debug "Have permission '#{@permissions.inspect}'"
 
       unless account_urn.nil?
         unless account_urn.eql?(credential.target_urn)
