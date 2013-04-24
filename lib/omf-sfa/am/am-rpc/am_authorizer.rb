@@ -45,6 +45,8 @@ module OMF::SFA::AM::RPC
       end
       debug "Requester: #{peer.subject} :: #{peer.user_urn}"
 
+      raise OMF::SFA::AM::InsufficientPrivilegesException.new "Credentials are missing." if credentials.nil?
+
       unless peer.valid_at?     
         OMF::SFA::AM::InsufficientPrivilegesException.new "The certificate has expired or not valid yet. Check the dates."
       end
