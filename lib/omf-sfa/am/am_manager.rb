@@ -257,6 +257,7 @@ module OMF::SFA::AM
     def find_lease(lease_descr, lease_oproperties, authorizer)
       if lease_oproperties.empty?
         lease = OMF::SFA::Resource::OLease.first(lease_descr)
+        raise UnavailableResourceException.new "Unknown lease '#{lease_descr.inspect}'" if lease.nil?
         authorizer.can_view_lease?(lease)
         return lease
       end

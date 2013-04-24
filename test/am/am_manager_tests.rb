@@ -243,14 +243,14 @@ describe AMManager do
       a1.must_equal a2
       
       auth.expect(:can_view_lease?, true, [OMF::SFA::Resource::OLease])      
-      a3 = manager.find_lease({:name => 'l1'}, auth)
+      a3 = manager.find_lease({:name => 'l1'}, {}, auth)
       a1.must_equal a3
       auth.verify
     end
 
     it 'throws exception when looking for non-exisiting lease' do
       lambda do 
-        manager.find_lease({:name => 'l1'}, auth)
+        manager.find_lease({:name => 'l1'}, {}, auth)
       end.must_raise(UnavailableResourceException)
     end
 
@@ -428,25 +428,12 @@ describe AMManager do
       r1 = OMF::SFA::Resource::OComponent.create({:name => 'r1', :account => account})
       r2 = OMF::SFA::Resource::Node.create({:name => 'r2', :account => account})
       r3 = OMF::SFA::Resource::OResource.create({:name => 'r3', :account => account})
+      r4 = OMF::SFA::Resource::OComponent.create({:name => 'r4'})
 
       auth.expect(:can_view_resource?, true, [OMF::SFA::Resource::OResource])
       auth.expect(:can_view_resource?, true, [OMF::SFA::Resource::OResource])
       r = manager.find_all_components_for_account(account, auth)
       r.must_equal [r1, r2]
-      auth.verify
-    end
-
-    it 'will find all the components' do
-      r1 = OMF::SFA::Resource::OComponent.create({:name => 'r1', :account => account})
-      r2 = OMF::SFA::Resource::Node.create({:name => 'r2', :account => account})
-      r3 = OMF::SFA::Resource::OResource.create({:name => 'r3', :account => account})
-      r4 = OMF::SFA::Resource::OComponent.create({:name => 'r4'})
-
-      auth.expect(:can_view_resource?, true, [OMF::SFA::Resource::OResource])
-      auth.expect(:can_view_resource?, true, [OMF::SFA::Resource::OResource])
-      auth.expect(:can_view_resource?, true, [OMF::SFA::Resource::OResource])
-      r = manager.find_all_components_for_account(nil, auth)
-      r.must_equal [r1, r2, r4]
       auth.verify
     end
 
@@ -483,8 +470,8 @@ describe AMManager do
 
     it 'will create resource from rspec' do
       rspec = %{
-        <rspec xmlns="http://www.protogeni.net/resources/rspec/2" xmlns:omf="http://schema.mytestbed.net/sfa/rspec/1" type="request">
-          <node component_id="urn:publicid:IDN+openlab+node+node1" component_name="node1">
+        <rspec xmlns="http://www.geni.net/resources/rspec/3" xmlns:omf="http://nitlab.inf.uth.gr/schema/sfa/rspec/1" type="request">
+          <node component_id="urn:publicid:IDN+openlab+node+node1" component_name="node1" client_id="omf">
           </node>
         </rspec>
       } 
