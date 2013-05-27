@@ -104,11 +104,25 @@ module OMF::SFA::AM
     def lease_component(lease, component)
       # TODO: Implement a basic FCFS for the competing leases of a component.
       # Basic Component provides itself(clones) so many times as the accepted leases on it.
+      #debug "lease_component: lease:'#{lease.name}' to component:'#{component.name}'"
 
+      base = component.provided_by
+      base.leases.each do |l|
+	if (lease.valid_from >= l.valid_until || lease.valid_until <= l.valid_from)
+	  #all ok, do nothing
+	elsif (lease.valid_from <= l.valid_from && lease.valid_until > l.valid_from)#overlapping time
+	  raise UnavailableResourceException.new "Cannot lease '#{component.name}', because it is unavailable for the requested time."
+	elsif (lease.valid_from >= l.valid_from && lease.valid_from <= l.valid_until)#overlapping time
+	  raise UnavailableResourceException.new "Cannot lease '#{component.name}', because it is unavailable for the requested time."
+	end
+      end
+       
+      base.leases << lease
+      base.save
       component.leases << lease
       component.save
-
-      @am_liaison.enable_lease(lease, component)
+      #@am_liaison.enable_lease(lease, component)
+      return component #for testing purposes. should return true
     end
 
     # It returns the default account, normally used for admin account.
