@@ -53,13 +53,12 @@ module OMF::SFA::AM
 
         return vr
       elsif type_to_create.eql?('OLease')
-
         resource_descr[:resource_type] = type_to_create
-        lease = OMF::SFA::Resource::OLease.create(lease_descr)
+        lease = OMF::SFA::Resource::OLease.create(resource_descr)
         lease.valid_from = oproperties[:valid_from]
         lease.valid_until = oproperties[:valid_until]
-        raise UnavailableResourceException.new "Cannot create '#{lease_descr.inspect}'" unless lease.save
-        lease
+        raise UnavailableResourceException.new "Cannot create '#{resource_descr.inspect}'" unless lease.save
+        return lease
       else
         raise "Uknown type of resource '#{type_to_create}'. Expected one of 'Node' or 'OLease'"
       end
