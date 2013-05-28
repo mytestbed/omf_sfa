@@ -3,7 +3,7 @@ This directory contains the implementations of various SFA APIs and services.
 Aggregate Manager
 =================
 
-To start an AM from this directory, run the following:
+Before attempting to start the AM you should create the following directory "~/.omf/trusted_roots". Inside the "~/.omf/" directory you should put the certificates of the AM (you can use GCF's certificates "am-cert.pem" and "am-key.pem"). In the "trusted_roots" folder you should put the root certificate, which in GCF tools is "~/.gcf/trusted_roots/ch-cert.pem". To start an AM from this directory, run the following:
 
     % cd $OMF_HOME/omf_sfa
     % bundle exec ruby -I lib lib/omf-sfa/am/am_server.rb --dm-db sqlite:/tmp/test.sq3 --dm-auto-upgrade --test-load-am --print-options start
@@ -22,7 +22,7 @@ In a shell start the CF (make sure you installed the credentials in ~/.gcf):
     INFO:cred-verifier:Combined dir of 1 trusted certs ~/.gcf/trusted_roots into file ~/.gcf/trusted_roots/CATedCACerts.pem for Python SSL support
     INFO:gcf-ch:GENI CH Listening on port 8000...
 
-Then run the AM acceptance tests. Follow the instructions in Readme files to make sure you have set up 'omni' correctly and then run the tests 'python am_api_accept.py -a am-undertest'. Use the "requests" found under '$OMF_HOME/omf_sfa/test/sfa_requests/':
+Then run the AM acceptance tests. Follow the instructions in Readme files to make sure you have set up 'omni' correctly and then run the tests 'python am_api_accept.py -a https://0.0.0.0:8001/RPC2'. Don't forger to set your enviroment variable "export PYTHONPATH=$PYTHONPATH:$GCF/src" before running the acceptance tests. Use the "requests" found under '$OMF_HOME/omf_sfa/test/sfa_requests/':
 
     python am_api_accept.py -a am-undertest                                           
     .............
