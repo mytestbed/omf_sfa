@@ -19,8 +19,8 @@ module OMF::SFA::AM
     @leases = {}
 
     def initialize
-      @comm = OmfCommon::Comm.new(:xmpp)
-      EM.next_tick { @comm.connect('am_liaison', 'pw', 'localhost') }
+      #@comm = OmfCommon::Comm.new(:xmpp)
+      #EM.next_tick { @comm.connect('am_liaison', 'pw', 'localhost') }
     end    
 
     #def self.leases

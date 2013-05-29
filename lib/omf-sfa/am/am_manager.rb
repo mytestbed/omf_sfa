@@ -577,7 +577,7 @@ module OMF::SFA::AM
     # already performed modifications performed on other resources.
     #
     def update_resources_from_rspec(descr_el, clean_state, authorizer)
-      debug "update_resources_from_rspec: descr_el:'#{descr_el.inspect}' clean_state:'#{clean_state}' authorizer:'#{authorizer.inspect}'"
+      debug "update_resources_from_rspec: descr_el:'#{descr_el}' clean_state:'#{clean_state}' authorizer:'#{authorizer}'"
       if !descr_el.nil? && descr_el.name.downcase == 'rspec'
         xsd_path = File.join(File.dirname(__FILE__), '../../../schema/rspec-v3', 'request.xsd')
         schema = Nokogiri::XML::Schema(File.open(xsd_path))
@@ -587,7 +587,7 @@ module OMF::SFA::AM
 
         unless descr_el.xpath('//ol:*', 'ol' => OL_NAMESPACE).empty?
           lease_xsd_path = File.join(File.dirname(__FILE__), '../../../schema/rspec-v3', 'request-reservation.xsd')
-          lease_schema = Nokogiri::XML::Schema(File.open(xsd_path))
+          lease_schema = Nokogiri::XML::Schema(File.open(lease_xsd_path))
 
           res = lease_schema.validate(descr_el.document)
           raise FormatException.new("RSpec format is not valid: '#{res}'") unless res.empty?

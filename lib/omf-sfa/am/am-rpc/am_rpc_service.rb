@@ -194,11 +194,13 @@ module OMF::SFA::AM::RPC
       @return_struct[:value] = {}
       return @return_struct
     rescue OMF::SFA::AM::UnknownResourceException => e
+      debug('CreateSliver Exception', e.to_s)
       @return_struct[:code][:geni_code] = 12 # Search Failed
       @return_struct[:output] = e.to_s
       @return_struct[:value] = {}
       return @return_struct
     rescue OMF::SFA::AM::FormatException => e
+      debug('CreateSliver Exception', e.to_s)
       @return_struct[:code][:geni_code] = 4 # Bad Version
       @return_struct[:output] = e.to_s
       @return_struct[:value] = {}
@@ -211,7 +213,7 @@ module OMF::SFA::AM::RPC
       if slice_urn.nil? || credentials.nil?
         @return_struct[:code][:geni_code] = 1 # Bad Arguments
         @return_struct[:output] = "Some of the following arguments are missing: 'slice_urn', 'credentials'"
-        @return_struct[:value] = {}
+        @return_struct[:value] = false
         return @return_struct
       end
       #@authorizer.check_credentials(slice_urn, credentials.first, @manager)
@@ -257,7 +259,7 @@ module OMF::SFA::AM::RPC
     rescue OMF::SFA::AM::InsufficientPrivilegesException => e
       @return_struct[:code][:geni_code] = 3
       @return_struct[:output] = e.to_s
-      @return_struct[:value] = {}
+      @return_struct[:value] = false
       return @return_struct
     end
 
@@ -267,7 +269,7 @@ module OMF::SFA::AM::RPC
       if slice_urn.nil? || credentials.nil? || expiration_time.nil?
         @return_struct[:code][:geni_code] = 1 # Bad Arguments
         @return_struct[:output] = "Some of the following arguments are missing: 'slice_urn', 'credentials', 'expiration_time'"
-        @return_struct[:value] = {}
+        @return_struct[:value] = false
         return @return_struct
       end
 
@@ -294,12 +296,12 @@ module OMF::SFA::AM::RPC
     rescue OMF::SFA::AM::UnavailableResourceException => e
       @return_struct[:code][:geni_code] = 12 # Search Failed
       @return_struct[:output] = e.to_s
-      @return_struct[:value] = {}
+      @return_struct[:value] = false
       return @return_struct
     rescue OMF::SFA::AM::InsufficientPrivilegesException => e
       @return_struct[:code][:geni_code] = 3
       @return_struct[:output] = e.to_s
-      @return_struct[:value] = {}
+      @return_struct[:value] = false
       return @return_struct
     end
 
