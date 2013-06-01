@@ -5,8 +5,8 @@ Aggregate Manager
 
 To start a AM from this directory, run the following:
 
-    % cd $OMF_HOME/omf-sfa
-    % ruby -I lib/omf_common/ruby -I lib lib/omf-sfa/am/am_server.rb --dm-db sqlite:/tmp/test.sq3 --dm-auto-upgrade --test-load-am --print-options start
+    % cd $OMF_SFA_HOME
+    % ruby -I lib lib/omf-sfa/am/am_server.rb --dm-db sqlite:/tmp/test.sq3 --dm-auto-upgrade --test-load-am --print-options start
 
 Testing with GCF
 ----------------
@@ -38,7 +38,7 @@ Using OMNI
 Create Sliver
 -------------
 
-    $ python src/omni.py -a https://0.0.0.0:8001 -q createsliver test1 $OMF_HOME/omf-sfa/test/req-sfa.xml
+    $ python src/omni.py -a https://0.0.0.0:8001 -q createsliver test1 $OMF_SFA_HOME/test/req-sfa.xml
     ...
     INFO:omni:Asked https://0.0.0.0:8001 to reserve resources. Result:
     INFO:omni:<?xml version="1.0" ?>
@@ -47,10 +47,8 @@ Create Sliver
             At AM:
             URL: https://0.0.0.0:8001
      -->
-    INFO:omni:<rspec expires="2012-04-30T11:54:39-03:00" generated="2012-04-30T11:44:39-03:00" type="advertisement" xmlns="http://www.protog
-    eni.net/resources/rspec/2" xmlns:omf="http://schema.mytestbed.net/sfa/rspec/1">  
-        <node component_id="urn:publicid:IDN+mytestbed.net+node+aea0b9a5-e90e-5fd6-9224-847f0a1b37cb" component_manager_id="authority+am" co
-mponent_name="n0" id="aea0b9a5-e90e-5fd6-9224-847f0a1b37cb" omf:href="/resources/aea0b9a5-e90e-5fd6-9224-847f0a1b37cb">    
+    INFO:omni:<rspec expires="2012-04-30T11:54:39-03:00" generated="2012-04-30T11:44:39-03:00" type="advertisement" xmlns="http://www.protogeni.net/resources/rspec/2" xmlns:omf="http://schema.mytestbed.net/sfa/rspec/1">  
+        <node component_id="urn:publicid:IDN+mytestbed.net+node+aea0b9a5-e90e-5fd6-9224-847f0a1b37cb" component_manager_id="authority+am" component_name="n0" id="aea0b9a5-e90e-5fd6-9224-847f0a1b37cb" omf:href="/resources/aea0b9a5-e90e-5fd6-9224-847f0a1b37cb">    
             <available now="true"/>    
         </node>  
     </rspec>
