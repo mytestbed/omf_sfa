@@ -24,6 +24,12 @@ if am_mgr.is_a? Proc
   am_mgr = am_mgr.call()
 end
 
+require 'omf-sfa/am/am-rest/session_authenticator'                               
+use OMF::SFA::AM::Rest::SessionAuthenticator, #:expire_after => 10, 
+          :login_url => '/login',
+          :no_session => ['^/$', "^#{RPC_URL}", '^/login', '^/logout', '^/readme', '^/assets']
+
+
 map RPC_URL do
   require 'omf-sfa/am/am-rpc/am_rpc_service'
   service = OMF::SFA::AM::RPC::AMService.new({:manager => am_mgr})
@@ -35,7 +41,26 @@ map RPC_URL do
   run Rack::RPC::Endpoint.new(app, service, :path => '') 
 end
 
-map "/" do
+map '/slices' do
+  require 'omf-sfa/am/am-rest/account_handler'
+  run OMF::SFA::AM::Rest::AccountHandler.new(opts[:am][:manager], opts)
+end
+
+
+map "/resources" do
+  require 'omf-sfa/am/am-rest/resource_handler'
+  # account = opts[:am_mgr].get_default_account()  # TODO: Is this still needed?
+  # run OMF::SFA::AM::Rest::ResourceHandler.new(opts[:am][:manager], opts.merge({:account => account}))
+    run OMF::SFA::AM::Rest::ResourceHandler.new(opts[:am][:manager], opts)
+end
+
+map '/login' do
+  # require 'omf-sfa/am/am-rest/login_handler'
+  # run OMF::SFA::AM::Rest::LoginHandler.new(opts[:am][:manager], opts)
+end
+
+
+map "/readme" do
   require 'bluecloth'
   s = File::read(File.dirname(__FILE__) + '/am-rest/REST_API.md')
   frag = BlueCloth.new(s).to_html
@@ -73,5 +98,21 @@ end
 
 map '/assets' do
   run MyFile.new(File.dirname(__FILE__) + '/../../../../share/assets')
+end
+
+map "/" do
+  handler = Proc.new do |env| 
+    req = ::Rack::Request.new(env)
+    case req.path_info
+    when '/'
+      [301, {'Location' => '/readme', "Content-Type" => ""}, ['Next window!']]
+    when '/favicon.ico'
+      [301, {'Location' => '/assets/image/favicon.ico', "Content-Type" => ""}, ['Next window!']]
+    else
+      OMF::Common::Loggable.logger('rack').warn "Can't handle request '#{req.path_info}'"
+      [401, {"Content-Type" => ""}, "Sorry!"]
+    end 
+  end
+  run handler
 end
 

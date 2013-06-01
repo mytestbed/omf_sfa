@@ -2,37 +2,47 @@
 require 'omf_common/lobject'
 
 module OMF::SFA::Resource
-#   
+#
   class GURN #< OMF::Common::MObject
-  
-    @@def_domain = 'mytestbed.net'    
+
+    @@def_domain = 'mytestbed.net'
     @@name2obj = {}
-    
-    def self.create(name, model = nil)
+
+    # Create a GURN
+    #
+    # @param [String] name Name of GURN
+    # @param [Hash] opts options to further describe GURN components
+    # @option opts [String] :type GURN's type
+    # @option opts [Class] :model Class responding to either :sfa_class or :urn_type
+    # @option opts [String] :domain GURN's domain
+    #
+    def self.create(name, opts = {})
       return name if name.kind_of? self
       #puts "GUID: #{name}###{model}"
 
       obj = @@name2obj[name]
       return obj if obj
-      
+
       if name.start_with?('urn')
         return parse(name)
       end
-      
-      if model && model.respond_to?(:sfa_class)
-        type =  model.sfa_class
-      elsif model && model.respond_to?(:urn_type)
-        type =  model.urn_type
-      else
-        type = nil
+
+      unless type = opts[:type]
+        model = opts[model]
+        if model && model.respond_to?(:sfa_class)
+          type =  model.sfa_class
+        elsif model && model.respond_to?(:urn_type)
+          type =  model.urn_type
+        end
       end
-      return @@name2obj[name] = self.new(name, type, @@def_domain)
+      domain = opts[:domain] || @@def_domain
+      return @@name2obj[name] = self.new(name, type, domain)
     end
-    
+
     def self.sfa_create(name, context = nil)
-      return create(name, context)
+      return create(name, :model => context)
     end
-    
+
     # Create a GURN object from +urn_str+.
     #
     def self.parse(urn_str)
@@ -56,11 +66,11 @@ module OMF::SFA::Resource
     def self.default_domain=(domain)
       @@def_domain = domain
     end
-    
+
     def self.default_domain()
       @@def_domain
     end
-    
+
     # This class maintains a cache between object name and it's GURN.
     # As this may get in the way of testing, this method provides a way
     # of clear that cache
@@ -68,9 +78,9 @@ module OMF::SFA::Resource
     def self.clear_cache
       @@name2obj.clear
     end
-    
+
     attr_reader :name, :short_name, :type, :domain, :urn
-    
+
     def initialize(short_name, type = nil, domain = nil)
       @short_name = short_name
       @domain = domain || @@def_domain
@@ -80,9 +90,9 @@ module OMF::SFA::Resource
       else
         @name = "#{@domain}+#{short_name}"
       end
-      @urn = 'urn:publicid:IDN+' + name      
+      @urn = 'urn:publicid:IDN+' + name
     end
-    
+
     def uuid
       unless @uuid
 	@uuid = UUIDTools::UUID.parse(short_name)
@@ -97,7 +107,7 @@ module OMF::SFA::Resource
     end
 
   end # GURN
-end # OMF::SFA    
+end # OMF::SFA
 
 require 'dm-core'
 
@@ -122,12 +132,12 @@ module DataMapper
 
       # We don't want this to be called, but the Model::Property calls
       # this one first before calling #set! on this instance again with
-      # the value returned here. Hopefully this is the only place this 
+      # the value returned here. Hopefully this is the only place this
       # happens. Therefore, we just return +value+ unchanged and take care
       # of casting in +load2+
       #
       def load(value)
-	if value 
+	if value
 	  if value.start_with?('urn')
 	    return OMF::SFA::Resource::GURN.create(value)
 	  end
@@ -138,7 +148,7 @@ module DataMapper
 
       def load2(value, context_class)
 	if value
-	  #puts "LOAD #{value}||#{value.class}||#{context.inspect}" 
+	  #puts "LOAD #{value}||#{value.class}||#{context.inspect}"
 	  return OMF::SFA::Resource::GURN.create(value, context_class)
 	end
 	nil
@@ -169,7 +179,7 @@ module DataMapper
 
 
 
-    end # class GURN 
+    end # class GURN
   end # class Property
 end #module DataMapper
 

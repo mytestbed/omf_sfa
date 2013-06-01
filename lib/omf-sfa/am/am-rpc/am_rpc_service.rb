@@ -46,7 +46,7 @@ module OMF::SFA::AM::RPC
       compressed = options["geni_compressed"]
       slice_urn = options["geni_slice_urn"]
 
-      authorizer = OMF::SFA::AM::RPC::AMAuthorizer.create_for_web_request(slice_urn, credentials, @request, @manager)
+      authorizer = OMF::SFA::AM::RPC::AMAuthorizer.create_for_sfa_request(slice_urn, credentials, @request, @manager)
       #@authorizer.check_credentials(slice_urn, credentials.first, @manager)
       resources = @manager.find_all_components_for_account(authorizer.account, authorizer)
       # TODO: implement the "available_only" option
@@ -65,7 +65,7 @@ module OMF::SFA::AM::RPC
     def create_sliver(slice_urn, credentials, rspec_s, users)
       debug 'CreateSliver: SLICE URN: ', slice_urn, ' RSPEC: ', rspec_s, ' USERS: ', users.inspect
       #@authorizer.check_credentials(slice_urn, credentials.first, @manager)
-      authorizer = OMF::SFA::AM::RPC::AMAuthorizer.create_for_web_request(slice_urn, credentials, @request, @manager)
+      authorizer = OMF::SFA::AM::RPC::AMAuthorizer.create_for_sfa_request(slice_urn, credentials, @request, @manager)
       
       rspec = Nokogiri::XML.parse(rspec_s)
       resources = @manager.update_resources_from_rspec(rspec.root, true, authorizer)
@@ -78,7 +78,7 @@ module OMF::SFA::AM::RPC
     def sliver_status(slice_urn, credentials)
       debug('SliverStatus for ', slice_urn)
       #@authorizer.check_credentials(slice_urn, credentials.first, @manager)
-      authorizer = OMF::SFA::AM::RPC::AMAuthorizer.create_for_web_request(slice_urn, credentials, @request, @manager)
+      authorizer = OMF::SFA::AM::RPC::AMAuthorizer.create_for_sfa_request(slice_urn, credentials, @request, @manager)
       
       status = {}
       status['geni_urn'] = slice_urn
@@ -104,7 +104,7 @@ module OMF::SFA::AM::RPC
       expiration_time = expiration_time.to_time # is XMLRP::DateTime         
       debug('RenewSliver ', slice_urn, ' until <', expiration_time, '>')
       #authorizer.check_credentials(slice_urn, credentials.first, @manager)
-      authorizer = OMF::SFA::AM::RPC::AMAuthorizer.create_for_web_request(slice_urn, credentials, @request, @manager)
+      authorizer = OMF::SFA::AM::RPC::AMAuthorizer.create_for_sfa_request(slice_urn, credentials, @request, @manager)
       
       @manager.renew_account_until({ :urn => slice_urn }, expiration_time, authorizer)
       true
@@ -114,7 +114,7 @@ module OMF::SFA::AM::RPC
     def delete_sliver(slice_urn, credentials)
       debug('DeleteSliver ', slice_urn)
       #@authorizer.check_credentials(slice_urn, credentials.first, @manager)
-      authorizer = OMF::SFA::AM::RPC::AMAuthorizer.create_for_web_request(slice_urn, credentials, @request, @manager)
+      authorizer = OMF::SFA::AM::RPC::AMAuthorizer.create_for_sfa_request(slice_urn, credentials, @request, @manager)
 
       # We don't like deleting things
       account = @manager.close_account({ :urn => slice_urn }, authorizer)
@@ -127,7 +127,7 @@ module OMF::SFA::AM::RPC
     # close the account but do not release its resources
     def shutdown_sliver(slice_urn, credentials)
       #@authorizer.check_credentials(slice_urn, credentials.first, @manager)
-      authorizer = OMF::SFA::AM::RPC::AMAuthorizer.create_for_web_request(slice_urn, credentials, @request, @manager)
+      authorizer = OMF::SFA::AM::RPC::AMAuthorizer.create_for_sfa_request(slice_urn, credentials, @request, @manager)
       
       #puts "SLICE URN: #{slice_urn}"
       account = @manager.close_account({ :urn => slice_urn }, authorizer)

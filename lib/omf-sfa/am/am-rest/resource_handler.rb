@@ -12,9 +12,9 @@ module OMF::SFA::AM::Rest
     # should take care of it
     #
     def find_handler(path, opts)
-      opts[:account] = @am_manager.get_default_account
+      #opts[:account] = @am_manager.get_default_account
       opts[:resource_uri] = path.join('/') 
-      #debug "find_handler: path: '#{path}' opts: '#{opts.inspect}'"
+      debug "find_handler: path: '#{path}' opts: '#{opts.inspect}'"
       self
     end
     
