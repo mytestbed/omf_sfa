@@ -6,31 +6,31 @@ require 'omf-sfa/am/am-rest/resource_handler'
 
 module OMF::SFA::AM::Rest
 
-  # Handles the collection of accounts on this AM. 
-  #    
+  # Handles the collection of accounts on this AM.
+  #
   class AccountHandler < RestHandler
-    
+
     def initialize(am_manager, opts = {})
       super
       @res_handler = ResourceHandler.new(am_manager, opts)
     end
-    
+
     def find_handler(path, opts)
       account_id = opts[:resource_uri] = path.shift
       if account_id
         account = opts[:account] = find_account(account_id)
       end
       return self if path.empty?
-      
+
       case comp = path.shift
       when 'resources'
         opts[:resource_uri] = path.join('/')
         #puts "RESOURCE >>> '#{r}'::#{account.inspect}"
         return @res_handler
       end
-      raise UnknownResourceException.new "Unknown sub collection '#{comp}' for account '#{account_id}'."  
+      raise UnknownResourceException.new "Unknown sub collection '#{comp}' for account '#{account_id}'."
     end
-    
+
     def on_get(account_uri, opts)
       debug 'get: account_uri: "', account_uri, '"'
       if account_uri
@@ -38,24 +38,24 @@ module OMF::SFA::AM::Rest
         show_account_status(account, opts)
       else
         show_accounts(opts)
-      end 
+      end
     end
-    
+
     # def on_put(account_uri, opts)
       # account = opts[:account] = OMF::SFA::Resource::Sliver.first_or_create(:name => opts[:account_id])
       # configure_sliver(sliver, opts)
-      # show_sliver_status(sliver, opts) 
+      # show_sliver_status(sliver, opts)
     # end
-    
+
     def on_delete(account_uri, opts)
       account = opts[:account]
       @am_manager.delete_account(account)
 
       show_account_status(nil, opts)
     end
-    
+
     # SUPPORTING FUNCTIONS
-    
+
     def show_account_status(account, opts)
       if account
         p = opts[:req].path.split('/')[0 .. -2]
@@ -73,15 +73,16 @@ module OMF::SFA::AM::Rest
           :assertion => {:href => prefix + '/assertion'}
         }
       else
-        res = {:error => 'Unknown account'}    
+        res = {:error => 'Unknown account'}
       end
-      
+
       ['application/json', JSON.pretty_generate({:account_response => res})]
     end
 
     def show_accounts(opts)
+      authenticator = Thread.current["authenticator"]
       prefix = about = opts[:req].path
-      accounts = @am_manager.find_all_accounts(opts).collect do |a|
+      accounts = @am_manager.find_all_accounts(authenticator).collect do |a|
         {
           :name => a.name,
           :urn => a.urn,
@@ -93,10 +94,10 @@ module OMF::SFA::AM::Rest
         :about => opts[:req].path,
         :accounts => accounts
       }
-      
+
       ['application/json', JSON.pretty_generate({:accounts_response => res})]
     end
-   
+
     # Configure the state of +account+ according to information
     # in the http +req+.
     #
@@ -114,8 +115,8 @@ module OMF::SFA::AM::Rest
       else
         raise BadRequestException.new "Unsupported message format '#{format}'"
       end
-    end  
-    
+    end
+
     def find_account(account_id)
       if account_id.start_with?('urn')
         fopts = {:urn => account_id}
@@ -125,9 +126,9 @@ module OMF::SFA::AM::Rest
         rescue ArgumentError
           fopts = {:name => account_id}
         end
-      end        
-      account = @am_manager.find_account(fopts)
-    end  
+      end
+      authenticator = Thread.current["authenticator"]
+      account = @am_manager.find_account(fopts, authenticator)
+    end
   end
 end
-    

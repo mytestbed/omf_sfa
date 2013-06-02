@@ -3,14 +3,17 @@
 #RPC_URL = '/rpc'
 RPC_URL = '/RPC2'
 
+REQUIRE_LOGIN = false
+
 require 'rack/file'
 class MyFile < Rack::File
   def call(env)
     c, h, b = super
     #h['Access-Control-Allow-Origin'] = '*'
     [c, h, b]
-  end  
+  end
 end
+
 
 # There seem to be some issues with teh sfi.py tool
 #use Rack::Lint
@@ -24,9 +27,9 @@ if am_mgr.is_a? Proc
   am_mgr = am_mgr.call()
 end
 
-require 'omf-sfa/am/am-rest/session_authenticator'                               
-use OMF::SFA::AM::Rest::SessionAuthenticator, #:expire_after => 10, 
-          :login_url => '/login',
+require 'omf-sfa/am/am-rest/session_authenticator'
+use OMF::SFA::AM::Rest::SessionAuthenticator, #:expire_after => 10,
+          :login_url => (REQUIRE_LOGIN ? '/login' : nil),
           :no_session => ['^/$', "^#{RPC_URL}", '^/login', '^/logout', '^/readme', '^/assets']
 
 
@@ -38,7 +41,7 @@ map RPC_URL do
     [404, {"Content-Type" => "text/plain"}, ["Not found"]]
   end
 
-  run Rack::RPC::Endpoint.new(app, service, :path => '') 
+  run Rack::RPC::Endpoint.new(app, service, :path => '')
 end
 
 map '/slices' do
@@ -54,11 +57,12 @@ map "/resources" do
     run OMF::SFA::AM::Rest::ResourceHandler.new(opts[:am][:manager], opts)
 end
 
-map '/login' do
-  # require 'omf-sfa/am/am-rest/login_handler'
-  # run OMF::SFA::AM::Rest::LoginHandler.new(opts[:am][:manager], opts)
+if REQUIRE_LOGIN
+  map '/login' do
+    require 'omf-sfa/am/am-rest/login_handler'
+    run OMF::SFA::AM::Rest::LoginHandler.new(opts[:am][:manager], opts)
+  end
 end
-
 
 map "/readme" do
   require 'bluecloth'
@@ -74,7 +78,7 @@ map "/readme" do
      stroke: #fff;
      stroke-width: 1.5px;
    }
-      
+
       line.link {
         stroke: #999;
         stroke-opacity: .6;
@@ -90,8 +94,8 @@ map "/readme" do
 }
   p = lambda do |env|
   puts "#{env.inspect}"
- 
-    return [200, {"Content-Type" => "text/html"}, [wrapper % frag]] 
+
+    return [200, {"Content-Type" => "text/html"}, [wrapper % frag]]
   end
   run p
 end
@@ -101,7 +105,7 @@ map '/assets' do
 end
 
 map "/" do
-  handler = Proc.new do |env| 
+  handler = Proc.new do |env|
     req = ::Rack::Request.new(env)
     case req.path_info
     when '/'
@@ -111,7 +115,7 @@ map "/" do
     else
       OMF::Common::Loggable.logger('rack').warn "Can't handle request '#{req.path_info}'"
       [401, {"Content-Type" => ""}, "Sorry!"]
-    end 
+    end
   end
   run handler
 end

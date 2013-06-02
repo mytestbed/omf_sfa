@@ -25,9 +25,8 @@ module OMF::SFA::Resource
     def value()
       unless @value_
         js = attribute_get(:value)
-        #puts "GET #{js.inspect}"
         if js
-          @value_ = JSON.parse(js)[0]
+          @value_ = JSON.parse(js, :create_additions => true)[0]
           if @value_.kind_of? Array
             @old_value_ = @value_.dup
           end
@@ -74,6 +73,14 @@ module OMF::SFA::Resource
       end
       #puts "SAVING '#{@value_.inspect}'::#{self.inspect}"
     end
+
+    # def to_json(*a)
+      # return 'hhhhh'
+      # {
+        # 'json_class' => self.class.name,
+        # 'els' => self.to_a.to_json,
+      # }.to_json(*a)
+    # end
 
   end # OProperty
 
