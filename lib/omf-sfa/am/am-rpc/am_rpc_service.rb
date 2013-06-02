@@ -120,9 +120,11 @@ module OMF::SFA::AM::RPC
       #@authorizer.check_credentials(slice_urn, credentials.first, @manager)
       if slice_urn
         resources = @manager.find_all_components_for_account(authorizer.account, authorizer)
+        #resources.concat(@manager.find_all_leases_for_account(authorizer.account, authorizer))
         res = OMF::SFA::Resource::OComponent.sfa_advertisement_xml(resources, {:type => 'manifest'}).to_xml
       else
         resources = @manager.find_all_components_for_account(@manager._get_nil_account, authorizer)
+        #resources.concat(@manager.find_all_leases(authorizer))
         res = OMF::SFA::Resource::OComponent.sfa_advertisement_xml(resources).to_xml
       end
       # TODO: implement the "available_only" option

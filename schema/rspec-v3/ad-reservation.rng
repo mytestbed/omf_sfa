@@ -5,16 +5,24 @@
   </start>
   <define name="Lease">
     <element name="lease">
-      <interleave>
-        <attribute name="uuid"/>
-        <attribute name="name"/>
-        <attribute name="valid_from">
-          <data type="dateTime"/>
+      <choice>
+        <interleave>
+          <attribute name="leaseID">
+            <data type="ID"/>
+          </attribute>
+          <attribute name="uuid"/>
+          <attribute name="slice_id"/>
+          <attribute name="valid_from">
+            <data type="dateTime"/>
+          </attribute>
+          <attribute name="valid_until">
+            <data type="dateTime"/>
+          </attribute>
+        </interleave>
+        <attribute name="leaseREF">
+          <data type="IDREF"/>
         </attribute>
-        <attribute name="valid_until">
-          <data type="dateTime"/>
-        </attribute>
-      </interleave>
+      </choice>
     </element>
   </define>
 </grammar>

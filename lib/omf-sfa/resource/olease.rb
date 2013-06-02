@@ -17,9 +17,9 @@ module OMF::SFA::Resource
     extend OMF::SFA::Resource::Base::ClassMethods
     include OMF::SFA::Resource::Base::InstanceMethods
 
-    sfa_add_namespace :omf, 'http://schema.mytestbed.net/sfa/rspec/1'
+    sfa_add_namespace :ol, 'http://nitlab.inf.uth.gr/schema/sfa/rspec/1'
 
-    sfa_class 'lease', :namespace => :omf
+    sfa_class 'lease', :namespace => :ol
     sfa :name, :attribute => true
     sfa :uuid, :attribute => true
     sfa :valid_from, :attribute => true

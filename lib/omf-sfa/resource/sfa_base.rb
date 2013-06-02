@@ -71,7 +71,7 @@ module OMF::SFA
         #
         def sfa_advertisement_xml(resources, opts = {})
           doc = Nokogiri::XML::Document.new
-          #<rspec expires="2011-09-13T09:07:09Z" generated="2011-09-13T09:07:09Z" type="advertisement" xmlns="http://www.geni.net/resources/rspec/3" xmlns:omf="http://nitlab.inf.uth.gr/schema/sfa/rspec/1" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.geni.net/resources/rspec/3 http://www.geni.net/resources/rspec/3/ad.xsd http://nitlab.inf.uth.gr/schema/sfa/rspec/1 http://nitlab.inf.uth.gr/schema/sfa/rspec/1/ad-reservation.xsd">
+          #<rspec expires="2011-09-13T09:07:09Z" generated="2011-09-13T09:07:09Z" type="advertisement" xmlns="http://www.geni.net/resources/rspec/3" xmlns:ol="http://nitlab.inf.uth.gr/schema/sfa/rspec/1" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.geni.net/resources/rspec/3 http://www.geni.net/resources/rspec/3/ad.xsd http://nitlab.inf.uth.gr/schema/sfa/rspec/1 http://nitlab.inf.uth.gr/schema/sfa/rspec/1/ad-reservation.xsd">
           root = doc.add_child(Nokogiri::XML::Element.new('rspec', doc))
           root.add_namespace(nil, SFA_NAMESPACE_URI)
           root.add_namespace('xsi', "http://www.w3.org/2001/XMLSchema-instance")
@@ -82,7 +82,7 @@ module OMF::SFA
           else
             schema = 'ad.xsd'
           end
-          root['xsi:schemaLocation'] = "#{SFA_NAMESPACE_URI} #{SFA_NAMESPACE_URI}/#{schema} #{@@sfa_namespaces[:omf]} #{@@sfa_namespaces[:omf]}/ad-reservation.xsd"
+          root['xsi:schemaLocation'] = "#{SFA_NAMESPACE_URI} #{SFA_NAMESPACE_URI}/#{schema} #{@@sfa_namespaces[:ol]} #{@@sfa_namespaces[:ol]}/ad-reservation.xsd"
           @@sfa_namespaces.each do |prefix, urn|
             root.add_namespace(prefix.to_s, urn)
           end

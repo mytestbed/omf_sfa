@@ -31,7 +31,7 @@ module OMF::SFA::Resource
     include OMF::SFA::Resource::Base::InstanceMethods
 
     #sfa_add_namespace :omf, 'http://schema.mytestbed.net/sfa/rspec/1'
-    sfa_add_namespace :omf, 'http://nitlab.inf.uth.gr/schema/sfa/rspec/1'
+    sfa_add_namespace :ol, 'http://nitlab.inf.uth.gr/schema/sfa/rspec/1'
 
     sfa :component_id, :attribute => true # "urn:publicid:IDN+plc:cornell+node+planetlab3-dsl.cs.cornell.edu" 
     sfa :component_manager_id, :attribute => true # "urn:publicid:IDN+plc+authority+am" 
