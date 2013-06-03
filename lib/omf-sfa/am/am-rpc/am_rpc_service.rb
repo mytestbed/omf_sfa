@@ -1,5 +1,5 @@
 
-require 'nokogiri'    
+require 'nokogiri'
 require 'time'
 require 'zlib'
 require 'base64'
@@ -24,12 +24,13 @@ module OMF::SFA::AM::RPC
     #implement ServiceAPI
     implement AMServiceAPI
 
-    def get_version
-      debug "GetVersion"
+    def get_version(opts = {})
+      debug "GetVersion - #{opts}"
       {
-      	:geni_api => 1,
-      	:omf_am => "0.1",
-      	:ad_rspec_versions => [{ 
+      	:api => 2,
+      	:geni_api => 2,
+      	:omf_am => 1,
+      	:geni_ad_rspec_versions => [{
       	  :type => 'ProtoGENI',
       	  :version => '2',
       	  :namespace => 'http://www.protogeni.net/resources/rspec/2',
@@ -37,6 +38,63 @@ module OMF::SFA::AM::RPC
       	  :extensions => []
       	}]
       }
+      {
+        geni_api: 2,
+        code: {
+           geni_code: 0 # Success
+           # am_type and am_code are optional. Leaving them out.
+         },
+        value: {
+          #:api => 2,
+          :geni_api => 2,
+          geni_api_versions: {
+               #'3' => 'https://0.0.0.0:8001', # This server's AM API absolute URL>
+               #'2' => 'https://0.0.0.0:8001/RPC2' #Prior API version still supported at a slightly different URL - optional but included here>
+          },
+          :omf_am => 1,
+          :geni_ad_rspec_versions => [{
+            :type => 'ProtoGENI',
+            :version => '2',
+            :namespace => 'http://www.protogeni.net/resources/rspec/2',
+            :schema => 'http://www.protogeni.net/resources/rspec/2/ad.xsd',
+            :extensions => []
+          }]
+        }
+      }
+      # {
+        # geni_api: 3, # This is AM API v3
+        # code: {
+             # geni_code: 0 # Success
+             # # am_type and am_code are optional. Leaving them out.
+           # },
+        # value: {
+              # geni_api: 3, # Match above
+              # geni_api_versions: {
+                   # #'3' => 'https://0.0.0.0:8001', # This server's AM API absolute URL>
+                   # '2' => 'https://0.0.0.0:8001/RPC2' #Prior API version still supported at a slightly different URL - optional but included here>
+              # },
+              # geni_request_rspec_versions: [{
+                   # type: "GENI", # case insensitive
+                   # version: "3", # case insensitive
+                   # schema: "http://www.geni.net/resources/rspec/3/request.xsd", # required but may be empty
+                   # namespace: "http://www.geni.net/resources/rspec/3", # required but may be empty
+                   # extensions: [] # required but may be empty
+              # }],
+              # geni_ad_rspec_versions: [{
+                   # type: "GENI", # case insensitive
+                   # version: "3", # case insensitive
+                   # schema: "http://www.geni.net/resources/rspec/3/ad.xsd", # required but may be empty
+                   # namespace: "http://www.geni.net/resources/rspec/3", # required but may be empty
+                   # extensions: [] # required but may be empty
+              # }],
+              # geni_credential_types: [{ # This AM accepts only SFA style credentials for API v3
+                   # geni_type: "geni_sfa", # case insensitive
+                   # geni_version: "3" # case insensitive
+             # }],
+             # #geni_single_allocation = 0 # false - can operate on individual slivers. This is the default, so could legally be omitted here.
+             # geni_allocate: "geni_many" # Can do multiple Allocates. This is not the default value, so is required here.
+            # }
+      # }
     end
 
     def list_resources(credentials, options)
@@ -59,14 +117,15 @@ module OMF::SFA::AM::RPC
       if compressed
 	      res = Base64.encode64(Zlib::Deflate.deflate(res))
       end
-      res
+      #res
+      {value: res, code: { geni_code: 0 }}
     end
 
     def create_sliver(slice_urn, credentials, rspec_s, users)
       debug 'CreateSliver: SLICE URN: ', slice_urn, ' RSPEC: ', rspec_s, ' USERS: ', users.inspect
       #@authorizer.check_credentials(slice_urn, credentials.first, @manager)
       authorizer = OMF::SFA::AM::RPC::AMAuthorizer.create_for_sfa_request(slice_urn, credentials, @request, @manager)
-      
+
       rspec = Nokogiri::XML.parse(rspec_s)
       resources = @manager.update_resources_from_rspec(rspec.root, true, authorizer)
 
@@ -79,7 +138,7 @@ module OMF::SFA::AM::RPC
       debug('SliverStatus for ', slice_urn)
       #@authorizer.check_credentials(slice_urn, credentials.first, @manager)
       authorizer = OMF::SFA::AM::RPC::AMAuthorizer.create_for_sfa_request(slice_urn, credentials, @request, @manager)
-      
+
       status = {}
       status['geni_urn'] = slice_urn
       # Any of the following configuring, ready, failed, and unknown
@@ -93,19 +152,19 @@ module OMF::SFA::AM::RPC
       	{
       	  'geni_urn'=> r.urn,
       	  'geni_status' => r.status,
-      	  'geni_error' => '',          
+      	  'geni_error' => '',
       	}
       end
       status
     end
 
     def renew_sliver(slice_urn, credentials, expiration_time)
-      #debug('RenewSliver ', slice_urn, ' until <', expiration_time.to_time.class, '>') 
-      expiration_time = expiration_time.to_time # is XMLRP::DateTime         
+      #debug('RenewSliver ', slice_urn, ' until <', expiration_time.to_time.class, '>')
+      expiration_time = expiration_time.to_time # is XMLRP::DateTime
       debug('RenewSliver ', slice_urn, ' until <', expiration_time, '>')
       #authorizer.check_credentials(slice_urn, credentials.first, @manager)
       authorizer = OMF::SFA::AM::RPC::AMAuthorizer.create_for_sfa_request(slice_urn, credentials, @request, @manager)
-      
+
       @manager.renew_account_until({ :urn => slice_urn }, expiration_time, authorizer)
       true
     end
@@ -128,13 +187,13 @@ module OMF::SFA::AM::RPC
     def shutdown_sliver(slice_urn, credentials)
       #@authorizer.check_credentials(slice_urn, credentials.first, @manager)
       authorizer = OMF::SFA::AM::RPC::AMAuthorizer.create_for_sfa_request(slice_urn, credentials, @request, @manager)
-      
+
       #puts "SLICE URN: #{slice_urn}"
       account = @manager.close_account({ :urn => slice_urn }, authorizer)
       true
     end
 
-    private 
+    private
 
     def initialize(opts)
       super
