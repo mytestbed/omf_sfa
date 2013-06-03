@@ -6,7 +6,7 @@ Aggregate Manager
 To start a AM from this directory, run the following:
 
     % cd $OMF_SFA_HOME
-    % ruby -I lib lib/omf-sfa/am/am_server.rb --dm-db sqlite:/tmp/test.sq3 --dm-auto-upgrade --test-load-am --print-options start
+    % ruby -I lib lib/omf-sfa/am/am_server.rb --dm-db sqlite:/tmp/test.sq3 --dm-auto-upgrade --test-load-am --print-options --disable-https start
 
 Testing with GCF
 ----------------
