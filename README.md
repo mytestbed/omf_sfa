@@ -3,15 +3,134 @@ This directory contains the implementations of various SFA APIs and services.
 Aggregate Manager
 =================
 
-To start a AM from this directory, run the following:
+Installation
+------------
+
+At this stage the best course of action is to clone the repository
+
+    % git clone https://github.com/mytestbed/omf_sfa.git
+    % cd omf_sfa
+    % export OMF_SFA_HOME=`pwd`
+    % bundle install
+    
+Starting a Test AM
+------------------
+
+To start an AM with a some pre-populated resources ('--test-load-am') from this directory, run the following:
 
     % cd $OMF_SFA_HOME
-    % ruby -I lib lib/omf-sfa/am/am_server.rb --dm-db sqlite:/tmp/test.sq3 --dm-auto-upgrade --test-load-am --print-options --disable-https start
+    % ruby -I lib lib/omf-sfa/am/am_server.rb --dm-db sqlite:/tmp/test.sq3 --dm-auto-upgrade --test-load-am start
+    
+which should result into something like:
+
+    DEBUG AMServer: options: {:app_name=>"am_server", :chdir=>"/Users/max/src/omf_sfa", :environment=>"development", :address=>"0.0.0.0", :port=>8001, :timeout=>30, :log=>"/tmp/am_server_thin.log", :pid=>"/tmp/am_server.pid", :max_conns=>1024, :max_persistent_conns=>512, :require=>[], :wait=>30, :rackup=>"/Users/max/src/omf_sfa/lib/omf-sfa/am/config.ru", :static_dirs=>["./resources", "/Users/max/src/omf_sfa/lib/omf_common/thin/../../../share/htdocs"], :static_dirs_pre=>["./resources", "/Users/max/src/omf_sfa/lib/omf_common/thin/../../../share/htdocs"], :handlers=>{:pre_rackup=>#<Proc:0x007fd254b979a8@/Users/max/src/omf_sfa/lib/omf-sfa/am/am_server.rb:116 (lambda)>, :pre_parse=>#<Proc:0x007fd254b97980@/Users/max/src/omf_sfa/lib/omf-sfa/am/am_server.rb:118 (lambda)>, :pre_run=>#<Proc:0x007fd254b97958@/Users/max/src/omf_sfa/lib/omf-sfa/am/am_server.rb:127 (lambda)>}, :dm_db=>"sqlite:/tmp/test.sq3", :dm_log=>"/tmp/am_server-dm.log", :load_test_am=>true, :dm_auto_upgrade=>true, :ssl=>true, :ssl_key_file=>"/Users/max/.gcf/am-key.pem", :ssl_cert_file=>"/Users/max/.gcf/am-cert.pem", :ssl_verify=>true}
+    INFO Server: >> Thin web server (v1.3.1 codename Triple Espresso)
+    DEBUG Server: >> Debugging ON
+    DEBUG Server: >> Tracing ON
+    INFO Server: >> Maximum connections set to 1024
+    INFO Server: >> Listening on 0.0.0.0:8001, CTRL+C to stop
+    
+Depending on your environment you may see some warning messages like the following one which you can safely ignore at this point
+
+    WARN AMServer: Can't find trusted root cert '~/.sfi/topdomain.subdomain.authority.cred'
+    WARN AMServer: Can't find trusted root cert '/etc/sfa/trusted_roots/topdomain.gid'
+
+Testing REST API
+----------------
+
+The easiest way to interact with the AM is through it's REST API. Start with listing all resources:
+
+    $ curl -k https://localhost:8001/resources
+    {
+      "resource_response": {
+        "resources": [
+          {
+            "uuid": "c76a1862-d9ff-40d3-bb7d-3e480624864f",
+            "href": "/resources/c76a1862-d9ff-40d3-bb7d-3e480624864f",
+            "name": "l",
+            "type": "link",
+      ...
+    
+Please note the -k (or --insecure) option as we are using SSL but the server by default is not using a
+cert signed by a public CA.
+
+To list information about a specific resource 'n1', use the following:
+
+    $ curl -k https://localhost:8001/resources/n1
+    {
+      "resource_response": {
+        "resource": {
+          "uuid": "ddb2170e-e4aa-45c8-bb63-242134e98a11",
+          "href": "/resources/ddb2170e-e4aa-45c8-bb63-242134e98a11",
+          "name": "n1",
+          "type": "node",
+          "available": true,
+          "interfaces": [
+            {
+              "uuid": "fd527e07-7a9a-45dd-b6f3-dcc2abeb6e75",
+              "href": "/resources/fd527e07-7a9a-45dd-b6f3-dcc2abeb6e75",
+              "name": "n1:if0",
+              "type": "interface"
+            }
+          ],
+          "domain": "mytestbed.net",
+          "status": "unknown"
+        },
+        "about": "/resources/n1"
+      }
+    }
+
+Listing all slices can be achieved through:
+
+    $ curl -k https://localhost:8001/slices
+    {
+      "accounts_response": {
+        "about": "/slices",
+        "accounts": [
+          {
+            "name": "foo",
+            "urn": "urn:publicid:IDN+mytestbed.net+foo",
+            "uuid": "97019720-601a-4a08-9888-a17d32e2105d",
+            "href": "/slices/97019720-601a-4a08-9888-a17d32e2105d"
+          }
+        ]
+      }
+    }
+    
+Ignore the references to 'accounts'. The resource model in OMF has no notion of 'slice', but it's 'account' 
+is the most closest.
+
+Like with resources, getting more information on a slice maps into:
+
+    $ curl -k https://localhost:8001/slices/foo
+    {
+      "account_response": {
+        "about": "/slices/97019720-601a-4a08-9888-a17d32e2105d",
+        "type": "account",
+        "properties": {
+          "expires_at": "Tue, 04 Jun 2013 09:33:44 +1000"
+        },
+        "resources": {
+          "href": "/slices/97019720-601a-4a08-9888-a17d32e2105d/resources"
+        },
+        "policies": {
+          "href": "/slices/97019720-601a-4a08-9888-a17d32e2105d/policies"
+        },
+        "assertion": {
+          "href": "/slices/97019720-601a-4a08-9888-a17d32e2105d/assertion"
+        }
+      }
+    }
+    
+Please note that resources can reliably be referred to by their 'uuid', but using their 'name' will work 
+in most cases as long as the name is unique in the particular context.
 
 Testing with GCF
 ----------------
 
-To test the AM, you can use the GPO's GCF.
+To test the AM, you can use the GPO's GCF. However, please be aware that 'gcf-test' is not really meant to be a 
+validation test for AMs and is not always kept up-to-date with evolving APIs. In other words, a failing 'gcf-test'
+may not necessarily mean the the AM implementation is wrong.
 
 In a shell start the CF (make sure you installed the credentials in ~/.gcf):
 
