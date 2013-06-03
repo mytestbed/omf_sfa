@@ -37,25 +37,8 @@ module OMF::SFA::Resource
     #sfa :exclusive, :is_attribute => true #="false">
     sfa :exclusive
 
-    #property :component_gurn, String, :length => 255
-    property :component_manager_gurn, String, :length => 255
-
-    # def component_name
-      # # the name property may have the full component name including domain and type
-      # self.name.split('+')[-1]
-    # end
-#
-    # def XXcomponent_gurn
-      # unless id = attribute_get(:component_id)
-        # self.component_gurn ||= GURN.create(self.uuid.to_s, self).to_s
-      # end
-    # end
-#
-    # def component_gurn=(id)
-      # puts "%%%%%%%%%%%%% id = #{id}::#{id.class}"
-      # attribute_set(:component_gurn, id)
-    # end
-
+    property :component_id, String, :length => 255
+    property :component_manager_id, String, :length => 255
 
     def update_from_xml(modifier_el, opts)
       if modifier_el.children.length > 0
