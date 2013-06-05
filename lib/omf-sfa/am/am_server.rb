@@ -43,8 +43,16 @@ module OMF::SFA::AM
       certs.each do |fn|
         fne = File.join(trusted_roots, fn)
         if File.readable?(fne)
-          trusted_cert = OpenSSL::X509::Certificate.new(File.read(fne))
-          OpenSSL::SSL::SSLContext::DEFAULT_CERT_STORE.add_cert(trusted_cert)
+          begin
+            trusted_cert = OpenSSL::X509::Certificate.new(File.read(fne))
+		    OpenSSL::SSL::SSLContext::DEFAULT_CERT_STORE.add_cert(trusted_cert)
+		  rescue OpenSSL::X509::StoreError => e
+            if e.message == "cert already in hash table"
+              warn "X509 cert '#{fne}' already registered in X509 store"
+            else
+              raise e
+            end
+          end
         else
           warn "Can't find trusted root cert '#{trusted_roots}/#{fne}'"
         end
