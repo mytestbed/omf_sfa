@@ -11,7 +11,7 @@ require 'set'
 require 'json'
 
 require 'omf_common/lobject'
-#require 'omf-sfa/am/am_manager'
+require 'omf-sfa/am/am_manager'
 
 
 module OMF::SFA::AM::Rest
@@ -111,7 +111,7 @@ module OMF::SFA::AM::Rest
     def populate_opts(req, opts)
       path = req.path_info.split('/').select { |p| !p.empty? }
       opts[:target] = find_handler(path, opts)
-      opts[:target].inspect
+      #opts[:target].inspect
       opts
     end
 
@@ -157,6 +157,39 @@ module OMF::SFA::AM::Rest
         raise IllegalMethodException.new method
       end
     end
+
+    def show_resource_status(resource, opts)
+      if resource
+        about = opts[:req].path
+        props = resource.to_hash({}, :href_use_class_prefix => true)
+        props.delete(:type)
+        res = {
+          :about => about,
+          :type => resource.resource_type,
+        }.merge!(props)
+        res = {"#{resource.resource_type}_response" => res}
+      else
+        res = {:error_response => {:error => 'Unknown resource'}}
+      end
+
+      ['application/json', JSON.pretty_generate(res)]
+    end
+
+
+    def find_resource(resource_id, resource_class)
+      if resource_id.start_with?('urn')
+        fopts = {:urn => resource_id}
+      else
+        begin
+          fopts = {:uuid => UUIDTools::UUID.parse(resource_id)}
+        rescue ArgumentError => ax
+          fopts = {:name => resource_id}
+        end
+      end
+      #authenticator = Thread.current["authenticator"]
+      resource_class.first(fopts)
+    end
+
 
     # Helper functions
 

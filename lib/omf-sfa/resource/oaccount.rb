@@ -5,22 +5,22 @@ require 'omf-sfa/resource/ocomponent'
 require 'omf-sfa/resource/project'
 
 module OMF::SFA::Resource
-  
+
   # This class represents a users or team's account. Each resource
-  # belongs to an account. 
+  # belongs to an account.
   #
   class OAccount < OGroup
 
     @@def_duration = 100 * 86400 # 100 days
-    
+
     def self.default_duration=(duration)
       @@def_duration = duration
     end
-    
+
     def self.urn_type
       'account'
     end
-    
+
     oproperty :created_at, DataMapper::Property::Time
     oproperty :valid_until, DataMapper::Property::Time
     oproperty :closed_at, DataMapper::Property::Time
@@ -31,7 +31,7 @@ module OMF::SFA::Resource
 
     def active?
       return false unless self.closed_at.nil?
-      
+
       valid_until = self.valid_until
       unless valid_until.kind_of? Time
         valid_until = Time.parse(valid_until) # seem to not be returned as Time
@@ -46,13 +46,13 @@ module OMF::SFA::Resource
     def closed?
       ! active?
     end
-    
+
     # Close account
     def close
       self.closed_at = Time.now
       save
     end
-    
+
     def initialize(*args)
       super
       self.created_at = Time.now
@@ -60,7 +60,7 @@ module OMF::SFA::Resource
         self.valid_until = Time.now + @@def_duration
       end
     end
-    
+
     def valid_until
       v = oproperty_get(:valid_until)
       if v && !v.kind_of?(Time)
@@ -68,6 +68,6 @@ module OMF::SFA::Resource
       end
       v
     end
-    
+
   end # OAccount
 end # OMF::SFA::Resource

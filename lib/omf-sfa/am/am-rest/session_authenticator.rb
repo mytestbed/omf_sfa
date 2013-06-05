@@ -115,6 +115,7 @@ module OMF::SFA::AM::Rest
           :can_modify_lease?, # (lease)
           :can_release_lease?, # (lease)
         ].each do |m| auth[m] = true end
+        require 'omf-sfa/am/default_authorizer'
         @@def_authenticator = OMF::SFA::AM::DefaultAuthorizer.new(auth)
       end
       Thread.current["authenticator"] = @@def_authenticator
