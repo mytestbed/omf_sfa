@@ -307,7 +307,7 @@ module OMF::SFA::Resource
     end
 
     def to_hash(objs = {}, opts = {})
-      debug "to_hash(self):opts: #{opts.keys.inspect}::#{objs.keys.inspect}::"
+      #debug "to_hash(self):opts: #{opts.keys.inspect}::#{objs.keys.inspect}::"
       h = to_hash_brief(opts)
 
       return h if objs.key?(self)
@@ -346,7 +346,7 @@ module OMF::SFA::Resource
           op.each do |k, v|
             k = k.to_sym
             unless (value = send(k)).nil?
-              puts "OPROPS_TO_HAHS(#{k}): #{value}::#{value.class}--#{oproperty_get(k)}"
+              #puts "OPROPS_TO_HAHS(#{k}): #{value}::#{value.class}--#{oproperty_get(k)}"
               if value.kind_of? OResource
                 value = value.to_hash_brief(opts)
               end
