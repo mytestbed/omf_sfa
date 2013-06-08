@@ -173,7 +173,6 @@ module OMF::SFA::AM::Rest
       when 'GET'
         res = target.on_get(resource_uri, opts)
       when 'PUT'
-
         res = target.on_put(resource_uri, opts)
       when 'POST'
         res = target.on_post(resource_uri, opts)
