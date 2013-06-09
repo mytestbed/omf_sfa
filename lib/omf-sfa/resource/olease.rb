@@ -21,7 +21,7 @@ module OMF::SFA::Resource
 
     sfa_class 'lease', :namespace => :ol
     sfa :name, :attribute => true
-    sfa :uuid, :attribute => true
+    #sfa :uuid, :attribute => true
     sfa :valid_from, :attribute => true
     sfa :valid_until, :attribute => true
 
@@ -41,6 +41,16 @@ module OMF::SFA::Resource
         oproperty_set(:status, "pending")
       else
         s
+      end
+    end
+
+    def to_sfa_ref_xml(res_el, obj2id, opts)
+      if obj2id.key?(self)
+        el = res_el.add_child(Nokogiri::XML::Element.new('lease_ref', res_el.document))
+        #el.set_attribute('component_id', self.component_id.to_s)
+        el.set_attribute('id_ref', self.uuid.to_s)
+      else
+        self.to_sfa_xml(res_el, obj2id, opts)
       end
     end
 

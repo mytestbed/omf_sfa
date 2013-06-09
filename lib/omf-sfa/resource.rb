@@ -1,8 +1,7 @@
 
-module OMF
-  module SFA
-    module Resource; end
-  end 
+require 'omf_sfa'
+module OMF::SFA
+  module Resource; end
 end
 
 require 'omf-sfa/resource/gurn'

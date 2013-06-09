@@ -1,6 +1,6 @@
 
 
-require 'nokogiri'    
+require 'nokogiri'
 
 # require 'omf-sfa/resource/sliver'
 # require 'omf-sfa/resource/node'
@@ -11,14 +11,14 @@ require 'set'
 require 'json'
 
 require 'omf_common/lobject'
-#require 'omf-sfa/am/am_manager'
+require 'omf-sfa/am/am_manager'
 
 
 module OMF::SFA::AM::Rest
-  
+
   class RackException < Exception
     attr_reader :reply
-    
+
     def initialize(err_code, reason)
       super reason
       body = {:exception => {
@@ -27,28 +27,28 @@ module OMF::SFA::AM::Rest
       }}
       @reply = [err_code, {"Content-Type" => 'text/json'}, body.to_json]
     end
-    
+
   end
-  
+
   class BadRequestException < RackException
     def initialize(reason)
       super 400, reason
     end
   end
-  
+
   class UnsupportedBodyFormatException < RackException
     def initialize(format)
       super 400, "Message body format '#{format}' is unsupported"
     end
   end
-  
-  
+
+
   class NotAuthorizedException < RackException
     def initialize(reason)
       super 401, reason
     end
   end
-  
+
   class IllegalMethodException < RackException
     def initialize(method)
       super 403, reason
@@ -69,9 +69,9 @@ module OMF::SFA::AM::Rest
       @am_manager = am_manager
       @opts = opts
     end
-    
+
     def call(env)
-      begin 
+      begin
         req = ::Rack::Request.new(env)
         content_type, body = dispatch(req)
         #return [200 ,{'Content-Type' => 'application/json'}, JSON.pretty_generate(body)]
@@ -98,25 +98,25 @@ module OMF::SFA::AM::Rest
         return [500, {"Content-Type" => 'application/json'}, JSON.pretty_generate(body)]
       end
     end
-    
-    protected
-    
 
-    # Extract information from the request object and 
+    protected
+
+
+    # Extract information from the request object and
     # store them in +opts+.
     #
-    # Extract information from the request object and 
+    # Extract information from the request object and
     # store them in +opts+.
     #
     def populate_opts(req, opts)
       path = req.path_info.split('/').select { |p| !p.empty? }
       opts[:target] = find_handler(path, opts)
-      opts[:target].inspect
+      #opts[:target].inspect
       opts
     end
-    
 
-    
+
+
     def parse_body(opts)
       req = opts[:req]
       body = req.body.gets
@@ -128,13 +128,13 @@ module OMF::SFA::AM::Rest
       rescue Exception => ex
         raise BadRequestException.new "Problems parsing body (#{ex})"
       end
-      
+
     end
-    
-    private 
+
+    private
     # Don't override
-    
-      
+
+
     def dispatch(req)
       opts = {}
       populate_opts(req, opts)
@@ -158,13 +158,46 @@ module OMF::SFA::AM::Rest
       end
     end
 
+    def show_resource_status(resource, opts)
+      if resource
+        about = opts[:req].path
+        props = resource.to_hash({}, :href_use_class_prefix => true)
+        props.delete(:type)
+        res = {
+          :about => about,
+          :type => resource.resource_type,
+        }.merge!(props)
+        res = {"#{resource.resource_type}_response" => res}
+      else
+        res = {:error_response => {:error => 'Unknown resource'}}
+      end
+
+      ['application/json', JSON.pretty_generate(res)]
+    end
+
+
+    def find_resource(resource_id, resource_class)
+      if resource_id.start_with?('urn')
+        fopts = {:urn => resource_id}
+      else
+        begin
+          fopts = {:uuid => UUIDTools::UUID.parse(resource_id)}
+        rescue ArgumentError => ax
+          fopts = {:name => resource_id}
+        end
+      end
+      #authenticator = Thread.current["authenticator"]
+      resource_class.first(fopts)
+    end
+
+
     # Helper functions
-    
-    # Return relevant Sliver instance. 
+
+    # Return relevant Sliver instance.
     #
     # +opts+ is assume to contain a ':sliver_id' entry holding the
-    # sliver name. It will also store the returned sliver in 
-    # 'opts[sliver]'. 
+    # sliver name. It will also store the returned sliver in
+    # 'opts[sliver]'.
     #
     # If the names sliver cannot be found an +UnknownResourceException+
     # exception is raised, excpet if +raise_if_nil+ is set to false.
@@ -174,7 +207,7 @@ module OMF::SFA::AM::Rest
     # def _get_sliver(opts, raise_if_nil = true)
       # sliver = opts[:sliver]
       # return sliver if sliver
-#       
+#
       # sliver_id = opts[:sliver_id] ||= @opts[:sliver_id]
       # sliver = OMF::SFA::Resource::Sliver.first(:name => sliver_id)
       # if raise_if_nil && sliver.nil?

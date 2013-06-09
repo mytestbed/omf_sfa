@@ -1,7 +1,5 @@
 
 
-require 'omf_sfa'
-
-module OMF::SFA
-  module AM; end
+module OMF
+  module SFA; end
 end

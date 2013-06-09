@@ -16,29 +16,28 @@ autoload :OLease, 'omf-sfa/resource/olease'
 # module OMF::SFA::Resource
   # class OResource; end
 # end
-#require 'omf-sfa/resource/oaccount' 
-
+#require 'omf-sfa/resource/oaccount'
 
 module OMF::SFA::Resource
-  
+
   # This is the basic resource from which all other
   # resources descend.
   #
   # Note: Can't call it 'Resource' to avoid any confusion
   # with DataMapper::Resource
   #
-  class OResource 
+  class OResource
     include OMF::Common::Loggable
-    extend OMF::Common::Loggable    
-    
+    extend OMF::Common::Loggable
+
     include DataMapper::Resource
     include DataMapper::Validations
-    
+
     #@@default_href_prefix = 'http://somehost/resources/'
     @@default_href_prefix = '/resources'
-        
+
     @@oprops = {}
-    
+
     # managing dm object
     property :id,   Serial
     property :type, Discriminator
@@ -48,14 +47,14 @@ module OMF::SFA::Resource
     #property :href, String, :length => 255, :default => lambda {|r, m| r.def_href() }
     property :urn, String, :length => 255
     property :resource_type, String
-    
+
     has n, :o_properties, 'OProperty'
-    alias oproperties o_properties 
+    alias oproperties o_properties
 
 
     #has n, :contained_in_groups, :model => :Group, :through => GroupMembership
     #has n, :contained_in_groups, 'Group' #, :through => :group_membership #GroupMembership
-    
+
     #has n, :group_memberships
     #has n, :groups, 'Group', :through => :group_membership #, :via => :groups
 
@@ -77,7 +76,7 @@ module OMF::SFA::Resource
         pname = DataMapper::Inflector.pluralize(name)
         op[pname] = opts
 
-        define_method pname do 
+        define_method pname do
           res = oproperty_get(pname)
           if res == nil
             oproperty_set(pname, res = [])
@@ -114,26 +113,26 @@ module OMF::SFA::Resource
           #puts "NAME is '#{name}'"
           #puts "V is '#{v}'"
           oproperty_set(pname, v)
-        end 
+        end
 
 
-      else  
+      else
         op[name] = opts
 
-        define_method name do 
+        define_method name do
           res = oproperty_get(name)
-          if res.nil? 
+          if res.nil?
             res = opts[:default]
             if res.nil? && (self.respond_to?(m = "default_#{name}".to_sym))
               res = send(m)
             end
           end
           res
-        end 
+        end
 
-        define_method "#{name}=" do |v| 
+        define_method "#{name}=" do |v|
           oproperty_set(name, v)
-        end 
+        end
 
       end
     end
@@ -163,17 +162,23 @@ module OMF::SFA::Resource
 
     def href(opts = {})
       if prefix = opts[:name_prefix]
-        href = "#{prefix}/#{self.name || self.uuid.to_s}"                  
-        # if self.name.start_with? '_'
-        # h[:href] = prefix
-        # else
-        # h[:href] = "#{prefix}/#{self.name || uuid}"          
-        # end
+        href = "#{prefix}/#{self.name || self.uuid.to_s}"
+      elsif opts[:href_use_class_prefix]
+        #href = "/#{self.resource_type}/#{self.name || self.uuid.to_s}"
+        href = "/#{self.resource_type.pluralize}/#{self.uuid.to_s}"
       elsif prefix = opts[:href_prefix] || @@default_href_prefix
         href = "#{prefix}/#{self.uuid.to_s}"
       end
       href
     end
+
+    def resource_type()
+      unless rt = attribute_get(:resource_type)
+        rt = self.class.to_s.split('::')[-1].downcase
+      end
+      rt
+    end
+
 
     # Return the status of the resource. Should be
     # one of: _configuring_, _ready_, _failed_, and _unknown_
@@ -195,21 +200,21 @@ module OMF::SFA::Resource
       prop = self.oproperties.first(:name => pname)
       prop.nil? ? nil : prop.value
     end
-    alias_method :[], :oproperty_get 
+    alias_method :[], :oproperty_get
 
     def oproperty_set(pname, value)
       #puts "OPROPERTY_SET pname:'#{pname}', value:'#{value.class}', self:'#{self.inspect}'"
       pname = pname.to_sym
       if pname == :name
         self.name = value
-      else 
+      else
         self.save
         prop = self.oproperties.first_or_create(:name => pname)
         prop.value = value
       end
       value
     end
-    alias_method :[]=, :oproperty_set 
+    alias_method :[]=, :oproperty_set
 
     def oproperties_as_hash
       res = {}
@@ -279,12 +284,12 @@ module OMF::SFA::Resource
         # itself.
         # source: http://tools.ietf.org/html/rfc1737
         #
-        #name = self.name
-        self.urn = GURN.create(self.uuid.to_s, self.class).to_s
+        name = self.name
+        self.urn = GURN.create(name, :model => self.class).to_s
       end
     end
 
-    def destroy 
+    def destroy
       #debug "ORESOURCE destroy #{self}"
       self.remove_from_all_groups
 
@@ -320,7 +325,7 @@ module OMF::SFA::Resource
         'json_class' => self.class.name,
         'id'       => self.id
       }.to_json(*a)
-    end 
+    end
 
     #def self.from_json(o)
     #  puts "FROM_JSON"
@@ -337,20 +342,31 @@ module OMF::SFA::Resource
     end
 
     def to_hash(objs = {}, opts = {})
-      #debug "to_hash:opts: #{opts.keys.inspect}::#{objs.keys.inspect}::"
+      #debug "to_hash(self):opts: #{opts.keys.inspect}::#{objs.keys.inspect}::"
+      h = to_hash_brief(opts)
+
+      return h if objs.key?(self)
+      objs[self] = true
+      return h if opts[:brief]
+
+      to_hash_long(h, objs.merge(brief: true), opts)
+      h
+    end
+
+    def to_hash_brief(opts = {})
       h = {}
       uuid = h[:uuid] = self.uuid.to_s
       h[:href] = self.href(opts)
       name = self.name
       if  name && ! name.start_with?('_')
         h[:name] = self.name
-      end 
-      h[:type] = self.resource_type || 'unknown'
+      end
+      h[:type] = self.resource_type
+      h
+    end
 
-      return h if objs.key?(self)
-      objs[self] = true
-
-      _oprops_to_hash(h)
+    def to_hash_long(h, objs = {}, opts = {})
+      _oprops_to_hash(h, opts.merge(brief: true))
       h
     end
 
@@ -358,20 +374,21 @@ module OMF::SFA::Resource
       @@default_href_prefix
     end
 
-    def _oprops_to_hash(h)
+    def _oprops_to_hash(h, opts)
       klass = self.class
-      while klass 
+      while klass
         if op = @@oprops[klass]
           op.each do |k, v|
             k = k.to_sym
             unless (value = send(k)).nil?
+              #puts "OPROPS_TO_HAHS(#{k}): #{value}::#{value.class}--#{oproperty_get(k)}"
               if value.kind_of? OResource
-                value = value.uuid.to_s
+                value = value.to_hash_brief(opts)
               end
               if value.kind_of? Array
                 next if value.empty?
                 value = value.collect do |e|
-                  (e.kind_of? OResource) ? e.uuid.to_s : e
+                  (e.kind_of? OResource) ? e.to_hash_brief(opts) : e
                 end
               end
 
@@ -393,7 +410,7 @@ module OMF::SFA::Resource
   #      'json_class' => self.class.name,
   #      'els' => self.to_a.to_json
   #    }.to_json(*a)
-  #  end 
+  #  end
 
   #  def self.json_create(o)
   #    # http://www.ruby-lang.org/en/news/2013/02/22/json-dos-cve-2013-0269/

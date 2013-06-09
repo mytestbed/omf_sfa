@@ -37,7 +37,7 @@ module OMF::SFA::AM::RPC
     # @param [Rack::Request] Request provided by the Rack API
     # @param [AbstractAmManager#get_account] AM Manager for retrieving AM context
     #
-    def self.create_for_web_request(account_urn, credentials, request, am_manager)
+    def self.create_for_sfa_request(account_urn, credentials, request, am_manager)
 
       begin
         raise "Missing peer cert" unless cert_s = request.env['rack.peer_cert']

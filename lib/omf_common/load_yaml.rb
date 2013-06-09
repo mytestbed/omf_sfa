@@ -4,13 +4,13 @@ if $0 == __FILE__
 end
 
 module OMF::Common::YAML
-  
+
   class YamlFileNotFound < Exception; end
-  
+
   # A method to load YAML files
   #
-  # file_name - Name of file to load 
-  # opts - 
+  # file_name - Name of file to load
+  # opts -
   # => :default - value to use if file can't be loaded
   # => :path - array of directories to look for file
   #
@@ -35,7 +35,7 @@ module OMF::Common::YAML
       raise YamlFileNotFound.new("Can't read YAML file '#{file_name}' in '#{path.join(':')}'")
     end
   end
-  
+
   private
 
   def self._load_file(file, opts = {})
@@ -54,8 +54,8 @@ module OMF::Common::YAML
     end
     _symbolize(h)
   end
-  
-  
+
+
   def self._symbolize(obj)
     if obj.kind_of? Hash
       res = {}
@@ -76,7 +76,7 @@ module OMF::Common::YAML
     else
       return obj
     end
-  end    
+  end
 end
 
 if $0 == __FILE__
@@ -86,5 +86,5 @@ if $0 == __FILE__
   puts h[:foo].keys[0].class
 
   #puts OMF::Common::YAML.load('omf-expctl', :path => ['../../../omf-expctl/etc/omf-expctl']).inspect
-  
+
 end
