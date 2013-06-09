@@ -127,33 +127,40 @@ module OMF::SFA::AM::Rest
       opts
     end
 
-
-
     def parse_body(opts, allowed_formats = [:json, :xml])
       req = opts[:req]
-      post = req.POST
-      raise EmptyBodyException.new unless post
-      body = post.to_a[0][1]  # HACK ALERT
+      body = req.body #req.POST
+      raise EmptyBodyException.new unless body
+      if body.is_a? Hash
+        raise UnsupportedBodyFormatException.new('Send body raw, not as form data')
+      end
+      (body = body.string) if body.is_a? StringIO
+      debug 'PARSE_BODY(', body.class, ', ', req.content_type, '): ', body
 
-      puts "PARSE_BODY(#{post.class}): #{post}"
-      puts "PARSE_BODY2: #{body}"
-      body.strip!
+      unless content_type = req.content_type
+        body.strip!
+        if ['/', '{', '['].include?(body[0])
+          content_type = 'application/json'
+        else
+          # default is XML
+          content_type = 'text/xml'
+        end
+      end
       begin
-        if body.start_with?('/') || body.start_with?('{') || body.start_with?('[')
+        case content_type
+        when 'application/json'
           raise UnsupportedBodyFormatException.new(:json) unless allowed_formats.include?(:json)
           jb = JSON.parse(body)
           return [jb, :json]
-        else
+        when 'text/xml'
           xb = Nokogiri::XML(body)
           raise UnsupportedBodyFormatException.new(:xml) unless allowed_formats.include?(:xml)
-          #puts "PARSE_BODY2: #{xb.to_s}"
           return [xb, :xml]
         end
       rescue Exception => ex
         raise BadRequestException.new "Problems parsing body (#{ex})"
       end
-      raise UnsupportedBodyFormatException.new() unless allowed_formats.include?(:xml)
-      #raise BadRequestException.new "Unsupported message format '#{format}'" unless format ==
+      raise UnsupportedBodyFormatException.new(content_type)
     end
 
     private
