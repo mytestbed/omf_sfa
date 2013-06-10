@@ -13,13 +13,15 @@ At this stage the best course of action is to clone the repository
     % export OMF_SFA_HOME=`pwd`
     % bundle install
 
+Also make sure you define the correct paths of the credentials in "etc/omf-sfa/omf-sfa-am.yaml"
+
 Starting a Test AM
 ------------------
 
 To start an AM with a some pre-populated resources ('--test-load-am') from this directory, run the following:
 
     % cd $OMF_SFA_HOME
-    % ruby -I lib lib/omf-sfa/am/am_server.rb --dm-db sqlite:/tmp/test.sq3 --dm-auto-upgrade --test-load-am start
+    % bundle exec ruby -I lib lib/omf-sfa/am/am_server.rb --dm-db sqlite:/tmp/test.sq3 --dm-auto-upgrade --test-load-am start
 
 which should result into something like:
 
@@ -29,11 +31,6 @@ which should result into something like:
     DEBUG Server: >> Tracing ON
     INFO Server: >> Maximum connections set to 1024
     INFO Server: >> Listening on 0.0.0.0:8001, CTRL+C to stop
-
-Depending on your environment you may see some warning messages like the following one which you can safely ignore at this point
-
-    WARN AMServer: Can't find trusted root cert '~/.sfi/topdomain.subdomain.authority.cred'
-    WARN AMServer: Can't find trusted root cert '/etc/sfa/trusted_roots/topdomain.gid'
 
 Testing REST API
 ----------------
@@ -62,21 +59,21 @@ To list information about a specific resource 'node1', use the following:
         "resource": {
           "uuid": "ddb2170e-e4aa-45c8-bb63-242134e98a11",
           "href": "/resources/ddb2170e-e4aa-45c8-bb63-242134e98a11",
-          "name": "n1",
+          "name": "node1",
           "type": "node",
           "available": true,
           "interfaces": [
             {
               "uuid": "fd527e07-7a9a-45dd-b6f3-dcc2abeb6e75",
               "href": "/resources/fd527e07-7a9a-45dd-b6f3-dcc2abeb6e75",
-              "name": "n1:if0",
+              "name": "node1:if0",
               "type": "interface"
             }
           ],
           "domain": "mytestbed.net",
           "status": "unknown"
         },
-        "about": "/resources/n1"
+        "about": "/resources/node1"
       }
     }
 
@@ -141,9 +138,11 @@ In a shell start the CF (make sure you installed the credentials in ~/.gcf):
     INFO:cred-verifier:Combined dir of 1 trusted certs ~/.gcf/trusted_roots into file ~/.gcf/trusted_roots/CATedCACerts.pem for Python SSL support
     INFO:gcf-ch:GENI CH Listening on port 8000...
 
-Then run the AM acceptance tests. Follow the instructions in Readme files to make sure you have set up 'omni' correctly and then run the tests 'python am_api_accept.py -a https://0.0.0.0:8001/RPC2'. Don't forger to set your enviroment variable "export PYTHONPATH=$PYTHONPATH:$GCF/src" before running the acceptance tests. Use the "requests" found under '$OMF_HOME/omf_sfa/test/sfa_requests/':
+Then run the AM acceptance tests. Follow the instructions in gcf's Readme files to make sure you have set up 'omni' correctly and then run the tests. Don't forger to set your enviroment variable before running the acceptance tests. You should also copy the "requests" found under "$OMF_HOME/omf_sfa/test/sfa_requests/"
+    
+    export PYTHONPATH=$PYTHONPATH:$GCF/src
 
-    python am_api_accept.py -a am-undertest
+    python am_api_accept.py -a https://0.0.0.0:8001/RPC2
     .............
     ----------------------------------------------------------------------
     Ran 13 tests in 959.389s
