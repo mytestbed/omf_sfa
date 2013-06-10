@@ -36,8 +36,14 @@ module OMF::SFA::AM::Rest
     end
   end
 
+  class EmptyBodyException < RackException
+    def initialize()
+      super 400, "Message body is empty"
+    end
+  end
+
   class UnsupportedBodyFormatException < RackException
-    def initialize(format)
+    def initialize(format = 'unknown')
       super 400, "Message body format '#{format}' is unsupported"
     end
   end
@@ -50,12 +56,18 @@ module OMF::SFA::AM::Rest
   end
 
   class IllegalMethodException < RackException
-    def initialize(method)
+    def initialize(reason)
       super 403, reason
     end
   end
 
   class UnknownResourceException < RackException
+    def initialize(reason)
+      super 404, reason
+    end
+  end
+
+  class MissingResourceException < RackException
     def initialize(reason)
       super 404, reason
     end
@@ -117,18 +129,31 @@ module OMF::SFA::AM::Rest
 
 
 
-    def parse_body(opts)
+    def parse_body(opts, allowed_formats = [:json, :xml])
       req = opts[:req]
-      body = req.body.gets
-      puts "PARSE_BODY: #{body}"
+      post = req.POST
+      raise EmptyBodyException.new unless post
+      body = post.to_a[0][1]  # HACK ALERT
+
+      puts "PARSE_BODY(#{post.class}): #{post}"
+      puts "PARSE_BODY2: #{body}"
+      body.strip!
       begin
-        xb = Nokogiri::XML(body)
-        #puts "PARSE_BODY2: #{xb.to_s}"
-        return [xb, :xml]
+        if body.start_with?('/') || body.start_with?('{') || body.start_with?('[')
+          raise UnsupportedBodyFormatException.new(:json) unless allowed_formats.include?(:json)
+          jb = JSON.parse(body)
+          return [jb, :json]
+        else
+          xb = Nokogiri::XML(body)
+          raise UnsupportedBodyFormatException.new(:xml) unless allowed_formats.include?(:xml)
+          #puts "PARSE_BODY2: #{xb.to_s}"
+          return [xb, :xml]
+        end
       rescue Exception => ex
         raise BadRequestException.new "Problems parsing body (#{ex})"
       end
-
+      raise UnsupportedBodyFormatException.new() unless allowed_formats.include?(:xml)
+      #raise BadRequestException.new "Unsupported message format '#{format}'" unless format ==
     end
 
     private
