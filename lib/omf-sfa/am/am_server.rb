@@ -109,10 +109,12 @@ module OMF::SFA::AM
 
       r = []
       r << l = OMF::SFA::Resource::Link.create(:name => 'l')
+      r << OMF::SFA::Resource::Channel.create(:number => 1, :frequency => "2.412GHZ")
       lease = OMF::SFA::Resource::OLease.create(:name => 'l1', :valid_from => Time.now, :valid_until => Time.now + 3600)
       2.times do |i|
         r << n = OMF::SFA::Resource::Node.create(:name => "node#{i}")
         ifr = OMF::SFA::Resource::Interface.create(name: "node#{i}:if0", node: n, channel: l)
+        ip = OMF::SFA::Resource::Ip.create(address: "10.0.1.#{i}", netmask: "255.255.255.0", ip_type: "ipv4", interface: ifr)
         n.interfaces << ifr
         l.interfaces << ifr
         n.leases << lease

@@ -648,6 +648,12 @@ module OMF::SFA::AM
             #end
           end
         end.compact
+
+        # channel reservation
+        #resources = descr_el.xpath('/xmlns:rspec/ol:channel', 'ol' => OL_NAMESPACE, 'xmlns' => "http://www.geni.net/resources/rspec/3").collect do |el|
+        #    update_resource_from_rspec(el, leases, clean_state, authorizer)
+        #end.compact
+
         # TODO: release the unused leases. The leases we have created but we never managed
         # to attach them to a resource because the scheduler denied it.
         if clean_state

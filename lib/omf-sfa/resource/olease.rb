@@ -46,7 +46,7 @@ module OMF::SFA::Resource
 
     def to_sfa_ref_xml(res_el, obj2id, opts)
       if obj2id.key?(self)
-        el = res_el.add_child(Nokogiri::XML::Element.new('lease_ref', res_el.document))
+        el = res_el.add_child(Nokogiri::XML::Element.new("ol:lease_ref", res_el.document))
         #el.set_attribute('component_id', self.component_id.to_s)
         el.set_attribute('id_ref', self.uuid.to_s)
       else
