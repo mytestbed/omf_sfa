@@ -142,6 +142,13 @@ module OMF::SFA::AM::Rest
         if ['/', '{', '['].include?(body[0])
           content_type = 'application/json'
         else
+          if body.empty?
+            if allowed_formats.include?(:json)
+              return [{}, :json]
+            elsif allowed_formats.include?(:form)
+              return [{}, :form]
+            end
+          end
           # default is XML
           content_type = 'text/xml'
         end
@@ -156,6 +163,11 @@ module OMF::SFA::AM::Rest
           xb = Nokogiri::XML(body)
           raise UnsupportedBodyFormatException.new(:xml) unless allowed_formats.include?(:xml)
           return [xb, :xml]
+        when 'application/x-www-form-urlencoded'
+          raise UnsupportedBodyFormatException.new(:xml) unless allowed_formats.include?(:form)
+          fb = req.POST
+          puts "FORM: #{fb.inspect}"
+          return [fb, :form]
         end
       rescue Exception => ex
         raise BadRequestException.new "Problems parsing body (#{ex})"
@@ -199,9 +211,9 @@ module OMF::SFA::AM::Rest
           :about => about,
           :type => resource.resource_type,
         }.merge!(props)
-        res = {"#{resource.resource_type}_response" => res}
+        #res = {"#{resource.resource_type}_response" => res}
       else
-        res = {:error_response => {:error => 'Unknown resource'}}
+        res = {:error => 'Unknown resource'}
       end
 
       ['application/json', JSON.pretty_generate(res)]
@@ -222,6 +234,32 @@ module OMF::SFA::AM::Rest
       resource_class.first(fopts)
     end
 
+    def show_resources(resources, resource_name, opts)
+      prefix = about = opts[:req].path
+      res = {
+        :about => opts[:req].path,
+        resource_name => resources.map do |a|
+          a.to_hash_brief(:href_use_class_prefix => true)
+        end
+      }
+      ['application/json', JSON.pretty_generate(res)]
+    end
+
+    def show_deleted_resource(uuid)
+      res = {
+        uuid: uuid,
+        deleted: true
+      }
+      ['application/json', JSON.pretty_generate(res)]
+    end
+
+    def show_deleted_resources(uuid_a)
+      res = {
+        uuids: uuid_a,
+        deleted: true
+      }
+      ['application/json', JSON.pretty_generate(res)]
+    end
 
     # Helper functions
 
