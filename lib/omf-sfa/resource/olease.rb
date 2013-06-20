@@ -9,7 +9,7 @@ module OMF::SFA::Resource
 
     oproperty :valid_from, DataMapper::Property::Time
     oproperty :valid_until, DataMapper::Property::Time
-    oproperty :status, DataMapper::Property::Enum[:pending, :accepted, :active, :past, :cancelled]
+    oproperty :status, DataMapper::Property::Enum[:pending, :accepted, :active, :past, :cancelled], :default => "pending"
 
     has n, :component_leases, :child_key => [:lease_id]
     has n, :components, :model => 'OComponent', :through => :component_leases, :via => :component
@@ -35,14 +35,17 @@ module OMF::SFA::Resource
       end
     end
 
-    def status
-      s = oproperty_get(:status)
-      if s.nil?
-        oproperty_set(:status, "pending")
-      else
-        s
-      end
-    end
+#     def status
+# #       puts "status call"
+#       s = oproperty_get(:status)
+#       if s.nil?
+# #         puts "setting"
+#         oproperty_set(:status, "pending")
+#       else
+# #         puts "hmm"
+#         s
+#       end
+#     end
 
     def to_sfa_ref_xml(res_el, obj2id, opts)
       if obj2id.key?(self)
