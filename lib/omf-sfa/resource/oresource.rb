@@ -322,6 +322,14 @@ module OMF::SFA::Resource
       }.to_json(*a)
     end 
 
+    def as_json(options = { })
+      {
+        "json_class" => self.class.name,
+        "id" => self.id
+      }
+    end
+
+
     #def self.from_json(o)
     #  puts "FROM_JSON"
     #  klass = o['json_class']
