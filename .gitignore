@@ -16,3 +16,6 @@ tmp
 .yardoc
 _yardoc
 doc/
+.rspec
+.settings/org.eclipse.core.resources.prefs
+Gemfile.lock

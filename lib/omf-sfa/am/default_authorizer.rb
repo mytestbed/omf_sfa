@@ -8,12 +8,12 @@ module OMF::SFA::AM
 
   class InsufficientPrivilegesException < AMManagerException; end
 
-  # This class implements an authorizer which 
+  # This class implements an authorizer which
   # only allows actions which have been enabled in a permission
   # hash.
   #
   class DefaultAuthorizer < LObject
-        
+
     [
       # ACCOUNT
       :can_create_account?, # ()
@@ -36,9 +36,9 @@ module OMF::SFA::AM
         end
       end
     end
-    
-    def initialize()
-      @permissions = {}
+
+    def initialize(permissions = {})
+      @permissions = permissions
     end
   end
 end

@@ -16,7 +16,7 @@ def init_dm
 
   DataMapper.setup(:default, 'sqlite::memory:')
   #DataMapper.setup(:default, 'sqlite:///tmp/am_test.db')
-  DataMapper::Model.raise_on_save_failure = true 
+  DataMapper::Model.raise_on_save_failure = true
   DataMapper.finalize
 
   DataMapper.auto_migrate!
@@ -67,19 +67,20 @@ describe AMManager do
 
   let (:manager) { AMManager.new(scheduler) }
 
-  
+
   OMF::SFA::Resource::OAccount.create({:name => 'a'})
   account = OMF::SFA::Resource::OAccount.first({:name => 'a'})
 
   describe 'nodes and leases' do
 
     it 'will create a node with a lease attached to it' do
-      authorizer = Minitest::Mock.new 
+      authorizer = Minitest::Mock.new
       rspec = %{
       <?xml version="1.0" ?>
-      <rspec type="request" xmlns="http://www.geni.net/resources/rspec/3" xmlns:omf="http://nitlab.inf.uth.gr/schema/sfa/rspec/1" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.geni.net/resources/rspec/3 http://www.geni.net/resources/rspec/3/request.xsd http://nitlab.inf.uth.gr/schema/sfa/rspec/1 http://nitlab.inf.uth.gr/sfa/rspec/1/request-reservation.xsd">
+      <rspec type="request" xmlns="http://www.geni.net/resources/rspec/3" xmlns:ol="http://nitlab.inf.uth.gr/schema/sfa/rspec/1" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.geni.net/resources/rspec/3 http://www.geni.net/resources/rspec/3/request.xsd http://nitlab.inf.uth.gr/schema/sfa/rspec/1 http://nitlab.inf.uth.gr/sfa/rspec/1/request-reservation.xsd">
+        <ol:lease id="l1" valid_from="2013-01-08T19:00:00Z" valid_until="2013-01-08T20:00:00Z"/>
         <node component_id="urn:publicid:IDN+omf:nitos+node+node1" component_manager_id="urn:publicid:IDN+omf:nitos+authority+am" component_name="node1" client_id="omf" exclusive="true">
-          <omf:lease omf:valid_from="2013-01-08T19:00:00Z" omf:valid_until="2013-01-08T20:00:00Z"/>
+          <ol:lease_ref id_ref="l1"/>
         </node>
       </rspec>
       }
@@ -111,7 +112,7 @@ describe AMManager do
 
 
     it 'will create a node with an already known lease attached to it' do
-      authorizer = Minitest::Mock.new 
+      authorizer = Minitest::Mock.new
       l = OMF::SFA::Resource::OLease.new({ :name => account.name})
       valid_from = Time.parse('2013-01-08T19:00:00Z')
       valid_until = Time.parse('2013-01-08T20:00:00Z')
@@ -120,9 +121,10 @@ describe AMManager do
       l.save
       rspec = %{
       <?xml version="1.0" ?>
-      <rspec type="request" xmlns="http://www.geni.net/resources/rspec/3" xmlns:omf="http://nitlab.inf.uth.gr/schema/sfa/rspec/1" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.geni.net/resources/rspec/3 http://www.geni.net/resources/rspec/3/request.xsd http://nitlab.inf.uth.gr/schema/sfa/rspec/1 http://nitlab.inf.uth.gr/sfa/rspec/1/request-reservation.xsd">
+      <rspec type="request" xmlns="http://www.geni.net/resources/rspec/3" xmlns:ol="http://nitlab.inf.uth.gr/schema/sfa/rspec/1" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.geni.net/resources/rspec/3 http://www.geni.net/resources/rspec/3/request.xsd http://nitlab.inf.uth.gr/schema/sfa/rspec/1 http://nitlab.inf.uth.gr/sfa/rspec/1/request-reservation.xsd">
+        <ol:lease id="#{l.uuid}" valid_from="2013-01-08T19:00:00Z" valid_until="2013-01-08T20:00:00Z"/>
         <node component_id="urn:publicid:IDN+omf:nitos+node+node1" component_manager_id="urn:publicid:IDN+omf:nitos+authority+am" component_name="node1" client_id="omf" exclusive="true">
-          <omf:lease omf:uuid="#{l.uuid}" omf:valid_from="2013-01-08T19:00:00Z" omf:valid_until="2013-01-08T20:00:00Z"/>
+          <ol:lease_ref id_ref="#{l.uuid}"/>
         </node>
       </rspec>
       }
@@ -154,7 +156,7 @@ describe AMManager do
     end
 
     #it 'will create a node with an already known lease attached to it (included in rspecs)' do
-    #  authorizer = Minitest::Mock.new 
+    #  authorizer = Minitest::Mock.new
     #  l = OMF::SFA::Resource::OLease.new({ :name => account.name })
     #  l.valid_from = '2013-01-08T19:00:00Z'
     #  l.valid_until = '2013-01-08T20:00:00Z'
@@ -195,7 +197,7 @@ describe AMManager do
     #end
 
     it 'will attach 2 leases(1 new and 1 old) to 2 nodes' do
-      authorizer = Minitest::Mock.new 
+      authorizer = Minitest::Mock.new
       l1 = OMF::SFA::Resource::OLease.new({ :name => account.name})
       l1.valid_from = Time.parse('2013-01-08T19:00:00Z')
       l1.valid_until = Time.parse('2013-01-08T20:00:00Z')
@@ -203,12 +205,14 @@ describe AMManager do
 
       rspec = %{
       <?xml version="1.0" ?>
-      <rspec type="request" xmlns="http://www.geni.net/resources/rspec/3" xmlns:omf="http://nitlab.inf.uth.gr/schema/sfa/rspec/1" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.geni.net/resources/rspec/3 http://www.geni.net/resources/rspec/3/request.xsd http://nitlab.inf.uth.gr/schema/sfa/rspec/1 http://nitlab.inf.uth.gr/sfa/rspec/1/request-reservation.xsd">
+      <rspec type="request" xmlns="http://www.geni.net/resources/rspec/3" xmlns:ol="http://nitlab.inf.uth.gr/schema/sfa/rspec/1" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.geni.net/resources/rspec/3 http://www.geni.net/resources/rspec/3/request.xsd http://nitlab.inf.uth.gr/schema/sfa/rspec/1 http://nitlab.inf.uth.gr/sfa/rspec/1/request-reservation.xsd">
+        <ol:lease id="#{l1.uuid}" valid_from="2013-01-08T19:00:00Z" valid_until="2013-01-08T20:00:00Z"/>
+        <ol:lease id="l2" valid_from="2013-01-08T12:00:00Z" valid_until="2013-01-08T14:00:00Z"/>
         <node component_id="urn:publicid:IDN+omf:nitos+node+node1" component_manager_id="urn:publicid:IDN+omf:nitos+authority+am" component_name="node1" client_id="omf" exclusive="true">
-          <omf:lease omf:uuid="#{l1.uuid}" omf:valid_from="2013-01-08T19:00:00Z" omf:valid_until="2013-01-08T20:00:00Z"/>
+          <ol:lease_ref id_ref="#{l1.uuid}"/>
         </node>
         <node component_id="urn:publicid:IDN+omf:nitos+node+node2" component_manager_id="urn:publicid:IDN+omf:nitos+authority+am" component_name="node2" client_id="omf" exclusive="true">
-          <omf:lease omf:valid_from="2013-01-08T12:00:00Z" omf:valid_until="2013-01-08T14:00:00Z"/>
+          <ol:lease_ref id_ref="l2"/>
         </node>
       </rspec>
       }
@@ -257,7 +261,7 @@ describe AMManager do
   describe 'clean state flag' do
 
     it 'will create a new node and lease without deleting the previous records' do
-      authorizer = Minitest::Mock.new 
+      authorizer = Minitest::Mock.new
       l = OMF::SFA::Resource::OLease.create({ :name => account.name, :account => account})
       l.valid_from = '2013-01-08T19:00:00Z'
       l.valid_until = '2013-01-08T20:00:00Z'
@@ -269,9 +273,10 @@ describe AMManager do
 
       rspec = %{
       <?xml version="1.0" ?>
-      <rspec type="request" xmlns="http://www.geni.net/resources/rspec/3" xmlns:omf="http://nitlab.inf.uth.gr/schema/sfa/rspec/1" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.geni.net/resources/rspec/3 http://www.geni.net/resources/rspec/3/request.xsd http://nitlab.inf.uth.gr/schema/sfa/rspec/1 http://nitlab.inf.uth.gr/sfa/rspec/1/request-reservation.xsd">
+      <rspec type="request" xmlns="http://www.geni.net/resources/rspec/3" xmlns:ol="http://nitlab.inf.uth.gr/schema/sfa/rspec/1" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.geni.net/resources/rspec/3 http://www.geni.net/resources/rspec/3/request.xsd http://nitlab.inf.uth.gr/schema/sfa/rspec/1 http://nitlab.inf.uth.gr/sfa/rspec/1/request-reservation.xsd">
+        <ol:lease id="l1" valid_from="2013-01-08T12:00:00Z" valid_until="2013-01-08T14:00:00Z"/>
         <node component_id="urn:publicid:IDN+omf:nitos+node+node2" component_manager_id="urn:publicid:IDN+omf:nitos+authority+am" component_name="node2" client_id="omf" exclusive="true">
-          <omf:lease omf:valid_from="2013-01-08T12:00:00Z" omf:valid_until="2013-01-08T14:00:00Z"/>
+          <ol:lease_ref id_ref="l1"/>
         </node>
       </rspec>
       }
@@ -296,7 +301,7 @@ describe AMManager do
     end
 
     it 'will unlink a node from a lease and release both' do
-      authorizer = Minitest::Mock.new 
+      authorizer = Minitest::Mock.new
       l = OMF::SFA::Resource::OLease.create({:name => 'l1', :account => account})
       l.valid_from = '2013-01-08T19:00:00Z'
       l.valid_until = '2013-01-08T20:00:00Z'
@@ -308,7 +313,7 @@ describe AMManager do
 
       rspec = %{
       <?xml version="1.0" ?>
-      <rspec type="request" xmlns="http://www.geni.net/resources/rspec/3" xmlns:omf="http://nitlab.inf.uth.gr/schema/sfa/rspec/1" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.geni.net/resources/rspec/3 http://www.geni.net/resources/rspec/3/request.xsd http://nitlab.inf.uth.gr/schema/sfa/rspec/1 http://nitlab.inf.uth.gr/sfa/rspec/1/request-reservation.xsd">
+      <rspec type="request" xmlns="http://www.geni.net/resources/rspec/3" xmlns:ol="http://nitlab.inf.uth.gr/schema/sfa/rspec/1" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.geni.net/resources/rspec/3 http://www.geni.net/resources/rspec/3/request.xsd http://nitlab.inf.uth.gr/schema/sfa/rspec/1 http://nitlab.inf.uth.gr/sfa/rspec/1/request-reservation.xsd">
       </rspec>
       }
 
@@ -335,7 +340,7 @@ describe AMManager do
     end
 
     #it 'will release a node and a lease' do
-    #  authorizer = Minitest::Mock.new 
+    #  authorizer = Minitest::Mock.new
     #  l = OMF::SFA::Resource::OLease.create({:name => 'l1', :account => account})
     #  l.valid_from = '2013-01-08T19:00:00Z'
     #  l.valid_until = '2013-01-08T20:00:00Z'
@@ -365,7 +370,7 @@ describe AMManager do
     #  r.must_be_empty
     #  OMF::SFA::Resource::Node.first(:name => 'node1').must_be_nil
     #  OMF::SFA::Resource::OLease.first(:name => 'l1').status.must_equal('cancelled')
-    #  
+    #
     #  authorizer.verify
     #end
   end # clean state flag

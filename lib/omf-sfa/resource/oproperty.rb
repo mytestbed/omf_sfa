@@ -35,11 +35,11 @@ module OMF::SFA::Resource
   #
   class OProperty
     include DataMapper::Resource
-    property :id,   Serial    
+    property :id,   Serial
 
     property :name, String
     property :value, String # actually serialized Object
-      
+
     belongs_to :o_resource
     
     module ArrayProxy
@@ -90,19 +90,19 @@ module OMF::SFA::Resource
     def valid?(context = :default)
       self.name != nil #&& self.value != nil
     end
-    
+
     # alias_method :_dirty_attributes, :dirty_attributes
     # def dirty_attributes
       # dirty = _dirty_attributes
       # #puts "DIRTY ATTRIBUTE #{dirty.inspect}"
       # dirty
     # end
-    
+
     alias_method :_dirty_self?, :dirty_self?
     def dirty_self?
       #puts "#{object_id} DIRTY CHECK #{@value_dirty}"
       return true if @value_dirty || _dirty_self?
-      if @old_value_ 
+      if @old_value_
         return @old_value_ != @value_
       end
       false
@@ -122,5 +122,5 @@ module OMF::SFA::Resource
     #end      
     
   end # OProperty
-  
+
 end # OMF::SFA::Resource
