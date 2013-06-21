@@ -78,18 +78,21 @@ module OMF::SFA::AM
       end
 
       base = resource.provided_by
-      base.leases.each do |l|
-        if (l.id == resource.leases.first.id)
-          time = Time.now
-          if (l.valid_until <= time)
-            l.status = "past"
-          else
-            l.status = "cancelled"
+
+      unless resource.leases.empty?
+        base.leases.each do |l|
+          if (l.id == resource.leases.first.id)
+            time = Time.now
+            if (l.valid_until <= time)
+              l.status = "past"
+            else
+              l.status = "cancelled"
+            end
           end
         end
+        msg = resource.leases.first.component_leases.destroy!
+        raise "Failed to destroy component_leases" unless msg
       end
-      msg = resource.leases.first.component_leases.destroy!
-      raise "Failed to destroy component_leases" unless msg
       resource = resource.destroy!
       raise "Failed to destroy resource" unless resource
       resource

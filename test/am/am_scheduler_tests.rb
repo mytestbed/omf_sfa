@@ -14,8 +14,8 @@ def init_dm
   # setup database
   DataMapper::Logger.new($stdout, :info)
 
-  #DataMapper.setup(:default, 'sqlite::memory:')
-  DataMapper.setup(:default, 'sqlite:///home/ardadouk/am_test.db')
+  DataMapper.setup(:default, 'sqlite::memory:')
+  #DataMapper.setup(:default, 'sqlite://~/am_test.db')
   DataMapper::Model.raise_on_save_failure = true
   DataMapper.finalize
 
@@ -156,6 +156,18 @@ describe AMScheduler do
       l2.status.must_equal("past")
 
       r.provides.must_be_empty()
+    end
+
+    it 'can release a resource without leases' do
+      n = OMF::SFA::Resource::Node.create(name: 'n1', account: a)
+
+      authorizer = MiniTest::Mock.new
+      authorizer.expect(:account, account)
+
+      r1 = scheduler.create_resource({:name => 'n1'}, 'node', {}, authorizer)
+
+      res = scheduler.release_resource(r1, authorizer)
+      res.must_equal(true)
     end
   end
 end
