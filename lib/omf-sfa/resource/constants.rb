@@ -2,8 +2,8 @@
 module OMF::SFA::Resource
   module Constants
     
-    @@default_domain = "mytestbed.net"
-    @@default_component_manager_id = "authority+am"
+    @@default_domain = "omf:nitos"
+    @@default_component_manager_id = GURN.create("authority+am").to_s
     
     def self.default_domain=(dname)
       @@default_domain = dname
@@ -14,7 +14,7 @@ module OMF::SFA::Resource
     end   
     
     def self.default_component_manager_id=(gurn)
-      @@default_component_manager_id = GURN.create(gurn) 
+      @@default_component_manager_id = GURN.create(gurn).to_s 
     end   
 
     def self.default_component_manager_id()

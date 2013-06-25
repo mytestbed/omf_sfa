@@ -1,9 +1,15 @@
 require "#{File.dirname(__FILE__)}/common"
 require 'omf-sfa/resource/oresource'
+require 'omf-sfa/resource/node'
 require 'omf-sfa/resource/ogroup'
 require 'json'
 
 include OMF::SFA::Resource
+
+def init_logger
+  OMF::Common::Loggable.init_log 'OResource', :searchPath => File.join(File.dirname(__FILE__), 'OResource')
+  #@config = OMF::Common::YAML.load('omf-sfa-am', :path => [File.dirname(__FILE__) + '/../../etc/omf-sfa'])[:omf_sfa_am]
+end
 
 class TA < OResource
   oproperty :flag, Boolean, :default => true
@@ -22,7 +28,10 @@ class G < OResource
 end
 
 describe OResource do
-  before :all do
+
+  init_logger
+
+  before :each do
     init_dm
   end
   
@@ -43,7 +52,9 @@ describe OResource do
     o = OResource.create()
     js = o.to_json
     o.reload
-    o2 = JSON.parse(js)
+    # http://www.ruby-lang.org/en/news/2013/02/22/json-dos-cve-2013-0269/
+    # alternative: o2 = JSON.load(js)
+    o2 = JSON.parse(js, :create_additions => true)
     o2.uuid.should == o.uuid
   end
   
@@ -142,7 +153,8 @@ describe OResource do
     a.reload
 
     b = B.create
-    a.bas << b
+    a.bas = b
+    #a.bas << b
     a.bas.should == [b]    
     a.save
     a.reload
@@ -153,13 +165,13 @@ describe OResource do
     a.bas << b2
     a.save
     a.reload
-    
+
     a.bas.should == [b, b2]
     a.to_hash.should == {
       :type=>"unknown", :uuid=>"#{a.uuid}", :href=>"/resources/#{a.uuid}", :name => 'a',
       :bas => [b.uuid.to_s, b2.uuid.to_s]
     }             
-    
+
     a.bas = []
     a.save
     a.reload
@@ -173,10 +185,24 @@ describe OResource do
     a.b = b
     a.save
     a.reload
-    
-    a.oproperties_as_hash.should == {'b' => b, 'ba' => [b]}
+
+    a.oproperties_as_hash.should == {'b' => b, 'bas' => [b]}
   end
-  
-  
+
+  it 'can have Time oproperties' do
+    class Bar < OResource
+    end
+
+    class Foo < Bar
+      oproperty :created_at, DataMapper::Property::Time
+    end
+
+    f = Foo.new
+    f.created_at = Time.now
+    f.save
+
+    f.created_at.should be_a_kind_of(Time)
+  end
+
 end
-    
+

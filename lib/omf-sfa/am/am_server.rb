@@ -2,15 +2,15 @@ require 'rubygems'
 require 'rack'
 require 'rack/showexceptions'
 require 'thin'
-require 'data_mapper'
+require 'dm-migrations'
 require 'omf_common/lobject'
 require 'omf_common/load_yaml'
 
 require 'omf-sfa/am/am_runner'
 require 'omf-sfa/am/am_manager'
 require 'omf-sfa/am/am_scheduler'
+require 'omf-sfa/am/am_liaison'
 
-require 'omf_common/lobject'
 
 module OMF::SFA::AM
 
@@ -19,26 +19,42 @@ module OMF::SFA::AM
     include OMF::Common::Loggable
     extend OMF::Common::Loggable
 
+    @@config = OMF::Common::YAML.load('omf-sfa-am', :path => [File.dirname(__FILE__) + '/../../../etc/omf-sfa'])[:omf_sfa_am]
+    @@rpc = @@config[:endpoints].select { |v| v[:type] == 'xmlrpc' }.first
+
+    def self.rpc_config
+      @@rpc
+    end
 
     def init_logger
       OMF::Common::Loggable.init_log 'am_server', :searchPath => File.join(File.dirname(__FILE__), 'am_server')
+    end
 
-      @config = OMF::Common::YAML.load('omf-sfa-am', :path => [File.dirname(__FILE__) + '/../../../etc/omf-sfa'])[:omf_sfa_am]
+    def check_dependencies
+      raise "xmlsec1 is not installed!" unless system('which xmlsec1 > /dev/null 2>&1')
     end
 
     def load_trusted_cert_roots
-      # Add additional cert roots. TODO:Should really come from the config file
 
-      [ '~/.gcf/trusted_roots/CATedCACerts.pem',
-        '~/.sfi/topdomain.subdomain.authority.cred',
-        '/etc/sfa/trusted_roots/topdomain.gid'
-      ].each do |fn|
-        fne = File.expand_path(fn)
+      trusted_roots = File.expand_path(@@rpc[:trusted_roots])
+      certs = Dir.entries(trusted_roots)
+      certs.delete("..")
+      certs.delete(".")
+      certs.each do |fn|
+        fne = File.join(trusted_roots, fn)
         if File.readable?(fne)
-          trusted_cert = OpenSSL::X509::Certificate.new(File.read(fne))
-          OpenSSL::SSL::SSLContext::DEFAULT_CERT_STORE.add_cert(trusted_cert)
+          begin
+            trusted_cert = OpenSSL::X509::Certificate.new(File.read(fne))
+            OpenSSL::SSL::SSLContext::DEFAULT_CERT_STORE.add_cert(trusted_cert)
+          rescue OpenSSL::X509::StoreError => e
+            if e.message == "cert already in hash table"
+              warn "X509 cert '#{fne}' already registered in X509 store"
+            else
+              raise e
+            end
+          end
         else
-          warn "Can't find trusted root cert '#{fne}'"
+          warn "Can't find trusted root cert '#{trusted_roots}/#{fne}'"
         end
       end
     end
@@ -74,6 +90,7 @@ module OMF::SFA::AM
       am = options[:am][:manager]
       if am.is_a? Proc
         am = am.call
+        options[:am][:manager] = am
       end
 
       require 'omf-sfa/resource/oaccount'
@@ -92,12 +109,18 @@ module OMF::SFA::AM
 
       r = []
       r << l = OMF::SFA::Resource::Link.create(:name => 'l')
+      r << OMF::SFA::Resource::Channel.create(:number => 1, :frequency => "2.412GHZ")
+      lease = OMF::SFA::Resource::OLease.create(:name => 'l1', :valid_from => Time.now, :valid_until => Time.now + 3600)
       2.times do |i|
-        r << n = OMF::SFA::Resource::Node.create(:name => "n#{i}")
-        ifr = OMF::SFA::Resource::Interface.create(name: "n#{i}:if0", node: n, channel: l)
+        r << n = OMF::SFA::Resource::Node.create(:name => "node#{i}")
+        ifr = OMF::SFA::Resource::Interface.create(name: "node#{i}:if0", node: n, channel: l)
+        ip = OMF::SFA::Resource::Ip.create(address: "10.0.1.#{i}", netmask: "255.255.255.0", ip_type: "ipv4", interface: ifr)
         n.interfaces << ifr
         l.interfaces << ifr
+        n.leases << lease
       end
+      r.last.leases << OMF::SFA::Resource::OLease.create(:name => 'l2', :valid_from => Time.now + 3600, :valid_until => Time.now + 7200)
+
       am.manage_resources(r)
     end
 
@@ -127,6 +150,7 @@ module OMF::SFA::AM
         :pre_run => lambda do |opts|
           puts "OPTS: #{opts.inspect}"
           init_logger()
+          check_dependencies()
           load_trusted_cert_roots()
           init_data_mapper(opts)
           init_am_manager(opts)
@@ -139,20 +163,23 @@ module OMF::SFA::AM
       require 'omf_common/thin/runner'
       OMF::Common::Thin::Runner.new(ARGV, opts).run!
     end
+
   end # class
 end # module
 
 # Configure the web server
 #
+rpc = OMF::SFA::AM::AMServer.rpc_config()
 opts = {
   :app_name => 'am_server',
   :port => 8001,
-  # :am => {
-    # :manager => lambda { OMF::SFA::AM::AMManager.new(OMF::SFA::AM::AMScheduler.new) }
-  # },
+  :am => {
+    #:manager => lambda { OMF::SFA::AM::AMManager.new(OMF::SFA::AM::AMScheduler.new) },
+    :liaison => OMF::SFA::AM::AMLiaison.new
+  },
   :ssl => {
-    :cert_file => File.expand_path("~/.gcf/am-cert.pem"),
-    :key_file => File.expand_path("~/.gcf/am-key.pem"),
+    :cert_file => File.expand_path(rpc[:ssl][:cert_chain_file]),
+    :key_file => File.expand_path(rpc[:ssl][:private_key_file]),
     :verify_peer => true
     #:verify_peer => false
   },
@@ -160,7 +187,6 @@ opts = {
   :dm_db => 'sqlite:///tmp/am_test.db',
   :dm_log => '/tmp/am_server-dm.log',
   :rackup => File.dirname(__FILE__) + '/config.ru',
-
 }
 OMF::SFA::AM::AMServer.new.run(opts)
 

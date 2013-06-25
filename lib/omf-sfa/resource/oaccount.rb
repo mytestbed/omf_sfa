@@ -1,5 +1,5 @@
 
-require 'time'
+#require 'time'
 require 'omf-sfa/resource/oresource'
 require 'omf-sfa/resource/ocomponent'
 require 'omf-sfa/resource/project'
@@ -55,6 +55,10 @@ module OMF::SFA::Resource
 
     def initialize(*args)
       super
+      props = Hash.new
+      args.each do |a|
+        props.merge!(a)
+      end
       self.created_at = Time.now
       if self.valid_until == nil
         self.valid_until = Time.now + @@def_duration

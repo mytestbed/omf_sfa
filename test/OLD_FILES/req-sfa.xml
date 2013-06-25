@@ -1,0 +1,6 @@
+<?xml version="1.0"?>
+<rspec xmlns="http://www.protogeni.net/resources/rspec/2" xmlns:omf="http://schema.mytestbed.net/sfa/rspec/1" type="request">
+  <node id="aea0b9a5-e90e-5fd6-9224-847f0a1b37cb" omf:href="/resources/aea0b9a5-e90e-5fd6-9224-847f0a1b37cb" component_id="urn:publicid:IDN+mytestbed.net+node+node0" component_manager_id="authority+am" component_name="node0">
+    <available now="true"/>
+  </node>
+</rspec>

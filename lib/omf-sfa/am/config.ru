@@ -35,7 +35,7 @@ use OMF::SFA::AM::Rest::SessionAuthenticator, #:expire_after => 10,
 
 map RPC_URL do
   require 'omf-sfa/am/am-rpc/am_rpc_service'
-  service = OMF::SFA::AM::RPC::AMService.new({:manager => am_mgr})
+  service = OMF::SFA::AM::RPC::AMService.new({:manager => am_mgr, :liaison => opts[:am][:liaison]})
 
   app = lambda do |env|
     [404, {"Content-Type" => "text/plain"}, ["Not found"]]

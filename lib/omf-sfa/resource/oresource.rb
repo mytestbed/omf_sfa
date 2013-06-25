@@ -1,10 +1,9 @@
-require 'json'  # needs to come before the 'dm-*' requires. No idea why, but it messes with JSON
+require 'rubygems'
 require 'dm-core'
 require 'dm-types'
 require 'dm-validations'
 require 'omf_common/lobject'
 require 'set'
-require 'active_support/inflector'
 
 #require 'omf-sfa/resource/oproperty'
 autoload :OProperty, 'omf-sfa/resource/oproperty'
@@ -78,25 +77,44 @@ module OMF::SFA::Resource
         op[pname] = opts
 
         define_method pname do
-          res = oproperty_get(name)
+          res = oproperty_get(pname)
           if res == nil
-            oproperty_set(name, res = PropValueArray.new)
+            oproperty_set(pname, res = [])
+            # We make a oproperty_get in order to get the extended Array with
+            # the overidden '<<' method. Check module ArrayProxy in oproperty.rb
+            res = oproperty_get(pname)
           end
+          #puts "PROPERTY_GET #{res}"
           res
         end
 
         define_method "#{pname}=" do |v|
-          unless v.kind_of? Enumerable
-            raise "property '#{pname}' expects a value of type Enumerable"
-          end
-          unless v.is_a? PropValueArray
+          #unless v.kind_of? Enumerable
+          #  raise "property '#{pname}' expects a value of type Enumerable"
+          #end
+
+          #val = self.eval("#{pname}")
+          #puts "RESPOND: '#{respond_to?(pname.to_sym)}' self:'#{self.inspect}'"
+          #val = send(pname.to_sym).value#.dup
+          #val = oproperty_get(pname)
+          #unless v.is_a? PropValueArray
+          unless v.is_a? Array
             # we really want to store it as a PropValueArray
-            c = PropValueArray.new
-            v.each {|e| c << e}
-            v = c
+            #c = PropValueArray.new
+            #if v.respond_to?(:each)
+            #  v.each {|e| c << e}
+            #else
+            #  c << v
+            #end
+            #v = c
+            v = [v]
+            #puts "VAL is '#{val}'"
           end
-          oproperty_set(name, v)
+          #puts "NAME is '#{name}'"
+          #puts "V is '#{v}'"
+          oproperty_set(pname, v)
         end
+
 
       else
         op[name] = opts
@@ -117,8 +135,6 @@ module OMF::SFA::Resource
         end
 
       end
-
-
     end
 
     # Clone this resource this resource. However, the clone will have a unique UUID
@@ -177,6 +193,7 @@ module OMF::SFA::Resource
 
 
     def oproperty_get(pname)
+      #puts "OPROPERTY_GET: pname:'#{pname}'"
       pname = pname.to_sym
       return self.name if pname == :name
 
@@ -186,6 +203,7 @@ module OMF::SFA::Resource
     alias_method :[], :oproperty_get
 
     def oproperty_set(pname, value)
+      #puts "OPROPERTY_SET pname:'#{pname}', value:'#{value.class}', self:'#{self.inspect}'"
       pname = pname.to_sym
       if pname == :name
         self.name = value
@@ -212,8 +230,8 @@ module OMF::SFA::Resource
 
     # alias_method :_dirty_children?, :dirty_children?
     # def dirty_children?
-      # puts "CHECKING CHILDREN DIRTY: #{_dirty_children?}"
-      # _dirty_children?
+    # puts "CHECKING CHILDREN DIRTY: #{_dirty_children?}"
+    # _dirty_children?
     # end
 
     alias_method :_dirty_self?, :dirty_self?
@@ -228,9 +246,9 @@ module OMF::SFA::Resource
 
     # alias_method :_dirty_attributes, :dirty_attributes
     # def dirty_attributes
-      # dirty = _dirty_attributes
-      # puts "DIRTY ATTRIBUTE #{dirty.inspect}"
-      # dirty
+    # dirty = _dirty_attributes
+    # puts "DIRTY ATTRIBUTE #{dirty.inspect}"
+    # dirty
     # end
 
     # Return true if this resource is a Group
@@ -260,12 +278,19 @@ module OMF::SFA::Resource
         self.name = self.urn ? GURN.create(self.urn).short_name : "r#{self.object_id}"
       end
       unless self.urn
+        # The purpose or function of a URN is to provide a globally unique,
+        # persistent identifier used for recognition, for access to
+        # characteristics of the resource or for access to the resource
+        # itself.
+        # source: http://tools.ietf.org/html/rfc1737
+        #
         name = self.name
         self.urn = GURN.create(name, :model => self.class).to_s
       end
     end
 
     def destroy
+      #debug "ORESOURCE destroy #{self}"
       self.remove_from_all_groups
 
       #if p = self.provided_by
@@ -277,14 +302,16 @@ module OMF::SFA::Resource
 
       # first destroy all properties
       self.oproperties.all().each do |p|
+        #debug "ORESOURCE destroying property '#{p.inspect}'"
         r = p.destroy
         r
       end
-      p = self.oproperties.all()
+      #p = self.oproperties.all()
       super
     end
 
     def destroy!
+      #debug "ORESOURCE destroy! #{self}"
       destroy
       super
     end
@@ -300,10 +327,26 @@ module OMF::SFA::Resource
       }.to_json(*a)
     end
 
+    def as_json(options = { })
+      {
+        "json_class" => self.class.name,
+        "id" => self.id
+      }
+    end
+
+
+    #def self.from_json(o)
+    #  puts "FROM_JSON"
+    #  klass = o['json_class']
+    #  id = o['id']
+    #  eval(klass).first(:id => id)
+    #end
+
     def self.json_create(o)
       klass = o['json_class']
       id = o['id']
-      eval(klass).first(:id => id)
+      r = eval(klass).first(:id => id)
+      r
     end
 
     def to_hash(objs = {}, opts = {})
@@ -368,21 +411,22 @@ module OMF::SFA::Resource
   end
 
   # Extend array to add functionality dealing with property values
-  class PropValueArray < Array
+  #class PropValueArray < Array
 
-    def to_json(*a)
-      {
-        'json_class' => self.class.name,
-        'els' => self.to_a.to_json,
-      }.to_json(*a)
-    end
+  #  def to_json(*a)
+  #    {
+  #      'json_class' => self.class.name,
+  #      'els' => self.to_a.to_json
+  #    }.to_json(*a)
+  #  end
 
-    def self.json_create(o)
-      v = JSON.parse(o['els'], :create_additions => true)
-      v
-    end
+  #  def self.json_create(o)
+  #    # http://www.ruby-lang.org/en/news/2013/02/22/json-dos-cve-2013-0269/
+  #    v = JSON.load(o['els'])
+  #    v
+  #  end
 
-  end
+  #end
 
 end # OMF::SFA
 

@@ -6,12 +6,14 @@ require 'omf_common/lobject'
 require 'omf-sfa/resource/gurn'
 require 'omf-sfa/resource/constants'
 
+
+
 module OMF::SFA
   module Resource
 
     module Base
 
-      SFA_NAMESPACE_URI = 'http://www.geni.net/resources/rspec/3'
+      SFA_NAMESPACE_URI = "http://www.geni.net/resources/rspec/3"
 
       module ClassMethods
 
@@ -67,8 +69,9 @@ module OMF::SFA
         #
         def sfa(name, opts = {})
           name = name.to_s
-          props = sfa_defs()
+          props = sfa_defs() # get all the sfa properties of this class
           props[name] = opts
+          # recalculate sfa properties of the descendants
           descendants.each do |c| c.sfa_defs(false) end
         end
 
@@ -77,14 +80,23 @@ module OMF::SFA
         #
         def sfa_advertisement_xml(resources, opts = {})
           doc = Nokogiri::XML::Document.new
-          #<rspec expires="2011-09-13T09:07:09Z" generated="2011-09-13T09:07:09Z" type="advertisement" xmlns="http://www.protogeni.net/resources/rspec/2" xmlns:emulab="http://www.protogeni.net/resources/rspec/ext/emulab/1" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.protogeni.net/resources/rspec/2 http://www.protogeni.net/resources/rspec/2/ad.xsd http://www.protogeni.net/resources/rspec/ext/emulab/1 http://www.protogeni.net/resources/rspec/ext/emulab/1/ptop_extension.xsd http://company.com/rspec/ext/stitch/1 http://company.com/rspec/ext/stitch/1/ad.xsd ">
+          #<rspec expires="2011-09-13T09:07:09Z" generated="2011-09-13T09:07:09Z" type="advertisement" xmlns="http://www.geni.net/resources/rspec/3" xmlns:ol="http://nitlab.inf.uth.gr/schema/sfa/rspec/1" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.geni.net/resources/rspec/3 http://www.geni.net/resources/rspec/3/ad.xsd http://nitlab.inf.uth.gr/schema/sfa/rspec/1 http://nitlab.inf.uth.gr/schema/sfa/rspec/1/ad-reservation.xsd">
           root = doc.add_child(Nokogiri::XML::Element.new('rspec', doc))
           root.add_namespace(nil, SFA_NAMESPACE_URI)
+          root.add_namespace('xsi', "http://www.w3.org/2001/XMLSchema-instance")
+
+          opts[:type] = 'advertisement' unless opts[:type]
+          if opts[:type] == 'manifest'
+            schema = 'manifest.xsd'
+          else
+            schema = 'ad.xsd'
+          end
+          root['xsi:schemaLocation'] = "#{SFA_NAMESPACE_URI} #{SFA_NAMESPACE_URI}/#{schema} #{@@sfa_namespaces[:ol]} #{@@sfa_namespaces[:ol]}/ad-reservation.xsd"
           @@sfa_namespaces.each do |prefix, urn|
             root.add_namespace(prefix.to_s, urn)
           end
 
-          root.set_attribute('type', "advertisement")
+          root.set_attribute('type', opts[:type])
           now = Time.now
           root.set_attribute('generated', now.iso8601)
           root.set_attribute('expires', (now + (opts[:valid_for] || 600)).iso8601)
@@ -241,21 +253,24 @@ module OMF::SFA
           sfa_class
         end
 
-        # def component_id
-          # puts "Cheking for component_id"
-          # unless id = attribute_get(:component_id)
-            # self.component_id ||= GURN.create(self.uuid.to_s, self)
-          # end
-        # end
-#
+        def component_id
+          unless id = attribute_get(:component_id)
+            #self.component_id ||= GURN.create(self.uuid.to_s, self)
+            #return GURN.create(self.uuid.to_s, { :model => self.class })
+            return GURN.create(self.urn, { :model => self.class })
+          end
+          id
+        end
+        #
         # def component_id=(value)
           # self.component_uuid = value
         # end
 
         def component_manager_id
           unless uuid = attribute_get(:component_manager_id)
-            self.component_manager_id = (self.class.default_component_manager_id ||= GURN.create("authority+am"))
+            return (self.class.default_component_manager_id ||= GURN.create("authority+am"))
           end
+          uuid
         end
 
         # def component_name
@@ -383,45 +398,48 @@ module OMF::SFA
         end
 
         def _to_sfa_xml(parent, obj2id, opts)
-          n = parent.add_child(Nokogiri::XML::Element.new(_xml_name(), parent.document))
+          new_element = parent.add_child(Nokogiri::XML::Element.new(_xml_name(), parent.document))
           if parent.document == parent
             # first time around, add namespace
             self.class.sfa_add_namespaces_to_document(parent)
           end
           defs = self.class.sfa_defs()
           if (id = obj2id[self])
-            n.set_attribute('idref', id)
+            new_element.set_attribute('idref', id)
             return parent
           end
 
           id = sfa_id()
           obj2id[self] = id
-          n.set_attribute('id', id) #if detail_level > 0
-          if href = self.href(opts)
-            n.set_attribute('omf:href', href)
-          end
+          new_element.set_attribute('id', id) #if detail_level > 0
+          #if href = self.href(opts)
+          #  new_element.set_attribute('omf:href', href)
+          #end
           level = opts[:level] ? opts[:level] : 0
           opts[:level] = level + 1
-          defs.keys.sort.each do |k|
-            next if k.start_with?('_')
-            pdef = defs[k]
+          defs.keys.sort.each do |key|
+            next if key.start_with?('_')
+            pdef = defs[key]
             if (ilevel = pdef[:include_level])
               #next if level > ilevel
             end
             #puts ">>>> #{k} <#{self}> #{pdef.inspect}"
-            v = send(k.to_sym)
+            value = send(key.to_sym)
             #puts "#{k} <#{v}> #{pdef.inspect}"
-            if v.nil?
-              v = pdef[:default]
+            if value.nil?
+              value = pdef[:default]
             end
-            unless v.nil?
+            unless value.nil?
               #if detail_level > 0 || k == 'component_name'
-                _to_sfa_property_xml(k, v, n, pdef, obj2id, opts)
+              if value.is_a?(Time)
+                value = value.xmlschema # xs:dateTime
+              end
+                _to_sfa_property_xml(key, value, new_element, pdef, obj2id, opts)
               #end
             end
           end
           opts[:level] = level # restore original level
-          n
+          new_element
         end
 
         def _to_sfa_property_xml(pname, value, res_el, pdef, obj2id, opts)
@@ -438,13 +456,13 @@ module OMF::SFA
               cel = res_el.add_child(Nokogiri::XML::Element.new(pname, res_el.document))
             end
             if !value.kind_of?(String) && value.kind_of?(Enumerable)
-              value.each do |o|
-                if o.respond_to?(:to_sfa_xml)
-                  o.to_sfa_xml(cel, obj2id, opts)
+              value.each do |v|
+                if v.respond_to?(:to_sfa_xml)
+                  v.to_sfa_xml(cel, obj2id, opts)
                 else
                   el = cel.add_child(Nokogiri::XML::Element.new(pname, cel.document))
                   #puts (el.methods - Object.new.methods).sort.inspect
-                  el.content = o.to_s
+                  el.content = v.to_s
                   #el.set_attribute('type', (pdef[:type] || 'string').to_s)
                 end
               end

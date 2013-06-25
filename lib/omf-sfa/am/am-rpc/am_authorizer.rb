@@ -45,16 +45,23 @@ module OMF::SFA::AM::RPC
       end
       debug "Requester: #{peer.subject} :: #{peer.user_urn}"
 
+      raise OMF::SFA::AM::InsufficientPrivilegesException.new "Credentials are missing." if credentials.nil?
+
       unless peer.valid_at?     
         OMF::SFA::AM::InsufficientPrivilegesException.new "The certificate has expired or not valid yet. Check the dates."
       end
       user = am_manager.find_or_create_user({:uuid => peer.user_uuid, :urn => peer.user_urn})
 
       creds = credentials.map do |cs|
-        OMF::SFA::AM::PrivilegeCredential.unmarshall(cs)
+        cs = OMF::SFA::AM::PrivilegeCredential.unmarshall(cs)
+        cs.tap do |c|
+          unless c.valid_at?
+            OMF::SFA::AM::InsufficientPrivilegesException.new "The credentials have expired or not valid yet. Check the dates."
+          end
+        end
       end
 
-      
+            
       self.new(account_urn, peer, creds, am_manager)
     end
 
@@ -62,11 +69,11 @@ module OMF::SFA::AM::RPC
     ##### ACCOUNT
 
     def can_renew_account?(account, expiration_time)
-      debug "Check permission 'can_renew_account?' (#{account == @account}, #{@permissions[:can_renew_account?]}, #{@user_cert.valid_at?(expiration_time)})"
+      debug "Check permission 'can_renew_account?' (#{account == @account}, #{@permissions[:can_renew_account?]}, #{@user_cred.valid_at?(expiration_time)})"
       unless account == @account && 
           @permissions[:can_renew_account?] && 
-          @user_cert.valid_at?(expiration_time) # not sure if this is the right check
-        raise OMF::SFA::AM::InsufficientPrivilegesException.new
+          @user_cred.valid_at?(expiration_time) # not sure if this is the right check
+        raise OMF::SFA::AM::InsufficientPrivilegesException.new("Can't renew account after the expiration of the credentials")
       end
     end
         
@@ -87,30 +94,48 @@ module OMF::SFA::AM::RPC
       
       # NOTE: We only look at the first cred
       credential = credentials[0]
-      debug "cred: #{credential.class}"
+      debug "cred: #{credential.inspect}"
       unless (user_cert.user_urn == credential.user_urn)
-        raise OMF::SFA::AM::InsufficientPrivilegesException.new "User urn mismatch in certificate and credentials" 
+        raise OMF::SFA::AM::InsufficientPrivilegesException.new "User urn mismatch in certificate and credentials. cert:'#{user_cert.user_urn}' cred:'#{credential.user_urn}'" 
       end
       
+      @user_cred = credential
       
       
       if credential.type == 'slice'
-        @permissions[:can_create_account?] = credential.privilege?('control')
-        @permissions[:can_view_account?] = credential.privilege?('info')
-        @permissions[:can_renew_account?] = credential.privilege?('refresh')
-        @permissions[:can_close_account?] = credential.privilege?('control')
+        if credential.privilege?('*')
+          @permissions[:can_create_account?] = true 
+          @permissions[:can_view_account?] = true
+          @permissions[:can_renew_account?] = true
+          @permissions[:can_close_account?] = true
+        else
+          @permissions[:can_create_account?] = credential.privilege?('control')
+          @permissions[:can_view_account?] = credential.privilege?('info')
+          @permissions[:can_renew_account?] = credential.privilege?('refresh')
+          @permissions[:can_close_account?] = credential.privilege?('control')
+        end
       end
 
-      @permissions[:can_create_resource?] = credential.privilege?('refresh')
-      @permissions[:can_view_resource?] = credential.privilege?('info')
-      @permissions[:can_release_resource?] = credential.privilege?('refresh')
+      if credential.privilege?('*')
+        @permissions[:can_create_resource?] = true
+        @permissions[:can_view_resource?] = true
+        @permissions[:can_release_resource?] = true
 
-      @permissions[:can_create_lease?] = credential.privilege?('refresh')
-      @permissions[:can_view_lease?] = credential.privilege?('info')
-      @permissions[:can_modify_lease?] = credential.privilege?('refresh')
-      @permissions[:can_release_lease?] = credential.privilege?('refresh')
+        @permissions[:can_view_lease?] = true
+        @permissions[:can_modify_lease?] = true
+        @permissions[:can_release_lease?] = true
+      else
+        @permissions[:can_create_resource?] = credential.privilege?('refresh')
+        @permissions[:can_view_resource?] = credential.privilege?('info')
+        @permissions[:can_release_resource?] = credential.privilege?('refresh')
+
+        @permissions[:can_view_lease?] = credential.privilege?('info')
+        @permissions[:can_modify_lease?] = credential.privilege?('refresh')
+        @permissions[:can_release_lease?] = credential.privilege?('refresh')
+      end
+
       
-      debug "Have permission '#{@permissions.keys.inspect}'"
+      debug "Have permission '#{@permissions.inspect}'"
 
       unless account_urn.nil?
         unless account_urn.eql?(credential.target_urn)
@@ -118,6 +143,14 @@ module OMF::SFA::AM::RPC
         end 
 
         @account = am_manager.find_or_create_account({:urn => account_urn}, self)
+        @account.valid_until = @user_cred.valid_until
+        if @account.closed?
+          if @permissions[:can_create_account?]
+            @account.closed_at = nil
+          else
+            raise OMF::SFA::AM::InsufficientPrivilegesException.new("You don't have the privilege to enable a closed account")
+          end
+        end
         # XXX: decide where/when to create the Project. Right now we are creating it along with the account in the above method
         @project = @account.project
       end

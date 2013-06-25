@@ -81,4 +81,12 @@ describe OAccount do
     a.active?.should == false
   end  
 
+  it 'has Time oproperties' do
+    a = OAccount.create(:valid_until => Time.now + 200)
+    a.valid_until.should be_a_kind_of(Time)
+
+    a.valid_until = Time.now + 100
+    a.valid_until.should be_a_kind_of(Time)
+  end
+
 end

@@ -5,7 +5,7 @@ module OMF::SFA::Resource
 #
   class GURN #< OMF::Common::MObject
 
-    @@def_domain = 'mytestbed.net'
+    @@def_domain = 'omf:nitos'
     @@name2obj = {}
 
     # Create a GURN
@@ -18,7 +18,7 @@ module OMF::SFA::Resource
     #
     def self.create(name, opts = {})
       return name if name.kind_of? self
-      #puts "GUID: #{name}###{model}"
+      #puts "GUID: #{name}###{opts}"
 
       obj = @@name2obj[name]
       return obj if obj
@@ -28,11 +28,11 @@ module OMF::SFA::Resource
       end
 
       unless type = opts[:type]
-        model = opts[model]
+        model = opts[:model]
         if model && model.respond_to?(:sfa_class)
           type =  model.sfa_class
-        elsif model && model.respond_to?(:urn_type)
-          type =  model.urn_type
+        elsif model && model.respond_to?(:resource_type)
+          type =  model.resource_type
         end
       end
       domain = opts[:domain] || @@def_domain
@@ -95,7 +95,7 @@ module OMF::SFA::Resource
 
     def uuid
       unless @uuid
-	@uuid = UUIDTools::UUID.parse(short_name)
+        @uuid = UUIDTools::UUID.parse(short_name)
       end
       @uuid
     rescue ArgumentError
@@ -119,15 +119,15 @@ module DataMapper
       length 256
 
       def custom?
-	true
+        true
       end
 
       def primitive?(value)
-	value.kind_of?(OMF::SFA::Resource::GURN)
+        value.kind_of?(OMF::SFA::Resource::GURN)
       end
 
       def valid?(value, negated = false)
-	super || primitive?(value) #|| value.kind_of?(::String)
+        super || primitive?(value) #|| value.kind_of?(::String)
       end
 
       # We don't want this to be called, but the Model::Property calls
@@ -137,25 +137,25 @@ module DataMapper
       # of casting in +load2+
       #
       def load(value)
-	if value
-	  if value.start_with?('urn')
-	    return OMF::SFA::Resource::GURN.create(value)
-	  end
-	  raise "BUG: Shouldn't be called anymore (#{value})"
-	end
-	nil
+        if value
+          if value.start_with?('urn')
+            return OMF::SFA::Resource::GURN.create(value)
+          end
+          raise "BUG: Shouldn't be called anymore (#{value})"
+        end
+        nil
       end
 
       def load2(value, context_class)
-	if value
-	  #puts "LOAD #{value}||#{value.class}||#{context.inspect}"
-	  return OMF::SFA::Resource::GURN.create(value, context_class)
-	end
-	nil
+        if value
+          #puts "LOAD #{value}||#{value.class}||#{context.inspect}"
+          return OMF::SFA::Resource::GURN.create(value, context_class)
+        end
+        nil
       end
 
       def dump(value)
-	value.to_s unless value.nil?
+        value.to_s unless value.nil?
       end
 
       # Typecasts an arbitrary value to a GURN
@@ -168,13 +168,13 @@ module DataMapper
       #
       # @api private
       def typecast_to_primitive(value)
-	raise "BUG: Shouldn't be called anymore"
+        raise "BUG: Shouldn't be called anymore"
       end
 
       # @override
       def set(resource, value)
-	#puts ">>> SET: #{resource}"
-	set!(resource, load2(value, resource.class))
+        #puts ">>> SET: #{resource}"
+        set!(resource, load2(value, resource.class))
       end
 
 
