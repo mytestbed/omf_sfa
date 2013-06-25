@@ -9,7 +9,6 @@
     <!ENTITY dtn "http://geni-orca.renci.org/owl/dtn.owl#" >
     <!ENTITY layer "http://geni-orca.renci.org/owl/layer.owl#" >
     <!ENTITY rdf "http://www.w3.org/1999/02/22-rdf-syntax-ns#" >
-    <!ENTITY ndl "http://geni-orca.renci.org/owl/topology.owl#" >
     <!ENTITY collections "http://geni-orca.renci.org/owl/collections.owl#" >
 ]>
 
@@ -22,12 +21,23 @@
      xmlns:layer="http://geni-orca.renci.org/owl/layer.owl#"
      xmlns:owl="http://www.w3.org/2002/07/owl#"
      xmlns:xsd="http://www.w3.org/2001/XMLSchema#"
-     xmlns:ndl="http://geni-orca.renci.org/owl/topology.owl#"
      xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
      xmlns:collections="http://geni-orca.renci.org/owl/collections.owl#">
-    <owl:Ontology rdf:about="">
+    <owl:Ontology rdf:about="http://geni-orca.renci.org/owl/topology.owl">
         <owl:imports rdf:resource="http://geni-orca.renci.org/owl/collections.owl"/>
+        <owl:imports rdf:resource="http://geni-orca.renci.org/owl/compute.owl"/>
     </owl:Ontology>
+    
+
+
+    <!-- 
+    ///////////////////////////////////////////////////////////////////////////////////////
+    //
+    // Datatypes
+    //
+    ///////////////////////////////////////////////////////////////////////////////////////
+     -->
+
     
 
 
@@ -74,118 +84,118 @@
 
     <!-- http://geni-orca.renci.org/owl/topology.owl#connectedTo -->
 
-    <owl:ObjectProperty rdf:about="#connectedTo">
+    <owl:ObjectProperty rdf:about="http://geni-orca.renci.org/owl/topology.owl#connectedTo">
         <rdf:type rdf:resource="&owl;TransitiveProperty"/>
-        <rdfs:range rdf:resource="#NetworkElement"/>
-        <rdfs:domain rdf:resource="#NetworkElement"/>
+        <rdfs:domain rdf:resource="http://geni-orca.renci.org/owl/topology.owl#NetworkElement"/>
+        <rdfs:range rdf:resource="http://geni-orca.renci.org/owl/topology.owl#NetworkElement"/>
     </owl:ObjectProperty>
     
 
 
     <!-- http://geni-orca.renci.org/owl/topology.owl#connectionDirection -->
 
-    <owl:ObjectProperty rdf:about="#connectionDirection">
+    <owl:ObjectProperty rdf:about="http://geni-orca.renci.org/owl/topology.owl#connectionDirection">
         <rdf:type rdf:resource="&owl;FunctionalProperty"/>
         <rdfs:range rdf:resource="&layer;ConnectionDirection"/>
         <rdfs:subPropertyOf rdf:resource="&layer;feature"/>
-        <rdfs:domain rdf:resource="#NetworkElement"/>
+        <rdfs:domain rdf:resource="http://geni-orca.renci.org/owl/topology.owl#NetworkElement"/>
     </owl:ObjectProperty>
     
 
 
     <!-- http://geni-orca.renci.org/owl/topology.owl#gmplsConnectedTo -->
 
-    <owl:ObjectProperty rdf:about="#gmplsConnectedTo">
+    <owl:ObjectProperty rdf:about="http://geni-orca.renci.org/owl/topology.owl#gmplsConnectedTo">
         <rdf:type rdf:resource="&owl;SymmetricProperty"/>
         <rdf:type rdf:resource="&owl;TransitiveProperty"/>
-        <rdfs:subPropertyOf rdf:resource="#connectedTo"/>
+        <rdfs:subPropertyOf rdf:resource="http://geni-orca.renci.org/owl/topology.owl#connectedTo"/>
     </owl:ObjectProperty>
     
 
 
     <!-- http://geni-orca.renci.org/owl/topology.owl#hasInputInterface -->
 
-    <owl:ObjectProperty rdf:about="#hasInputInterface">
-        <rdfs:subPropertyOf rdf:resource="#hasInterface"/>
-        <owl:inverseOf rdf:resource="#inputInterfaceOf"/>
+    <owl:ObjectProperty rdf:about="http://geni-orca.renci.org/owl/topology.owl#hasInputInterface">
+        <rdfs:subPropertyOf rdf:resource="http://geni-orca.renci.org/owl/topology.owl#hasInterface"/>
+        <owl:inverseOf rdf:resource="http://geni-orca.renci.org/owl/topology.owl#inputInterfaceOf"/>
     </owl:ObjectProperty>
     
 
 
     <!-- http://geni-orca.renci.org/owl/topology.owl#hasInterface -->
 
-    <owl:ObjectProperty rdf:about="#hasInterface">
+    <owl:ObjectProperty rdf:about="http://geni-orca.renci.org/owl/topology.owl#hasInterface">
         <rdf:type rdf:resource="&owl;TransitiveProperty"/>
-        <rdfs:range rdf:resource="#Interface"/>
-        <rdfs:domain rdf:resource="#NetworkElement"/>
+        <rdfs:range rdf:resource="http://geni-orca.renci.org/owl/topology.owl#Interface"/>
+        <rdfs:domain rdf:resource="http://geni-orca.renci.org/owl/topology.owl#NetworkElement"/>
     </owl:ObjectProperty>
     
 
 
     <!-- http://geni-orca.renci.org/owl/topology.owl#hasOutputInterface -->
 
-    <owl:ObjectProperty rdf:about="#hasOutputInterface">
-        <rdfs:subPropertyOf rdf:resource="#hasInterface"/>
-        <owl:inverseOf rdf:resource="#outputInterfaceOf"/>
+    <owl:ObjectProperty rdf:about="http://geni-orca.renci.org/owl/topology.owl#hasOutputInterface">
+        <rdfs:subPropertyOf rdf:resource="http://geni-orca.renci.org/owl/topology.owl#hasInterface"/>
+        <owl:inverseOf rdf:resource="http://geni-orca.renci.org/owl/topology.owl#outputInterfaceOf"/>
     </owl:ObjectProperty>
     
 
 
     <!-- http://geni-orca.renci.org/owl/topology.owl#hasSwitchMatrix -->
 
-    <owl:ObjectProperty rdf:about="#hasSwitchMatrix">
-        <rdfs:domain rdf:resource="#Device"/>
-        <rdfs:range rdf:resource="#SwitchMatrix"/>
+    <owl:ObjectProperty rdf:about="http://geni-orca.renci.org/owl/topology.owl#hasSwitchMatrix">
+        <rdfs:domain rdf:resource="http://geni-orca.renci.org/owl/topology.owl#Device"/>
+        <rdfs:range rdf:resource="http://geni-orca.renci.org/owl/topology.owl#SwitchMatrix"/>
     </owl:ObjectProperty>
     
 
 
     <!-- http://geni-orca.renci.org/owl/topology.owl#inputInterfaceOf -->
 
-    <owl:ObjectProperty rdf:about="#inputInterfaceOf">
-        <rdfs:subPropertyOf rdf:resource="#interfaceOf"/>
+    <owl:ObjectProperty rdf:about="http://geni-orca.renci.org/owl/topology.owl#inputInterfaceOf">
+        <rdfs:subPropertyOf rdf:resource="http://geni-orca.renci.org/owl/topology.owl#interfaceOf"/>
     </owl:ObjectProperty>
     
 
 
     <!-- http://geni-orca.renci.org/owl/topology.owl#interfaceOf -->
 
-    <owl:ObjectProperty rdf:about="#interfaceOf">
+    <owl:ObjectProperty rdf:about="http://geni-orca.renci.org/owl/topology.owl#interfaceOf">
         <rdf:type rdf:resource="&owl;TransitiveProperty"/>
-        <rdfs:domain rdf:resource="#Interface"/>
-        <rdfs:range rdf:resource="#NetworkElement"/>
-        <owl:inverseOf rdf:resource="#hasInterface"/>
+        <rdfs:domain rdf:resource="http://geni-orca.renci.org/owl/topology.owl#Interface"/>
+        <rdfs:range rdf:resource="http://geni-orca.renci.org/owl/topology.owl#NetworkElement"/>
+        <owl:inverseOf rdf:resource="http://geni-orca.renci.org/owl/topology.owl#hasInterface"/>
     </owl:ObjectProperty>
     
 
 
     <!-- http://geni-orca.renci.org/owl/topology.owl#linkTo -->
 
-    <owl:ObjectProperty rdf:about="#linkTo">
+    <owl:ObjectProperty rdf:about="http://geni-orca.renci.org/owl/topology.owl#linkTo">
         <rdf:type rdf:resource="&owl;IrreflexiveProperty"/>
-        <rdfs:domain rdf:resource="#NetworkTransportElement"/>
-        <rdfs:range rdf:resource="#NetworkTransportElement"/>
-        <rdfs:subPropertyOf rdf:resource="#connectedTo"/>
+        <rdfs:range rdf:resource="http://geni-orca.renci.org/owl/topology.owl#NetworkTransportElement"/>
+        <rdfs:domain rdf:resource="http://geni-orca.renci.org/owl/topology.owl#NetworkTransportElement"/>
+        <rdfs:subPropertyOf rdf:resource="http://geni-orca.renci.org/owl/topology.owl#connectedTo"/>
     </owl:ObjectProperty>
     
 
 
     <!-- http://geni-orca.renci.org/owl/topology.owl#outputInterfaceOf -->
 
-    <owl:ObjectProperty rdf:about="#outputInterfaceOf">
-        <rdfs:subPropertyOf rdf:resource="#interfaceOf"/>
+    <owl:ObjectProperty rdf:about="http://geni-orca.renci.org/owl/topology.owl#outputInterfaceOf">
+        <rdfs:subPropertyOf rdf:resource="http://geni-orca.renci.org/owl/topology.owl#interfaceOf"/>
     </owl:ObjectProperty>
     
 
 
     <!-- http://geni-orca.renci.org/owl/topology.owl#switchedTo -->
 
-    <owl:ObjectProperty rdf:about="#switchedTo">
+    <owl:ObjectProperty rdf:about="http://geni-orca.renci.org/owl/topology.owl#switchedTo">
         <rdf:type rdf:resource="&owl;IrreflexiveProperty"/>
         <rdf:type rdf:resource="&owl;SymmetricProperty"/>
-        <rdfs:domain rdf:resource="#NetworkTransportElement"/>
-        <rdfs:range rdf:resource="#NetworkTransportElement"/>
-        <rdfs:subPropertyOf rdf:resource="#connectedTo"/>
+        <rdfs:range rdf:resource="http://geni-orca.renci.org/owl/topology.owl#NetworkTransportElement"/>
+        <rdfs:domain rdf:resource="http://geni-orca.renci.org/owl/topology.owl#NetworkTransportElement"/>
+        <rdfs:subPropertyOf rdf:resource="http://geni-orca.renci.org/owl/topology.owl#connectedTo"/>
     </owl:ObjectProperty>
     
 
@@ -203,19 +213,19 @@
 
     <!-- http://geni-orca.renci.org/owl/topology.owl#hasGUID -->
 
-    <owl:DatatypeProperty rdf:about="#hasGUID"/>
+    <owl:DatatypeProperty rdf:about="http://geni-orca.renci.org/owl/topology.owl#hasGUID"/>
     
 
 
     <!-- http://geni-orca.renci.org/owl/topology.owl#hasURL -->
 
-    <owl:DatatypeProperty rdf:about="#hasURL"/>
+    <owl:DatatypeProperty rdf:about="http://geni-orca.renci.org/owl/topology.owl#hasURL"/>
     
 
 
     <!-- http://geni-orca.renci.org/owl/topology.owl#hasURN -->
 
-    <owl:DatatypeProperty rdf:about="#hasURN">
+    <owl:DatatypeProperty rdf:about="http://geni-orca.renci.org/owl/topology.owl#hasURN">
         <rdfs:range rdf:resource="&xsd;anyURI"/>
         <rdfs:domain rdf:resource="&owl;Thing"/>
     </owl:DatatypeProperty>
@@ -224,8 +234,8 @@
 
     <!-- http://geni-orca.renci.org/owl/topology.owl#hostInterfaceName -->
 
-    <owl:DatatypeProperty rdf:about="#hostInterfaceName">
-        <rdfs:domain rdf:resource="#Interface"/>
+    <owl:DatatypeProperty rdf:about="http://geni-orca.renci.org/owl/topology.owl#hostInterfaceName">
+        <rdfs:domain rdf:resource="http://geni-orca.renci.org/owl/topology.owl#Interface"/>
         <rdfs:range rdf:resource="&rdfs;Literal"/>
     </owl:DatatypeProperty>
     
@@ -233,7 +243,7 @@
 
     <!-- http://geni-orca.renci.org/owl/topology.owl#hostName -->
 
-    <owl:DatatypeProperty rdf:about="#hostName">
+    <owl:DatatypeProperty rdf:about="http://geni-orca.renci.org/owl/topology.owl#hostName">
         <rdfs:range rdf:resource="&xsd;string"/>
     </owl:DatatypeProperty>
     
@@ -241,7 +251,7 @@
 
     <!-- http://geni-orca.renci.org/owl/topology.owl#managementIP -->
 
-    <owl:DatatypeProperty rdf:about="#managementIP">
+    <owl:DatatypeProperty rdf:about="http://geni-orca.renci.org/owl/topology.owl#managementIP">
         <rdfs:range rdf:resource="&xsd;string"/>
     </owl:DatatypeProperty>
     
@@ -249,8 +259,8 @@
 
     <!-- http://geni-orca.renci.org/owl/topology.owl#numHop -->
 
-    <owl:DatatypeProperty rdf:about="#numHop">
-        <rdfs:domain rdf:resource="#NetworkTransportElement"/>
+    <owl:DatatypeProperty rdf:about="http://geni-orca.renci.org/owl/topology.owl#numHop">
+        <rdfs:domain rdf:resource="http://geni-orca.renci.org/owl/topology.owl#NetworkTransportElement"/>
         <rdfs:range rdf:resource="&xsd;int"/>
     </owl:DatatypeProperty>
     
@@ -323,84 +333,84 @@
 
     <!-- http://geni-orca.renci.org/owl/topology.owl#AccessGroup -->
 
-    <owl:Class rdf:about="#AccessGroup">
-        <rdfs:subClassOf rdf:resource="#NetworkElement"/>
+    <owl:Class rdf:about="http://geni-orca.renci.org/owl/topology.owl#AccessGroup">
+        <rdfs:subClassOf rdf:resource="http://geni-orca.renci.org/owl/topology.owl#NetworkElement"/>
     </owl:Class>
     
 
 
     <!-- http://geni-orca.renci.org/owl/topology.owl#BroadcastConnection -->
 
-    <owl:Class rdf:about="#BroadcastConnection">
-        <rdfs:subClassOf rdf:resource="#BroadcastSegment"/>
+    <owl:Class rdf:about="http://geni-orca.renci.org/owl/topology.owl#BroadcastConnection">
+        <rdfs:subClassOf rdf:resource="http://geni-orca.renci.org/owl/topology.owl#BroadcastSegment"/>
     </owl:Class>
     
 
 
     <!-- http://geni-orca.renci.org/owl/topology.owl#BroadcastPhysicalLink -->
 
-    <owl:Class rdf:about="#BroadcastPhysicalLink">
-        <rdfs:subClassOf rdf:resource="#BroadcastSegment"/>
+    <owl:Class rdf:about="http://geni-orca.renci.org/owl/topology.owl#BroadcastPhysicalLink">
+        <rdfs:subClassOf rdf:resource="http://geni-orca.renci.org/owl/topology.owl#BroadcastSegment"/>
     </owl:Class>
     
 
 
     <!-- http://geni-orca.renci.org/owl/topology.owl#BroadcastSegment -->
 
-    <owl:Class rdf:about="#BroadcastSegment">
-        <rdfs:subClassOf rdf:resource="#Link"/>
+    <owl:Class rdf:about="http://geni-orca.renci.org/owl/topology.owl#BroadcastSegment">
+        <rdfs:subClassOf rdf:resource="http://geni-orca.renci.org/owl/topology.owl#Link"/>
     </owl:Class>
     
 
 
     <!-- http://geni-orca.renci.org/owl/topology.owl#Connection -->
 
-    <owl:Class rdf:about="#Connection">
-        <rdfs:subClassOf rdf:resource="#PPTSegment"/>
+    <owl:Class rdf:about="http://geni-orca.renci.org/owl/topology.owl#Connection">
+        <rdfs:subClassOf rdf:resource="http://geni-orca.renci.org/owl/topology.owl#PPTSegment"/>
     </owl:Class>
     
 
 
     <!-- http://geni-orca.renci.org/owl/topology.owl#ConnectionPoint -->
 
-    <owl:Class rdf:about="#ConnectionPoint">
-        <rdfs:subClassOf rdf:resource="#NetworkTransportElement"/>
+    <owl:Class rdf:about="http://geni-orca.renci.org/owl/topology.owl#ConnectionPoint">
+        <rdfs:subClassOf rdf:resource="http://geni-orca.renci.org/owl/topology.owl#NetworkTransportElement"/>
     </owl:Class>
     
 
 
     <!-- http://geni-orca.renci.org/owl/topology.owl#Copper -->
 
-    <owl:Class rdf:about="#Copper">
-        <rdfs:subClassOf rdf:resource="#BroadcastPhysicalLink"/>
+    <owl:Class rdf:about="http://geni-orca.renci.org/owl/topology.owl#Copper">
+        <rdfs:subClassOf rdf:resource="http://geni-orca.renci.org/owl/topology.owl#BroadcastPhysicalLink"/>
     </owl:Class>
     
 
 
     <!-- http://geni-orca.renci.org/owl/topology.owl#CopperLink -->
 
-    <owl:Class rdf:about="#CopperLink">
-        <rdfs:subClassOf rdf:resource="#PhysicalLink"/>
+    <owl:Class rdf:about="http://geni-orca.renci.org/owl/topology.owl#CopperLink">
+        <rdfs:subClassOf rdf:resource="http://geni-orca.renci.org/owl/topology.owl#PhysicalLink"/>
     </owl:Class>
     
 
 
     <!-- http://geni-orca.renci.org/owl/topology.owl#CrossConnect -->
 
-    <owl:Class rdf:about="#CrossConnect">
-        <rdfs:subClassOf rdf:resource="#SubnetworkConnection"/>
+    <owl:Class rdf:about="http://geni-orca.renci.org/owl/topology.owl#CrossConnect">
+        <rdfs:subClassOf rdf:resource="http://geni-orca.renci.org/owl/topology.owl#SubnetworkConnection"/>
     </owl:Class>
     
 
 
     <!-- http://geni-orca.renci.org/owl/topology.owl#Device -->
 
-    <owl:Class rdf:about="#Device">
-        <rdfs:subClassOf rdf:resource="#NetworkElement"/>
+    <owl:Class rdf:about="http://geni-orca.renci.org/owl/topology.owl#Device">
+        <rdfs:subClassOf rdf:resource="http://geni-orca.renci.org/owl/topology.owl#NetworkElement"/>
         <rdfs:subClassOf>
             <owl:Restriction>
-                <owl:onProperty rdf:resource="#hasSwitchMatrix"/>
-                <owl:someValuesFrom rdf:resource="#SwitchMatrix"/>
+                <owl:onProperty rdf:resource="http://geni-orca.renci.org/owl/topology.owl#hasSwitchMatrix"/>
+                <owl:someValuesFrom rdf:resource="http://geni-orca.renci.org/owl/topology.owl#SwitchMatrix"/>
             </owl:Restriction>
         </rdfs:subClassOf>
     </owl:Class>
@@ -409,27 +419,27 @@
 
     <!-- http://geni-orca.renci.org/owl/topology.owl#FiberLink -->
 
-    <owl:Class rdf:about="#FiberLink">
-        <rdfs:subClassOf rdf:resource="#PhysicalLink"/>
+    <owl:Class rdf:about="http://geni-orca.renci.org/owl/topology.owl#FiberLink">
+        <rdfs:subClassOf rdf:resource="http://geni-orca.renci.org/owl/topology.owl#PhysicalLink"/>
     </owl:Class>
     
 
 
     <!-- http://geni-orca.renci.org/owl/topology.owl#Interface -->
 
-    <owl:Class rdf:about="#Interface">
+    <owl:Class rdf:about="http://geni-orca.renci.org/owl/topology.owl#Interface">
         <rdfs:subClassOf rdf:resource="&collections;Item"/>
-        <rdfs:subClassOf rdf:resource="#ConnectionPoint"/>
-        <rdfs:subClassOf>
-            <owl:Restriction>
-                <owl:onProperty rdf:resource="&layer;labelSet"/>
-                <owl:someValuesFrom rdf:resource="&layer;LabelSet"/>
-            </owl:Restriction>
-        </rdfs:subClassOf>
+        <rdfs:subClassOf rdf:resource="http://geni-orca.renci.org/owl/topology.owl#ConnectionPoint"/>
         <rdfs:subClassOf>
             <owl:Restriction>
                 <owl:onProperty rdf:resource="&layer;label"/>
                 <owl:someValuesFrom rdf:resource="&layer;Label"/>
+            </owl:Restriction>
+        </rdfs:subClassOf>
+        <rdfs:subClassOf>
+            <owl:Restriction>
+                <owl:onProperty rdf:resource="&layer;labelSet"/>
+                <owl:someValuesFrom rdf:resource="&layer;LabelSet"/>
             </owl:Restriction>
         </rdfs:subClassOf>
     </owl:Class>
@@ -438,46 +448,46 @@
 
     <!-- http://geni-orca.renci.org/owl/topology.owl#LayerNetworkElement -->
 
-    <owl:Class rdf:about="#LayerNetworkElement">
-        <rdfs:subClassOf rdf:resource="#NetworkElement"/>
+    <owl:Class rdf:about="http://geni-orca.renci.org/owl/topology.owl#LayerNetworkElement">
+        <rdfs:subClassOf rdf:resource="http://geni-orca.renci.org/owl/topology.owl#NetworkElement"/>
     </owl:Class>
     
 
 
     <!-- http://geni-orca.renci.org/owl/topology.owl#Link -->
 
-    <owl:Class rdf:about="#Link">
-        <rdfs:subClassOf rdf:resource="#NetworkTransportElement"/>
+    <owl:Class rdf:about="http://geni-orca.renci.org/owl/topology.owl#Link">
+        <rdfs:subClassOf rdf:resource="http://geni-orca.renci.org/owl/topology.owl#NetworkTransportElement"/>
     </owl:Class>
     
 
 
     <!-- http://geni-orca.renci.org/owl/topology.owl#NetworkConnection -->
 
-    <owl:Class rdf:about="#NetworkConnection">
+    <owl:Class rdf:about="http://geni-orca.renci.org/owl/topology.owl#NetworkConnection">
         <rdfs:subClassOf rdf:resource="&collections;List"/>
-        <rdfs:subClassOf rdf:resource="#Connection"/>
+        <rdfs:subClassOf rdf:resource="http://geni-orca.renci.org/owl/topology.owl#Connection"/>
     </owl:Class>
     
 
 
     <!-- http://geni-orca.renci.org/owl/topology.owl#NetworkDomain -->
 
-    <owl:Class rdf:about="#NetworkDomain">
+    <owl:Class rdf:about="http://geni-orca.renci.org/owl/topology.owl#NetworkDomain">
         <rdfs:subClassOf rdf:resource="&collections;Set"/>
-        <rdfs:subClassOf rdf:resource="#NetworkElement"/>
+        <rdfs:subClassOf rdf:resource="http://geni-orca.renci.org/owl/topology.owl#NetworkElement"/>
     </owl:Class>
     
 
 
     <!-- http://geni-orca.renci.org/owl/topology.owl#NetworkElement -->
 
-    <owl:Class rdf:about="#NetworkElement">
+    <owl:Class rdf:about="http://geni-orca.renci.org/owl/topology.owl#NetworkElement">
         <rdfs:subClassOf rdf:resource="&owl;Thing"/>
         <rdfs:subClassOf>
             <owl:Restriction>
-                <owl:onProperty rdf:resource="#hasInterface"/>
-                <owl:someValuesFrom rdf:resource="#Interface"/>
+                <owl:onProperty rdf:resource="http://geni-orca.renci.org/owl/topology.owl#hasInterface"/>
+                <owl:someValuesFrom rdf:resource="http://geni-orca.renci.org/owl/topology.owl#Interface"/>
             </owl:Restriction>
         </rdfs:subClassOf>
     </owl:Class>
@@ -486,73 +496,73 @@
 
     <!-- http://geni-orca.renci.org/owl/topology.owl#NetworkTransportElement -->
 
-    <owl:Class rdf:about="#NetworkTransportElement">
-        <rdfs:subClassOf rdf:resource="#NetworkElement"/>
+    <owl:Class rdf:about="http://geni-orca.renci.org/owl/topology.owl#NetworkTransportElement">
+        <rdfs:subClassOf rdf:resource="http://geni-orca.renci.org/owl/topology.owl#NetworkElement"/>
     </owl:Class>
     
 
 
     <!-- http://geni-orca.renci.org/owl/topology.owl#PPTSegment -->
 
-    <owl:Class rdf:about="#PPTSegment">
-        <rdfs:subClassOf rdf:resource="#Link"/>
+    <owl:Class rdf:about="http://geni-orca.renci.org/owl/topology.owl#PPTSegment">
+        <rdfs:subClassOf rdf:resource="http://geni-orca.renci.org/owl/topology.owl#Link"/>
     </owl:Class>
     
 
 
     <!-- http://geni-orca.renci.org/owl/topology.owl#PhysicalLink -->
 
-    <owl:Class rdf:about="#PhysicalLink">
-        <rdfs:subClassOf rdf:resource="#PPTSegment"/>
+    <owl:Class rdf:about="http://geni-orca.renci.org/owl/topology.owl#PhysicalLink">
+        <rdfs:subClassOf rdf:resource="http://geni-orca.renci.org/owl/topology.owl#PPTSegment"/>
     </owl:Class>
     
 
 
     <!-- http://geni-orca.renci.org/owl/topology.owl#Radio -->
 
-    <owl:Class rdf:about="#Radio">
-        <rdfs:subClassOf rdf:resource="#BroadcastPhysicalLink"/>
+    <owl:Class rdf:about="http://geni-orca.renci.org/owl/topology.owl#Radio">
+        <rdfs:subClassOf rdf:resource="http://geni-orca.renci.org/owl/topology.owl#BroadcastPhysicalLink"/>
     </owl:Class>
     
 
 
     <!-- http://geni-orca.renci.org/owl/topology.owl#ReconfigurableInterface -->
 
-    <owl:Class rdf:about="#ReconfigurableInterface">
-        <rdfs:subClassOf rdf:resource="#Interface"/>
+    <owl:Class rdf:about="http://geni-orca.renci.org/owl/topology.owl#ReconfigurableInterface">
+        <rdfs:subClassOf rdf:resource="http://geni-orca.renci.org/owl/topology.owl#Interface"/>
     </owl:Class>
     
 
 
     <!-- http://geni-orca.renci.org/owl/topology.owl#StaticInterface -->
 
-    <owl:Class rdf:about="#StaticInterface">
-        <rdfs:subClassOf rdf:resource="#Interface"/>
+    <owl:Class rdf:about="http://geni-orca.renci.org/owl/topology.owl#StaticInterface">
+        <rdfs:subClassOf rdf:resource="http://geni-orca.renci.org/owl/topology.owl#Interface"/>
     </owl:Class>
     
 
 
     <!-- http://geni-orca.renci.org/owl/topology.owl#SubNetwork -->
 
-    <owl:Class rdf:about="#SubNetwork">
-        <rdfs:subClassOf rdf:resource="#NetworkElement"/>
+    <owl:Class rdf:about="http://geni-orca.renci.org/owl/topology.owl#SubNetwork">
+        <rdfs:subClassOf rdf:resource="http://geni-orca.renci.org/owl/topology.owl#NetworkElement"/>
     </owl:Class>
     
 
 
     <!-- http://geni-orca.renci.org/owl/topology.owl#SubnetworkConnection -->
 
-    <owl:Class rdf:about="#SubnetworkConnection">
+    <owl:Class rdf:about="http://geni-orca.renci.org/owl/topology.owl#SubnetworkConnection">
         <rdfs:subClassOf rdf:resource="&collections;ListItem"/>
-        <rdfs:subClassOf rdf:resource="#Connection"/>
+        <rdfs:subClassOf rdf:resource="http://geni-orca.renci.org/owl/topology.owl#Connection"/>
     </owl:Class>
     
 
 
     <!-- http://geni-orca.renci.org/owl/topology.owl#SwitchMatrix -->
 
-    <owl:Class rdf:about="#SwitchMatrix">
-        <rdfs:subClassOf rdf:resource="#SubNetwork"/>
+    <owl:Class rdf:about="http://geni-orca.renci.org/owl/topology.owl#SwitchMatrix">
+        <rdfs:subClassOf rdf:resource="http://geni-orca.renci.org/owl/topology.owl#SubNetwork"/>
         <rdfs:subClassOf>
             <owl:Restriction>
                 <owl:onProperty rdf:resource="&layer;hasCastType"/>
@@ -572,17 +582,17 @@
 
     <!-- http://geni-orca.renci.org/owl/topology.owl#Trail -->
 
-    <owl:Class rdf:about="#Trail">
-        <rdfs:subClassOf rdf:resource="#PPTSegment"/>
+    <owl:Class rdf:about="http://geni-orca.renci.org/owl/topology.owl#Trail">
+        <rdfs:subClassOf rdf:resource="http://geni-orca.renci.org/owl/topology.owl#PPTSegment"/>
     </owl:Class>
     
 
 
     <!-- http://geni-orca.renci.org/owl/topology.owl#linkConnection -->
 
-    <owl:Class rdf:about="#linkConnection">
+    <owl:Class rdf:about="http://geni-orca.renci.org/owl/topology.owl#linkConnection">
         <rdfs:subClassOf rdf:resource="&collections;ListItem"/>
-        <rdfs:subClassOf rdf:resource="#Connection"/>
+        <rdfs:subClassOf rdf:resource="http://geni-orca.renci.org/owl/topology.owl#Connection"/>
     </owl:Class>
     
 
@@ -594,5 +604,5 @@
 
 
 
-<!-- Generated by the OWL API (version 2.2.1.1101) http://owlapi.sourceforge.net -->
+<!-- Generated by the OWL API (version 3.2.3.1799) http://owlapi.sourceforge.net -->
 

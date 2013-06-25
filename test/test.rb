@@ -3,20 +3,15 @@ require 'dm-core'
 
 
 DataMapper::Logger.new($stdout, :debug)
-#DataMapper.setup(:default, :adapter => :in_memory)
-DataMapper.setup(:default, :adapter => 'yaml', :path => '/tmp/test_yaml')
+DataMapper.setup(:default, :adapter => :in_memory)
+#DataMapper.setup(:default, :adapter => 'yaml', :path => '/tmp/test_yaml')
 
 # DataMapper::Model.append_extensions(Pagination::ClassMethods)
 # DataMapper::Model.append_inclusions(Pagination::InstanceMethods)
-# R.foo
-# r = R.create
-# r2 = R.all[0]
-# r2.foo
 
-require 'omf-sfa/resource/sfa_base'
-require 'omf-sfa/resource/node'
-require 'omf-sfa/resource/interface'
-require 'omf-sfa/resource/link'
+require 'omf-sfa/resource'
+include OMF::SFA::Resource
+
 DataMapper.finalize
 
 
@@ -54,7 +49,7 @@ end
 
 create_node
 create_link
-create_network
+#create_network
 
 n = Node.first
 
