@@ -13,10 +13,10 @@ module OMF::SFA::Resource
     extend OMF::SFA::Resource::Base::ClassMethods
     include OMF::SFA::Resource::Base::InstanceMethods
 
-    sfa_class 'ip'
-    sfa :address, :attribute => :true
-    sfa :netmask, :attribute => :true
-    sfa :ip_type, :attribute => :true # we need to override 'type' with 'ip_type' because there is conflict with 'type' property of OResource
+    sfa_class 'ip_address'
+    sfa :address, :attribute => true
+    sfa :netmask, :attribute => true
+    sfa :ip_type, :attribute => true, :attribute_name => 'type' # we need to override 'type' with 'ip_type' because there is conflict with 'type' property of OResource
 
     # override xml serialization of "ip_type" to "type"
     def _to_sfa_property_xml(pname, value, res_el, pdef, obj2id, opts)
@@ -26,6 +26,10 @@ module OMF::SFA::Resource
         super
       end
     end
+
+    # def _from_sfa_ip_type_property_xml(resource_el, props, context)
+      # puts ">>>>> ADDRESSE #{resource_el}"
+    # end
 
   end
 

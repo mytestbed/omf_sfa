@@ -107,14 +107,25 @@ module OMF::SFA
           _to_sfa_xml(resources, root, obj2id, opts)
         end
 
-        def from_sfa(resource_el)
+        def from_sfa(resource_el, context = {})
           resource = nil
           uuid = nil
           comp_gurn = nil
+
+          unless resource_el.namespace.href == SFA_NAMESPACE_URI
+            warn "WARNING: '#{resource_el.name}' Can't handle non-default namespaces '#{resource_el.namespace.href}'"
+            return
+          end
+
+          client_id_attr = resource_el.attributes['client_id']
+          client_id = client_id_attr ? client_id_attr.value : nil
+
           if uuid_attr = (resource_el.attributes['uuid'] || resource_el.attributes['idref'])
             uuid = UUIDTools::UUID.parse(uuid_attr.value)
-            resource = OMF::SFA::Resource::OResource.first(:uuid => uuid)
-            return resource.from_sfa(resource_el)
+            if resource = OMF::SFA::Resource::OResource.first(:uuid => uuid)
+              context[client_id] = resource if client_id
+              return resource.from_sfa(resource_el, context)
+            end
           end
 
           if comp_id_attr = resource_el.attributes['component_id']
@@ -123,10 +134,12 @@ module OMF::SFA
             #begin
             if uuid = comp_gurn.uuid
               resource = OMF::SFA::Resource::OResource.first(:uuid => uuid)
-              return resource.from_sfa(resource_el)
+              context[client_id] = resource if client_id
+              return resource.from_sfa(resource_el, context)
             end
             if resource = OMF::SFA::Resource::OComponent.first(:urn => comp_gurn)
-              return resource.from_sfa(resource_el)
+              context[client_id] = resource if client_id
+              return resource.from_sfa(resource_el, context)
             end
           else
             # need to create a comp_gurn (the link is an example of that)
@@ -134,17 +147,17 @@ module OMF::SFA
               raise "Need 'sliver_id' for resource '#{resource_el}'"
             end
             sliver_gurn = OMF::SFA::Resource::GURN.parse(sliver_id_attr.value)
-            unless client_id_attr = resource_el.attributes['client_id']
+            unless client_id
               raise "Need 'client_id' for resource '#{resource_el}'"
             end
-            client_id = client_id_attr.value
             opts = {
               :domain => sliver_gurn.domain,
               :type => resource_el.name  # TODO: This most likely will break with NS
             }
             comp_gurn = OMF::SFA::Resource::GURN.create("#{sliver_gurn.short_name}:#{client_id}", opts)
             if resource = OMF::SFA::Resource::OComponent.first(:urn => comp_gurn)
-              return resource.from_sfa(resource_el)
+              context[client_id] = resource if client_id
+              return resource.from_sfa(resource_el, context)
             end
           end
 
@@ -152,7 +165,8 @@ module OMF::SFA
           type = comp_gurn.type
           if res_class = @@sfa_name2class[type]
             resource = res_class.new(:name => comp_gurn.short_name)
-            return resource.from_sfa(resource_el)
+            context[client_id] = resource if client_id
+            return resource.from_sfa(resource_el, context)
           end
           raise "Unknown resource type '#{type}' (#{@@sfa_name2class.keys.join(', ')})"
         end
@@ -473,7 +487,10 @@ module OMF::SFA
           end
         end
 
-        def from_sfa(resource_el)
+        #
+        # @param context Already defined resources in this context
+        #
+        def from_sfa(resource_el, context = {})
           els = {} # this doesn't work with generic namespaces
           resource_el.children.each do |el|
             next unless el.is_a? Nokogiri::XML::Element
@@ -481,27 +498,31 @@ module OMF::SFA
               raise "Missing namespace declaration for '#{el}'"
             end
             unless ns.href == SFA_NAMESPACE_URI
-              puts "WARNING: '#{el.name}' Can't handle non-default namespaces '#{ns.href}'"
+              warn "WARNING: '#{el.name}' Can't handle non-default namespaces '#{ns.href}'"
+              next
             end
             (els[el.name] ||= []) << el
           end
 
+          #puts ">>>>> #{self} - #{self.class.sfa_defs.keys}"
           self.class.sfa_defs.each do |name, props|
             mname = "_from_sfa_#{name}_property_xml".to_sym
+            #puts "#{self}; Checking for #{mname} - #{props[:attribute]} - #{self.respond_to?(mname)}"
             if self.respond_to?(mname)
-              send(mname, resource_el, props)
+              send(mname, resource_el, props, context)
             elsif props[:attribute] == true
+              #puts "Checking '#{name}'"
               next if name.to_s == 'component_name' # skip that one for the moment
-              if v = resource_el.attributes[name]
-                #puts "#{name}::#{name.class} = #{v}--#{v.class}"
+              if v = resource_el.attributes[props[:attribute_name] || name]
+                #puts "#{name}::#{name.class} = #{v}--#{v.class} (#{props})"
                 name = props[:prop_name] || name
-                send("#{name}=".to_sym, v.text)
+                send("#{name}=".to_sym, v.value)
               end
             elsif arr = els[name.to_s]
               #puts "Handling #{name} -- #{props}"
               name = props[:prop_name] || name
               arr.each do |el|
-                #puts "#{name} = #{el.text}"
+                #puts "#{self}: #{name} = #{el.text}"
                 send("#{name}=".to_sym, el.text)
               end
             # else

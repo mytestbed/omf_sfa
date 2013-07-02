@@ -17,16 +17,21 @@ module OMF::SFA::Resource
     sfa :frequency, :attribute => true
     sfa :interfaces, :inline => true, :has_many => true
 
-    def _from_sfa_interfaces_property_xml(resource_el, props)
+    def _from_sfa_interfaces_property_xml(resource_el, props, context)
       resource_el.children.each do |el|
         next unless el.is_a? Nokogiri::XML::Element
         next unless el.name == 'interface_ref' # should check namespace as well
-        interface = OMF::SFA::Resource::OComponent.from_sfa(el)
-        #puts "INTERFACE '#{interface}'"
+
+        unless client_id_attr = el.attributes['client_id']
+          raise "Expected 'client_id' attr in '#{el}'"
+        end
+        unless interface = context[client_id_attr.value]
+          raise "Referencing unknown interface '#{client_id_attr.value} in '#{el}'"
+        end
+        #puts "INTERFACE '#{client_id_attr.value}' => '#{interface}'"
         self.interfaces << interface
       end
     end
-
 
     # Override xml serialization of 'interface'
     def _to_sfa_property_xml(pname, value, res_el, pdef, obj2id, opts)

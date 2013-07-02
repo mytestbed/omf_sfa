@@ -12,6 +12,7 @@ module OMF::SFA::Resource
 
     oproperty :domain, String #, readonly => true
     oproperty :exclusive, DataMapper::Property::Boolean
+    oproperty :component_manager_gurn, OMF::SFA::Resource::GURN
 
     # Status of component. Should be any of configuring, ready, failed, and unknown
     oproperty :status, String, :default => 'unknown'
@@ -33,6 +34,10 @@ module OMF::SFA::Resource
     #sfa_add_namespace :ol, 'http://nitlab.inf.uth.gr/schema/sfa/rspec/1'
 
     sfa :component_id, :attribute => true, :prop_name => :urn # "urn:publicid:IDN+plc:cornell+node+planetlab3-dsl.cs.cornell.edu"
+
+    sfa :client_id, :attribute => true, :prop_name => :name
+    alias_method :client_id, :name
+
     sfa :component_manager_id, :attribute => true, :prop_name => :component_manager_gurn # "urn:publicid:IDN+plc+authority+am"
     sfa :component_name, :attribute => true # "plane
     sfa :leases, :inline => true, :has_many => true

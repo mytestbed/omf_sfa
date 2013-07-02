@@ -19,9 +19,7 @@ module OMF::SFA::Resource
     sfa :available, :attr_value => 'now'  # <available now="true">
     #sfa :sliver_type, :attr_value => 'name'
     sfa :interfaces, :inline => true, :has_many => true
-    sfa :client_id, :attribute => true
-    sfa :exclusive, :attribute => true
-    alias_method :client_id, :name
+#    sfa :exclusive, :attribute => true
 
     # Override xml serialization of 'interface'
     def _to_sfa_property_xml(pname, value, res_el, pdef, obj2id, opts)
@@ -34,12 +32,23 @@ module OMF::SFA::Resource
       super
     end
 
-    def _from_sfa_interfaces_property_xml(resource_el, props)
+    def _from_sfa_interfaces_property_xml(resource_el, props, context)
       resource_el.children.each do |el|
         next unless el.is_a? Nokogiri::XML::Element
         next unless el.name == 'interface' # should check namespace as well
-        interface = OMF::SFA::Resource::OComponent.from_sfa(el)
-        #puts "INTERFACE '#{interface}'"
+        unless client_id_attr = el.attributes['client_id']
+          raise "Expected 'client_id' attr for interface in '#{el}'"
+        end
+        client_id = client_id_attr.value
+        interface = self.interfaces.find do |ifs|
+          ifs.name == client_id
+        end
+        unless interface
+          # doesn't exist yet, create new one
+          interface = context[client_id] = Interface.new(:name => client_id)
+        end
+        interface.from_sfa(el)
+        #puts "INTERFACE '#{interface.inspect}'"
         self.interfaces << interface
       end
     end
