@@ -391,8 +391,11 @@ module OMF::SFA::Resource
             k = k.to_sym
             unless (value = send(k)).nil?
               #puts "OPROPS_TO_HAHS(#{k}): #{value}::#{value.class}--#{oproperty_get(k)}"
-              if value.kind_of? OResource
+              if value.is_a? OResource
                 value = value.to_hash_brief(opts)
+              end
+              if value.is_a? Time
+                value = value.iso8601
               end
               if value.kind_of? Array
                 next if value.empty?

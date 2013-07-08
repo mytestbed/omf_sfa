@@ -28,6 +28,7 @@ class Time
   end
 end
 
+raise "JSON deserialisation no longer working - require 'json' early" unless JSON.load(Time.now.to_json).is_a? Time
 
 module OMF::SFA::Resource
 
@@ -60,13 +61,6 @@ module OMF::SFA::Resource
       # http://www.ruby-lang.org/en/news/2013/02/22/json-dos-cve-2013-0269/
       val = JSON.load(js)[0]
       #puts "VALUE: #{js.inspect}-#{val.inspect}"
-      if val.is_a? Hash
-        # HACK ALERT: Not sure why JSON doesn't fix this by itself
-        case val['json_class']
-        when 'Time'
-          val = Time.json_create(val)
-        end
-      end
       if val.kind_of? Array
         val.tap {|v| v.extend(ArrayProxy).instance_variable_set(:@oproperty, self) }
       end
