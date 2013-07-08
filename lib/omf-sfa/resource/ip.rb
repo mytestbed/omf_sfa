@@ -31,6 +31,17 @@ module OMF::SFA::Resource
       # puts ">>>>> ADDRESSE #{resource_el}"
     # end
 
+    def to_hash(objs = {}, opts = {})
+      h = {}
+      uuid = h[:uuid] = self.uuid.to_s
+      objs[self] = true
+      to_hash_long(h, objs.merge(brief: true), opts)
+      h
+    end
+
+    def to_hash_brief(opts = {})
+      to_hash(opts)
+    end
   end
 
 end # OMF::SFA::Resource

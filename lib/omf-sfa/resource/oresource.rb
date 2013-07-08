@@ -4,6 +4,7 @@ require 'dm-types'
 require 'dm-validations'
 require 'omf_common/lobject'
 require 'set'
+require 'active_support/inflector'
 
 #require 'omf-sfa/resource/oproperty'
 autoload :OProperty, 'omf-sfa/resource/oproperty'
