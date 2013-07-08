@@ -1,9 +1,10 @@
 require 'omf-sfa/resource/oresource'
 require 'json'
+require 'time'
 
-# We use the JSON serialization for Time objecs from 'json/add/core' in order to avoid 
-# the conflicts with the 'active_support/core_ext' which is included in 'omf_common' 
-# and overrides Time objects serialization. We want 'JSON.load' to return actual Time 
+# We use the JSON serialization for Time objecs from 'json/add/core' in order to avoid
+# the conflicts with the 'active_support/core_ext' which is included in 'omf_common'
+# and overrides Time objects serialization. We want 'JSON.load' to return actual Time
 # objects instead of Strings.
 #
 class Time
@@ -29,7 +30,7 @@ end
 
 
 module OMF::SFA::Resource
-  
+
   # Each resource will have a few properties.
   #
   #
@@ -41,23 +42,31 @@ module OMF::SFA::Resource
     property :value, String # actually serialized Object
 
     belongs_to :o_resource
-    
+
     module ArrayProxy
       def << (val)
         @oproperty << val
         super
       end
     end
-  
+
     def value=(val)
       attribute_set(:value, JSON.generate([val]))
       save
-    end 
+    end
 
     def value()
       js = attribute_get(:value)
       # http://www.ruby-lang.org/en/news/2013/02/22/json-dos-cve-2013-0269/
       val = JSON.load(js)[0]
+      #puts "VALUE: #{js.inspect}-#{val.inspect}"
+      if val.is_a? Hash
+        # HACK ALERT: Not sure why JSON doesn't fix this by itself
+        case val['json_class']
+        when 'Time'
+          val = Time.json_create(val)
+        end
+      end
       if val.kind_of? Array
         val.tap {|v| v.extend(ArrayProxy).instance_variable_set(:@oproperty, self) }
       end
@@ -71,11 +80,12 @@ module OMF::SFA::Resource
       attribute_set(:value, JSON.generate([v]))
       save
     end
+
     #def value()
     #  #puts "VALUE() @value_:'#{@value_.inspect}'"
     #  unless @value_
     #    js = attribute_get(:value)
-    #    puts "JS #{js.inspect}"      
+    #    puts "JS #{js.inspect}"
     #    if js
     #      @value_ = JSON.parse(js)[0]
     #      if @value_.kind_of? Array
@@ -83,10 +93,10 @@ module OMF::SFA::Resource
     #      end
     #    end
     #  end
-    #  #puts "VALUE()2 @value_:'#{@value_.inspect}'"      
+    #  #puts "VALUE()2 @value_:'#{@value_.inspect}'"
     #  @value_
     #end
-    
+
     def valid?(context = :default)
       self.name != nil #&& self.value != nil
     end
@@ -109,7 +119,7 @@ module OMF::SFA::Resource
     end
 
     #before :save do
-    #  #puts "SAVING BEFORE @value_dirty:'#{@value_dirty}', @old_value_:'#{@old_value_}', @value_:'#{@value_}'"      
+    #  #puts "SAVING BEFORE @value_dirty:'#{@value_dirty}', @old_value_:'#{@old_value_}', @value_:'#{@value_}'"
     #  begin
     #    if @value_dirty || (@old_value_ ? @old_value_ != @value_ : false)
     #      attribute_set(:value, JSON.generate([@value_]))
@@ -118,9 +128,9 @@ module OMF::SFA::Resource
     #  rescue Exception => ex
     #    puts ">>>>>>>>> ERROR #{ex}"
     #  end
-    #  #puts "SAVING AFTER @value_dirty:'#{@value_dirty}', @old_value_:'#{@old_value_}', @value_:'#{@value_}'"      
-    #end      
-    
+    #  #puts "SAVING AFTER @value_dirty:'#{@value_dirty}', @old_value_:'#{@old_value_}', @value_:'#{@value_}'"
+    #end
+
   end # OProperty
 
 end # OMF::SFA::Resource
