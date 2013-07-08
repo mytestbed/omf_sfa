@@ -61,6 +61,12 @@ module OMF::SFA::AM::Rest
     end
   end
 
+  class UnsupportedMethodException < RackException
+    def initialize()
+      super 403, "Unsupported Method"
+    end
+  end
+
   class UnknownResourceException < RackException
     def initialize(reason)
       super 404, reason
@@ -87,7 +93,7 @@ module OMF::SFA::AM::Rest
         req = ::Rack::Request.new(env)
         content_type, body = dispatch(req)
         #return [200 ,{'Content-Type' => 'application/json'}, JSON.pretty_generate(body)]
-        return [200 ,{'Content-Type' => content_type}, body]
+        return [200 ,{'Content-Type' => content_type}, body + "\n"]
       rescue RackException => rex
         return rex.reply
       rescue OMF::SFA::AM::AMManagerException => aex
@@ -111,7 +117,112 @@ module OMF::SFA::AM::Rest
       end
     end
 
+    def on_get(resource_uri, opts)
+      debug 'get: resource_uri: "', resource_uri, '"'
+      if resource_uri
+        resource = opts[:resource]
+        show_resource_status(resource, opts)
+      else
+        show_resource_list(opts)
+      end
+    end
+
+    def on_post(resource_uri, opts)
+      #debug 'POST: resource_uri "', resource_uri, '" - ', opts.inspect
+      description, format = parse_body(opts, [:json, :form])
+      debug 'POST: body(', format, '): "', description, '"'
+
+      if resource = opts[:resource]
+        modify_resource(resource, description, opts)
+      else
+        if resource_uri
+          if UUID.validate(resource_uri)
+            description[:uuid] = resource_uri
+          else
+            description[:name] = resource_uri
+          end
+        end
+        resource = create_resource(description, opts)
+      end
+
+      show_resource_status(resource, opts)
+    end
+
+    def on_delete(resource_uri, opts)
+      if resource = opts[:resource]
+        if (context = opts[:context])
+          remove_resource_from_context(resource, context)
+          res = show_resource_status(resource, opts)
+        else
+          debug "Delete resource #{resource}"
+          res = show_deleted_resource(resource.uuid)
+          resource.destroy
+        end
+      else
+        # Delete ALL resources of this type
+        raise OMF::SFA::AM::Rest::BadRequestException.new "I'm sorry, Dave. I'm afraid I can't do that."
+      end
+      resource.reload
+      return res
+    end
+
+
+    def find_handler(path, opts)
+      debug "find_handler: path; '#{path}' opts: #{opts}"
+      resource_id = opts[:resource_uri] = path.shift
+      opts[:resource] = nil
+      if resource_id
+        resource = opts[:resource] = find_resource(resource_id)
+      end
+      return self if path.empty?
+
+      raise OMF::SFA::AM::Rest::UnknownResourceException.new "Unknown resource '#{resource_id}'." unless resource
+      opts[:context] = resource
+      comp = path.shift
+      if (handler = @coll_handlers[comp.to_sym])
+        opts[:resource_uri] = path.join('/')
+        if handler.is_a? Proc
+          return handler.call(path, opts)
+        end
+        return handler.find_handler(path, opts)
+      end
+      raise UnknownResourceException.new "Unknown sub collection '#{comp}' for '#{resource_id}:#{resource.class}'."
+    end
+
+
+
     protected
+
+    def modify_resource(resource, description, opts)
+      if description[:uuid]
+        raise "Can't change uuid" unless  description[:uuid] == user.uuid.to_s
+      end
+      resource.update(description) ? resource : nil
+      #raise UnsupportedMethodException.new
+    end
+
+    def create_resource(description, opts)
+      debug "Create: #{description.class}--#{description}"
+      # Let's find if the resource already exists. If yes, just modify it
+      if uuid = description[:uuid]
+        res = @resource_class.first(uuid: uuid)
+      # elsif name = description['name']
+        # res = @resource_class.first(name: name, project: project)
+      end
+      if res
+        return modify_resource(res, description, opts)
+      end
+
+      resource = @resource_class.create(description)
+      debug "Created: #{resource}"
+      return resource
+      #raise UnsupportedMethodException.new
+    end
+
+    def remove_resource_from_context(user, context)
+      raise UnsupportedMethodException.new
+    end
+
 
 
     # Extract information from the request object and
@@ -135,18 +246,18 @@ module OMF::SFA::AM::Rest
         raise UnsupportedBodyFormatException.new('Send body raw, not as form data')
       end
       (body = body.string) if body.is_a? StringIO
-      debug 'PARSE_BODY(', body.class, ', ', req.content_type, '): ', body
-
+      debug 'PARSE_BODY(ct: ', req.content_type, '): ', body.inspect
       unless content_type = req.content_type
         body.strip!
         if ['/', '{', '['].include?(body[0])
           content_type = 'application/json'
         else
           if body.empty?
+            params = req.params.inject({}){|h,(k,v)| h[k.to_sym] = v; h}
             if allowed_formats.include?(:json)
-              return [{}, :json]
+              return [params, :json]
             elsif allowed_formats.include?(:form)
-              return [{}, :form]
+              return [params, :form]
             end
           end
           # default is XML
@@ -220,18 +331,22 @@ module OMF::SFA::AM::Rest
     end
 
 
-    def find_resource(resource_id, resource_class)
-      if resource_id.start_with?('urn')
-        fopts = {:urn => resource_id}
+
+
+    def find_resource(resource_uri, description = {})
+      descr = description.dup
+      descr.delete(:resource_uri)
+      if UUID.validate(resource_uri)
+        descr[:uuid] = resource_uri
       else
-        begin
-          fopts = {:uuid => UUIDTools::UUID.parse(resource_id)}
-        rescue ArgumentError => ax
-          fopts = {:name => resource_id}
-        end
+        descr[:name] = resource_uri
+      end
+      if resource_uri.start_with?('urn')
+        descr[:urn] = resource_uri
       end
       #authenticator = Thread.current["authenticator"]
-      resource_class.first(fopts)
+      debug "Finding #{@resource_class}.first(#{descr})"
+      @resource_class.first(descr)
     end
 
     def show_resources(resources, resource_name, opts)
@@ -261,30 +376,6 @@ module OMF::SFA::AM::Rest
       ['application/json', JSON.pretty_generate(res)]
     end
 
-    # Helper functions
-
-    # Return relevant Sliver instance.
-    #
-    # +opts+ is assume to contain a ':sliver_id' entry holding the
-    # sliver name. It will also store the returned sliver in
-    # 'opts[sliver]'.
-    #
-    # If the names sliver cannot be found an +UnknownResourceException+
-    # exception is raised, excpet if +raise_if_nil+ is set to false.
-    #
-    # @returns Sliver instance
-    #
-    # def _get_sliver(opts, raise_if_nil = true)
-      # sliver = opts[:sliver]
-      # return sliver if sliver
-#
-      # sliver_id = opts[:sliver_id] ||= @opts[:sliver_id]
-      # sliver = OMF::SFA::Resource::Sliver.first(:name => sliver_id)
-      # if raise_if_nil && sliver.nil?
-        # raise UnknownResourceException.new "Sliver '#{sliver_id}' doesn't exist"
-      # end
-      # sliver
-    # end
 
   end
 end
