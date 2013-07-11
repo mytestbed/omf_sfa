@@ -12,7 +12,7 @@ module OMF::SFA::Resource
     def to_hash_long(h, objs, opts = {})
       super
       h[:projects] = self.projects.map do |p|
-        p.to_hash_brief(opts)
+        p.to_hash(objs, opts)
       end
       h
     end

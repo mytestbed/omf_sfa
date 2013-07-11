@@ -90,33 +90,8 @@ module OMF::SFA::Resource
         end
 
         define_method "#{pname}=" do |v|
-          #unless v.kind_of? Enumerable
-          #  raise "property '#{pname}' expects a value of type Enumerable"
-          #end
-
-          #val = self.eval("#{pname}")
-          #puts "RESPOND: '#{respond_to?(pname.to_sym)}' self:'#{self.inspect}'"
-          #val = send(pname.to_sym).value#.dup
-          #val = oproperty_get(pname)
-          #unless v.is_a? PropValueArray
-          unless v.is_a? Array
-            # we really want to store it as a PropValueArray
-            #c = PropValueArray.new
-            #if v.respond_to?(:each)
-            #  v.each {|e| c << e}
-            #else
-            #  c << v
-            #end
-            #v = c
-            v = [v]
-            #puts "VAL is '#{val}'"
-          end
-          #puts "NAME is '#{name}'"
-          #puts "V is '#{v}'"
-          oproperty_set(pname, v)
+          oproperty_set(pname, v, type)
         end
-
-
       else
         op[name] = opts
 
@@ -203,13 +178,14 @@ module OMF::SFA::Resource
     end
     alias_method :[], :oproperty_get
 
-    def oproperty_set(pname, value)
-      #puts "OPROPERTY_SET pname:'#{pname}', value:'#{value.class}', self:'#{self.inspect}'"
+    def oproperty_set(pname, value, type = nil)
+      #puts "OPROPERTY_SET pname:'#{pname}', value:'#{value.class}'-#{type}, self:'#{self.inspect}'"
       pname = pname.to_sym
       if pname == :name
         self.name = value
       else
         self.save
+        #puts ">>>>>" + @@oprops[self.class][pname.to_s].to_s
         prop = self.oproperties.first_or_create(:name => pname)
         prop.value = value
       end
@@ -358,7 +334,15 @@ module OMF::SFA::Resource
       objs[self] = true
       return h if opts[:brief]
 
-      to_hash_long(h, objs.merge(brief: true), opts)
+      if max_levels = opts[:max_levels]
+        level = (opts[:level] || 0) + 1
+        opts = opts.merge(level: level)
+        opts[:brief] = true if level > max_levels
+      else
+        opts = opts.merge(brief: true)
+      end
+      #puts ">>>> #{opts}"
+      to_hash_long(h, objs, opts)
       h
     end
 
@@ -375,7 +359,7 @@ module OMF::SFA::Resource
     end
 
     def to_hash_long(h, objs = {}, opts = {})
-      _oprops_to_hash(h, opts.merge(brief: true))
+      _oprops_to_hash(h, objs, opts)
       h
     end
 
@@ -383,7 +367,7 @@ module OMF::SFA::Resource
       @@default_href_prefix
     end
 
-    def _oprops_to_hash(h, opts)
+    def _oprops_to_hash(h, objs, opts)
       klass = self.class
       while klass
         if op = @@oprops[klass]
@@ -392,7 +376,7 @@ module OMF::SFA::Resource
             unless (value = send(k)).nil?
               #puts "OPROPS_TO_HAHS(#{k}): #{value}::#{value.class}--#{oproperty_get(k)}"
               if value.is_a? OResource
-                value = value.to_hash_brief(opts)
+                value = value.to_hash(objs, opts)
               end
               if value.is_a? Time
                 value = value.iso8601
@@ -400,7 +384,7 @@ module OMF::SFA::Resource
               if value.kind_of? Array
                 next if value.empty?
                 value = value.collect do |e|
-                  (e.kind_of? OResource) ? e.to_hash_brief(opts) : e
+                  (e.kind_of? OResource) ? e.to_hash(objs, opts) : e
                 end
               end
 

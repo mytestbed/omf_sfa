@@ -316,7 +316,7 @@ module OMF::SFA::AM::Rest
     def show_resource_status(resource, opts)
       if resource
         about = opts[:req].path
-        props = resource.to_hash({}, :href_use_class_prefix => true)
+        props = resource.to_hash({}, :href_use_class_prefix => true, :max_levels => 1)
         props.delete(:type)
         res = {
           :about => about,

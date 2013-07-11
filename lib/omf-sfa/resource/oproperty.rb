@@ -60,7 +60,7 @@ module OMF::SFA::Resource
       js = attribute_get(:value)
       # http://www.ruby-lang.org/en/news/2013/02/22/json-dos-cve-2013-0269/
       val = JSON.load(js)[0]
-      #puts "VALUE: #{js.inspect}-#{val.inspect}"
+      #puts "VALUE: #{js.inspect}-#{val.inspect}-#{val.class}"
       if val.kind_of? Array
         val.tap {|v| v.extend(ArrayProxy).instance_variable_set(:@oproperty, self) }
       end
