@@ -48,6 +48,7 @@ module OMF::SFA::Resource
           interface = context[client_id] = Interface.new(:name => client_id)
         end
         interface.from_sfa(el)
+        interface.node = self
         #puts "INTERFACE '#{interface.inspect}'"
         self.interfaces << interface
       end
