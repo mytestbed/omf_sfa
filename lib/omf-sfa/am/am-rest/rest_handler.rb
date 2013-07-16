@@ -130,22 +130,27 @@ module OMF::SFA::AM::Rest
     def on_post(resource_uri, opts)
       #debug 'POST: resource_uri "', resource_uri, '" - ', opts.inspect
       description, format = parse_body(opts, [:json, :form])
-      debug 'POST: body(', format, '): "', description, '"'
+      debug 'POST(', resource_uri, '): body(', format, '): "', description, '"'
 
       if resource = opts[:resource]
         modify_resource(resource, description, opts)
       else
-        if resource_uri
-          if UUID.validate(resource_uri)
-            description[:uuid] = resource_uri
-          else
-            description[:name] = resource_uri
+        if description.is_a? Enumerable
+          description.each do |d|
+            create_resource(d, opts)
           end
+        else
+          resource = create_resource(description, opts, resource_uri)
         end
-        resource = create_resource(description, opts)
       end
 
-      show_resource_status(resource, opts)
+      if resource
+        show_resource_status(resource, opts)
+      elsif context = opts[:context]
+        show_resource_status(context, opts)
+      else
+        raise "Report me. Should never get here"
+      end
     end
 
     def on_delete(resource_uri, opts)
@@ -195,34 +200,49 @@ module OMF::SFA::AM::Rest
 
     def modify_resource(resource, description, opts)
       if description[:uuid]
-        raise "Can't change uuid" unless  description[:uuid] == user.uuid.to_s
+        raise "Can't change uuid" unless  description[:uuid] == resource.uuid.to_s
       end
+      description.delete(:href)
       resource.update(description) ? resource : nil
       #raise UnsupportedMethodException.new
     end
 
-    def create_resource(description, opts)
+
+    def create_resource(description, opts, resource_uri = nil)
       debug "Create: #{description.class}--#{description}"
-      # Let's find if the resource already exists. If yes, just modify it
-      if uuid = description[:uuid]
-        res = @resource_class.first(uuid: uuid)
-      # elsif name = description['name']
-        # res = @resource_class.first(name: name, project: project)
-      end
-      if res
-        return modify_resource(res, description, opts)
+
+      if resource_uri
+        if UUID.validate(resource_uri)
+          description[:uuid] = resource_uri
+        else
+          description[:name] = resource_uri
+        end
       end
 
-      resource = @resource_class.create(description)
-      debug "Created: #{resource}"
+      # Let's find if the resource already exists. If yes, just modify it
+      if uuid = description[:uuid]
+        debug 'Trying to find resource ', uuid, "'"
+        resource = @resource_class.first(uuid: uuid)
+      end
+      if resource
+        modify_resource(resource, description, opts)
+      else
+        resource = @resource_class.create(description)
+        debug "Created: #{resource}"
+      end
+      if (context = opts[:context])
+        add_resource_to_context(resource, context)
+      end
       return resource
-      #raise UnsupportedMethodException.new
+    end
+
+    def add_resource_to_context(user, context)
+      raise UnsupportedMethodException.new
     end
 
     def remove_resource_from_context(user, context)
       raise UnsupportedMethodException.new
     end
-
 
 
     # Extract information from the request object and
@@ -269,7 +289,7 @@ module OMF::SFA::AM::Rest
         when 'application/json'
           raise UnsupportedBodyFormatException.new(:json) unless allowed_formats.include?(:json)
           jb = JSON.parse(body)
-          return [jb, :json]
+          return [_rec_sym_keys(jb), :json]
         when 'text/xml'
           xb = Nokogiri::XML(body)
           raise UnsupportedBodyFormatException.new(:xml) unless allowed_formats.include?(:xml)
@@ -374,6 +394,25 @@ module OMF::SFA::AM::Rest
         deleted: true
       }
       ['application/json', JSON.pretty_generate(res)]
+    end
+
+    # Recursively Symbolize keys of hash
+    #
+    def _rec_sym_keys(array_or_hash)
+      if array_or_hash.is_a? Array
+        return array_or_hash.map {|e| e.is_a?(Hash) ? _rec_sym_keys(e) : e }
+      end
+
+      h = {}
+      array_or_hash.each do |k, v|
+        if v.is_a? Hash
+          v = _rec_sym_keys(v)
+        elsif v.is_a? Array
+          v = v.map {|e| e.is_a?(Hash) ? _rec_sym_keys(e) : e }
+        end
+        h[k.to_sym] = v
+      end
+      h
     end
 
 
