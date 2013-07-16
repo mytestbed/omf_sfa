@@ -133,13 +133,24 @@ module OMF::SFA::AM::Rest
       debug 'POST(', resource_uri, '): body(', format, '): "', description, '"'
 
       if resource = opts[:resource]
+        debug 'POST: Modify ', resource
         modify_resource(resource, description, opts)
       else
-        if description.is_a? Enumerable
-          description.each do |d|
+        debug 'POST: Create? ', description.class
+        if description.is_a? Array
+          resources = description.map do |d|
             create_resource(d, opts)
           end
+          return show_resources(resources, nil, opts)
         else
+          debug 'POST: Create ', resource_uri
+          if resource_uri
+            if UUID.validate(resource_uri)
+              description[:uuid] = resource_uri
+            else
+              description[:name] = resource_uri
+            end
+          end
           resource = create_resource(description, opts, resource_uri)
         end
       end
@@ -339,7 +350,7 @@ module OMF::SFA::AM::Rest
         props = resource.to_hash({}, :href_use_class_prefix => true, :max_levels => 1)
         props.delete(:type)
         res = {
-          :about => about,
+          #:about => about,
           :type => resource.resource_type,
         }.merge!(props)
         #res = {"#{resource.resource_type}_response" => res}
@@ -370,13 +381,18 @@ module OMF::SFA::AM::Rest
     end
 
     def show_resources(resources, resource_name, opts)
-      prefix = about = opts[:req].path
-      res = {
-        :about => opts[:req].path,
-        resource_name => resources.map do |a|
-          a.to_hash_brief(:href_use_class_prefix => true)
-        end
-      }
+      res_hash = resources.map do |a|
+        a.to_hash_brief(:href_use_class_prefix => true)
+      end
+      if resource_name
+        prefix = about = opts[:req].path
+        res = {
+          #:about => opts[:req].path,
+          resource_name => res_hash
+        }
+      else
+        res = res_hash
+      end
       ['application/json', JSON.pretty_generate(res)]
     end
 
