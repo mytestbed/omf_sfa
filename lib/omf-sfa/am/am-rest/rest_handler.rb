@@ -1,7 +1,7 @@
 
 
 require 'nokogiri'
-
+require 'uuid'
 # require 'omf-sfa/resource/sliver'
 # require 'omf-sfa/resource/node'
 # require 'omf-sfa/resource/link'
@@ -90,6 +90,7 @@ module OMF::SFA::AM::Rest
 
     def call(env)
       begin
+        Thread.current[:http_host] = env["HTTP_HOST"]
         req = ::Rack::Request.new(env)
         content_type, body = dispatch(req)
         #return [200 ,{'Content-Type' => 'application/json'}, JSON.pretty_generate(body)]
@@ -265,6 +266,8 @@ module OMF::SFA::AM::Rest
     def populate_opts(req, opts)
       path = req.path_info.split('/').select { |p| !p.empty? }
       opts[:target] = find_handler(path, opts)
+      rl = req.params.delete('_level')
+      opts[:max_level] = rl ? rl.to_i : 0
       #opts[:target].inspect
       opts
     end
@@ -347,7 +350,7 @@ module OMF::SFA::AM::Rest
     def show_resource_status(resource, opts)
       if resource
         about = opts[:req].path
-        props = resource.to_hash({}, :href_use_class_prefix => true, :max_levels => 1)
+        props = resource.to_hash({}, :max_level => opts[:max_level])
         props.delete(:type)
         res = {
           #:about => about,
@@ -381,8 +384,11 @@ module OMF::SFA::AM::Rest
     end
 
     def show_resources(resources, resource_name, opts)
+      hopts = {max_level: opts[:max_level], level: 1}
+      objs = {}
       res_hash = resources.map do |a|
-        a.to_hash_brief(:href_use_class_prefix => true)
+        a.to_hash(objs, hopts)
+        #a.to_hash_brief(:href_use_class_prefix => true)
       end
       if resource_name
         prefix = about = opts[:req].path

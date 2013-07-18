@@ -47,7 +47,12 @@ module OMF::SFA::Resource
     module ArrayProxy
       def << (val)
         @oproperty << val
+        @on_add_block.call(val, true) if @on_add_block
         super
+      end
+
+      def on_added(&block)
+        @on_add_block = block
       end
     end
 
