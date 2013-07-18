@@ -81,10 +81,11 @@ module OMF::SFA::AM::Rest
 
 
   class RestHandler < OMF::Common::LObject
+    @@html_template = '<html><body>###</body></html>'
 
-    def initialize(am_manager, opts = {})
+    def initialize(opts = {})
       #puts "INIT>>> #{am_manager}::#{self}"
-      @am_manager = am_manager
+      # @am_manager = am_manager
       @opts = opts
     end
 
@@ -93,6 +94,11 @@ module OMF::SFA::AM::Rest
         Thread.current[:http_host] = env["HTTP_HOST"]
         req = ::Rack::Request.new(env)
         content_type, body = dispatch(req)
+        if req['_format'] == 'html' && content_type == 'application/json'
+          body = _convert_to_html(body, env, req)
+          content_type = 'text/html'
+        end
+
         #return [200 ,{'Content-Type' => 'application/json'}, JSON.pretty_generate(body)]
         return [200 ,{'Content-Type' => content_type}, body + "\n"]
       rescue RackException => rex
@@ -328,7 +334,6 @@ module OMF::SFA::AM::Rest
       opts = {}
       populate_opts(req, opts)
       opts[:req] = req
-      opts[:format] = req['format'] || 'json'
       #puts "OPTS>>>> #{opts.inspect}"
       method = req.request_method
       target = opts[:target] #|| self
@@ -437,7 +442,70 @@ module OMF::SFA::AM::Rest
       h
     end
 
+    def _convert_to_html(json_str, env, req)
+      res = []
+      res << "<h1>#{env["HTTP_HOST"]}</h1>"
+      path = req.path.split('/').select { |p| !p.empty? }
+      h2 = ["<a href='/?_format=html&_level=0'>ROOT</a>"]
+      path.each_with_index do |s, i|
+        h2 << "<a href='/#{path[0 .. i].join('/')}?_format=html&_level=#{i % 2 ? 0: 1}'>#{s}</a>"
+      end
+      res << "<h2>#{h2.join('/')}</h2>"
+
+      _convert_obj_to_html(JSON.parse(json_str), res)
+      @@html_template.gsub('###', res.join("\n"))
+    end
+
+    def _convert_obj_to_html(obj, res)
+      klass = obj.class
+      #puts ">>>> #{obj.class}::#{obj}"
+      if obj.is_a? Array
+        res << '<ul>'
+        _convert_array_to_html(obj, res)
+        res << '</ul>'
+      elsif obj.is_a? Hash
+        res << '<ul>'
+        _convert_hash_to_html(obj, res)
+        res << '</ul>'
+      else
+        if obj.to_s.start_with? 'http://'
+          res << _convert_link_to_html(obj)
+        else
+          res << " <span class='value'>#{obj}</span> "
+        end
+      end
+    end
+
+    def _convert_array_to_html(array, res)
+      array.each do |obj|
+        if obj.is_a? Hash
+          if name = obj['name']
+            #res << "<li>#{name}: (#{_convert_link_to_html obj['href']})"
+            res << "<li>#{name}:"
+          else
+            res << "<li>#{_convert_link_to_html obj['href']}:"
+          end
+        else
+          res << '<li>'
+        end
+        _convert_obj_to_html(obj, res)
+        res << '</li>'
+      end
+    end
+
+    def _convert_hash_to_html(hash, res)
+      hash.each do |key, obj|
+        res << "<li><span class='key'>#{key}:</span>"
+        _convert_obj_to_html(obj, res)
+        res << '</li>'
+      end
+    end
+
+    def _convert_link_to_html(href)
+      "<a href='#{href}?_format=html&_level=1'>#{href}</a>"
+    end
 
   end
+
 end
 
