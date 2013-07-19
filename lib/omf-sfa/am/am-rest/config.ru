@@ -39,6 +39,10 @@ map '/accounts' do
   run OMF::SFA::AM::Rest::AccountHandler.new(opts)
 end
 
+map '/slices' do
+  require 'omf-sfa/am/am-rest/account_handler'
+  run opts[:account_handler]
+end
 
 map "/resources" do
   require 'omf-sfa/am/am-rest/resource_handler'

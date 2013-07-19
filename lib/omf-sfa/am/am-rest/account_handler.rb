@@ -10,10 +10,13 @@ module OMF::SFA::AM::Rest
   #
   class AccountHandler < RestHandler
 
-    def initialize(am_manager, opts = {})
+    def initialize(opts = {})
       super
       @resource_class = OMF::SFA::Resource::OAccount
       opts[:account_handler] = self
+      @coll_handlers = {
+        active_components: (opts[:resource_handler] || ResourceHandler.new(opts))
+      }
     end
 
     def show_resource_list(opts)

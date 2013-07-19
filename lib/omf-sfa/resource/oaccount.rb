@@ -79,15 +79,15 @@ module OMF::SFA::Resource
       'account'
     end
 
-    def to_hash_long(h, objs, opts = {})
-      super
-      h[:sub_accounts] = h.delete(:resources)
-      href_only = opts[:level] >= opts[:max_level]
-      # h[:active_resources] = self.active_components.map do |r|
-        # href_only ? r.href : r.to_hash(objs, opts)
-      # end
-      h
-    end
+    # def to_hash_long(h, objs, opts = {})
+      # super
+      # h[:sub_accounts] = h.delete(:resources)
+      # href_only = opts[:level] >= opts[:max_level]
+      # # h[:active_resources] = self.active_components.map do |r|
+        # # href_only ? r.href : r.to_hash(objs, opts)
+      # # end
+      # h
+    # end
 
 
   end # OAccount

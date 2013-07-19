@@ -52,6 +52,9 @@ module OMF::SFA::AM::Rest
 
 
     def load_test_state(options)
+      require 'omf-sfa/am/am-rest/rest_handler'
+      OMF::SFA::AM::Rest::RestHandler.set_service_name("OMF Test AM")
+
       require  'dm-migrations'
       DataMapper.auto_migrate!
 
@@ -60,16 +63,20 @@ module OMF::SFA::AM::Rest
       require 'omf-sfa/resource/oaccount'
       #account = am.find_or_create_account(:name => 'foo')
       account = OMF::SFA::Resource::OAccount.create(:name => 'system')
+      slice1 = OMF::SFA::Resource::OAccount.create(
+                :name => 'slice1',
+                :uuid => UUIDTools::UUID.sha1_create(UUIDTools::UUID_DNS_NAMESPACE, 'slice1')
+      )
 
       require 'omf-sfa/resource/node'
       nodes = []
       3.times do |i|
         name = "n#{i}"
         uuid = UUIDTools::UUID.sha1_create(UUIDTools::UUID_DNS_NAMESPACE, name)
-        nodes << (n = OMF::SFA::Resource::Node.create(:name => name, :uuid => uuid, :account => account))
+        nodes << (n = OMF::SFA::Resource::Node.create(:name => name, :uuid => uuid, :account => slice1))
         am.manage_resource(n) if am
         n.save
-        puts ">>>> #{n.inspect}"
+        #puts ">>>> #{n.inspect}"
       end
     end
 
