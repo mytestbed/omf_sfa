@@ -50,7 +50,7 @@ map "/resources" do
   run OMF::SFA::AM::Rest::ResourceHandler.new(opts)
 end
 
-map "/" do
+map "/readme" do
     require 'bluecloth'
     s = File::read(File.dirname(__FILE__) + '/REST_API.md')
     frag = BlueCloth.new(s).to_html
@@ -86,4 +86,25 @@ end
 
 map '/assets' do
   run MyFile.new(File.dirname(__FILE__) + '/../../../../share/assets')
+end
+
+map "/" do
+  handler = Proc.new do |env|
+    req = ::Rack::Request.new(env)
+    case req.path_info
+    when '/'
+      http_prefix = "http://#{env["HTTP_HOST"]}"
+      toc = {}
+      ['README', :slices, :resources, :accounts].each do |s|
+        toc[s] = "#{http_prefix}/#{s.to_s.downcase}"
+      end
+      [200 ,{'Content-Type' => 'text/html'}, OMF::SFA::AM::Rest::RestHandler.convert_to_html(toc, env)]
+    when '/favicon.ico'
+      [301, {'Location' => '/assets/image/favicon.ico', "Content-Type" => ""}, ['Next window!']]
+    else
+      OMF::Common::Loggable.logger('rack').warn "Can't handle request '#{req.path_info}'"
+      [401, {"Content-Type" => ""}, "Sorry!"]
+    end
+  end
+  run handler
 end
