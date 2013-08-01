@@ -79,6 +79,14 @@ module OMF::SFA::AM::Rest
     end
   end
 
+  class RedirectException < Exception
+    attr_reader :path
+
+    def initialize(path)
+      @path = path
+    end
+  end
+
 
   class RestHandler < OMF::Common::LObject
     @@service_name = nil
@@ -112,6 +120,9 @@ module OMF::SFA::AM::Rest
         return [200 ,{'Content-Type' => content_type}, body + "\n"]
       rescue RackException => rex
         return rex.reply
+      rescue RedirectException => rex
+        debug "Redirecting to #{rex.path}"
+        return [301, {'Location' => rex.path, "Content-Type" => ""}, ['Next window!']]
       rescue OMF::SFA::AM::AMManagerException => aex
         return RackException.new(400, aex.to_s).reply
       rescue Exception => ex
@@ -326,7 +337,7 @@ module OMF::SFA::AM::Rest
         when 'application/x-www-form-urlencoded'
           raise UnsupportedBodyFormatException.new(:xml) unless allowed_formats.include?(:form)
           fb = req.POST
-          puts "FORM: #{fb.inspect}"
+          #puts "FORM: #{fb.inspect}"
           return [fb, :form]
         end
       rescue Exception => ex
@@ -395,6 +406,12 @@ module OMF::SFA::AM::Rest
       #authenticator = Thread.current["authenticator"]
       debug "Finding #{@resource_class}.first(#{descr})"
       @resource_class.first(descr)
+    end
+
+    def show_resource_list(opts)
+      # authenticator = Thread.current["authenticator"]
+      resources = @resource_class.all()
+      show_resources(resources, nil, opts)
     end
 
     def show_resources(resources, resource_name, opts)
