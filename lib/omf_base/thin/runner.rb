@@ -1,6 +1,6 @@
 
 require 'thin'
-require 'omf_common/thin/logging'
+require 'omf_base/thin/logging'
 
 #
 # Add code to Thin::Connection to verify peer certificate

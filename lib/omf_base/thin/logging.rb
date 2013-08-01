@@ -1,4 +1,4 @@
-require 'omf_common/lobject'
+require 'omf_base/lobject'
 
 module Thin
   # Overwrite thin's logging mix-in to work more nicely 
