@@ -3,7 +3,7 @@
 require 'xmlrpc/parser'
 require 'rack/rpc'  
 
-require 'omf_common/lobject'
+require 'omf_base/lobject'
 
 require 'omf-sfa/am'
 

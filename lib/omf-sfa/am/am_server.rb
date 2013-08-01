@@ -3,8 +3,8 @@ require 'rack'
 require 'rack/showexceptions'
 require 'thin'
 require 'dm-migrations'
-require 'omf_common/lobject'
-require 'omf_common/load_yaml'
+require 'omf_base/lobject'
+require 'omf_base/load_yaml'
 
 require 'omf-sfa/am/am_runner'
 require 'omf-sfa/am/am_manager'
@@ -160,7 +160,7 @@ module OMF::SFA::AM
 
 
       #Thin::Logging.debug = true
-      require 'omf_common/thin/runner'
+      require 'omf_base/thin/runner'
       OMF::Common::Thin::Runner.new(ARGV, opts).run!
     end
 

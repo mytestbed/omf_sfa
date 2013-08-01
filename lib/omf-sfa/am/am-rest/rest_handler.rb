@@ -10,7 +10,7 @@ require 'uuid'
 require 'set'
 require 'json'
 
-require 'omf_common/lobject'
+require 'omf_base/lobject'
 require 'omf-sfa/am/am_manager'
 
 

@@ -1,5 +1,5 @@
 
-require 'omf_common/lobject'
+require 'omf_base/lobject'
 require 'omf-sfa/resource'
 require 'omf-sfa/resource/comp_group'
 require 'nokogiri'

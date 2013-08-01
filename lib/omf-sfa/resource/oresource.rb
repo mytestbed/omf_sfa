@@ -2,7 +2,7 @@ require 'rubygems'
 require 'dm-core'
 require 'dm-types'
 require 'dm-validations'
-require 'omf_common/lobject'
+require 'omf_base/lobject'
 require 'set'
 require 'active_support/inflector'
 

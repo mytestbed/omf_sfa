@@ -3,7 +3,7 @@ require 'json'
 require 'time'
 
 # We use the JSON serialization for Time objecs from 'json/add/core' in order to avoid
-# the conflicts with the 'active_support/core_ext' which is included in 'omf_common'
+# the conflicts with the 'active_support/core_ext' which is included in 'omf_base'
 # and overrides Time objects serialization. We want 'JSON.load' to return actual Time
 # objects instead of Strings.
 #

@@ -1,4 +1,4 @@
-require 'omf_common/lobject'
+require 'omf_base/lobject'
 require 'omf-sfa/am/default_authorizer'
 require 'omf-sfa/am/user_credential'
 require 'omf-sfa/am/privilege_credential'

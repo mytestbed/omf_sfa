@@ -6,7 +6,7 @@
 require 'rubygems'
 require 'dm-core'
 require 'nokogiri'
-require 'omf_common/lobject'
+require 'omf_base/lobject'
 
 require 'omf-sfa/resource/sliver'
 require 'omf-sfa/resource/node'

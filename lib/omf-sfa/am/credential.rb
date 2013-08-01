@@ -1,5 +1,5 @@
 require 'nokogiri'
-require 'omf_common/lobject'
+require 'omf_base/lobject'
 
 module OMF::SFA::AM
   class Credential < OMF::Common::LObject
