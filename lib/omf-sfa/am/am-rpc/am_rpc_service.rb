@@ -17,7 +17,7 @@ module OMF::SFA::AM::RPC
   class NotAuthorizedException < XMLRPC::FaultException; end
 
   class AMService < AbstractService
-    include OMF::Common::Loggable
+    include OMF::Base::Loggable
 
     attr_accessor :authorizer
 

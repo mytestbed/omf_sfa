@@ -31,7 +31,7 @@ module OMF::SFA
       name
     end
     
-    class Ontology < OMF::Common::LObject
+    class Ontology < OMF::Base::LObject
       
       # URL prefix which we serve from local directory
       LOCAL_PREFIX = 'http://geni-orca.renci.org/owl/'
@@ -137,7 +137,7 @@ module OMF::SFA
 end # OMF::SFA
 
 if $0 == __FILE__
-  OMF::Common::Loggable.init_log 'owl'
+  OMF::Base::Loggable.init_log 'owl'
   include OMF::SFA::Model
   
   #f = "#{File.dirname(__FILE__)}/../../../owl/topology.owl"

@@ -13,9 +13,9 @@ module Thin
   end
 end 
 
-module OMF::Common::Thin
+module OMF::Base::Thin
   class Runner < Thin::Runner
-    include OMF::Common::Loggable
+    include OMF::Base::Loggable
     
     @@instance = nil
     
@@ -83,7 +83,7 @@ module OMF::Common::Thin
       # Change the name of the root logger so we can apply different logging
       # policies depending on environment. 
       #
-      OMF::Common::Loggable.set_environment @options[:environment]
+      OMF::Base::Loggable.set_environment @options[:environment]
 
       if print_options
         require 'pp'

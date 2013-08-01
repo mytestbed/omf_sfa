@@ -3,7 +3,7 @@ if $0 == __FILE__
   module OMF; module Common; end; end
 end
 
-module OMF::Common::YAML
+module OMF::Base::YAML
 
   class YamlFileNotFound < Exception; end
 
@@ -80,11 +80,11 @@ module OMF::Common::YAML
 end
 
 if $0 == __FILE__
-  h = OMF::Common::YAML.load 'foo'#, :default => {':foo' => {:goo=> 3}}
+  h = OMF::Base::YAML.load 'foo'#, :default => {':foo' => {:goo=> 3}}
   puts h.inspect
   puts h.keys[0].class
   puts h[:foo].keys[0].class
 
-  #puts OMF::Common::YAML.load('omf-expctl', :path => ['../../../omf-expctl/etc/omf-expctl']).inspect
+  #puts OMF::Base::YAML.load('omf-expctl', :path => ['../../../omf-expctl/etc/omf-expctl']).inspect
 
 end

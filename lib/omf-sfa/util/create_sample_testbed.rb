@@ -13,7 +13,7 @@ ROUTERS = 3
 NODES_PER_ROUTER = 2
 
 
-OMF::Common::Loggable.init_log 'sample_tb'
+OMF::Base::Loggable.init_log 'sample_tb'
 
 include OMF::SFA::Resource
 

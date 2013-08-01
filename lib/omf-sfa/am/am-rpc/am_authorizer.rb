@@ -5,7 +5,7 @@ require 'omf-sfa/am/privilege_credential'
 
 module OMF::SFA::AM::RPC
 
-  include OMF::Common
+  include OMF::Base
 
   # This class implements the decision logic for determining
   # access of a user in a specific context to specific functionality

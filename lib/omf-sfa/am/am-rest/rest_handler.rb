@@ -88,7 +88,7 @@ module OMF::SFA::AM::Rest
   end
 
 
-  class RestHandler < OMF::Common::LObject
+  class RestHandler < OMF::Base::LObject
     @@service_name = nil
     @@html_template =  File::read(File.dirname(__FILE__) + '/api_template.html')
 

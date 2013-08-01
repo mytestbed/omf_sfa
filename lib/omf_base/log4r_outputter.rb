@@ -42,7 +42,7 @@ end
 # #
 # # An extended object class with support for logging
 # #
-# module OMF::Common
+# module OMF::Base
   # module Log4r
 #     
     # class DateFileOutputter < ::Log4r::DateFileOutputter
@@ -66,4 +66,4 @@ end
   # end
 # end
 # 
-# puts "REQUIRE #{OMF::Common::Log4r::DateFileOutputter}"
+# puts "REQUIRE #{OMF::Base::Log4r::DateFileOutputter}"

@@ -12,7 +12,7 @@ class MyFile < Rack::File
   end
 end
 
-opts = OMF::Common::Thin::Runner.instance.options
+opts = OMF::Base::Thin::Runner.instance.options
 
 require 'omf-sfa/am/am-rest/session_authenticator'
 use OMF::SFA::AM::Rest::SessionAuthenticator, #:expire_after => 10,
@@ -102,7 +102,7 @@ map "/" do
     when '/favicon.ico'
       [301, {'Location' => '/assets/image/favicon.ico', "Content-Type" => ""}, ['Next window!']]
     else
-      OMF::Common::Loggable.logger('rack').warn "Can't handle request '#{req.path_info}'"
+      OMF::Base::Loggable.logger('rack').warn "Can't handle request '#{req.path_info}'"
       [401, {"Content-Type" => ""}, "Sorry!"]
     end
   end

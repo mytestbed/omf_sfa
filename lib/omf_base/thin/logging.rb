@@ -23,7 +23,7 @@ module Thin
     
     # Log a message to the console
     def log(msg)
-      (@logger ||= OMF::Common::LObject.new(self.class)).info(msg)
+      (@logger ||= OMF::Base::LObject.new(self.class)).info(msg)
     end
     module_function :log
     public :log
@@ -31,7 +31,7 @@ module Thin
     # Log a message to the console if tracing is activated
     def trace(msg=nil)
       return unless msg      
-      (@logger ||= OMF::Common::LObject.new(self.class)).debug(msg)
+      (@logger ||= OMF::Base::LObject.new(self.class)).debug(msg)
     end
     module_function :trace
     public :trace
@@ -39,14 +39,14 @@ module Thin
     # Log a message to the console if debugging is activated
     def debug(msg=nil)
       return unless msg
-      (@logger ||= OMF::Common::LObject.new(self.class)).debug(msg)
+      (@logger ||= OMF::Base::LObject.new(self.class)).debug(msg)
     end
     module_function :debug
     public :debug
     
     # Log an error backtrace if debugging is activated
     def log_error(e = $!)
-      (@logger ||= OMF::Common::LObject.new(self.class)).error(e)
+      (@logger ||= OMF::Base::LObject.new(self.class)).error(e)
     end
     module_function :log_error
     public :log_error

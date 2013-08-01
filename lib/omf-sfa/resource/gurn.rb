@@ -3,7 +3,7 @@ require 'omf_base/lobject'
 
 module OMF::SFA::Resource
 #
-  class GURN #< OMF::Common::MObject
+  class GURN #< OMF::Base::MObject
 
     @@def_domain = 'omf:nitos'
     @@name2obj = {}

@@ -24,7 +24,7 @@ require 'omf-sfa/resource/component'
 require 'omf-sfa/resource/abstract_resource'
 require 'omf-sfa/resource/abstract_resource'
 
-OMF::Common::Loggable.init_log 'load_rspec'
+OMF::Base::Loggable.init_log 'load_rspec'
 
 
 

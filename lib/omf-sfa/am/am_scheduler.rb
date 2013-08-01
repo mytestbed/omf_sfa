@@ -13,7 +13,7 @@ module OMF::SFA::AM
 
   # This class implements a default resource scheduler
   #
-  class AMScheduler < OMF::Common::LObject
+  class AMScheduler < OMF::Base::LObject
 
     # Create a resource of specific type given its description in a hash. If the type
     # or the resource is physical then we create a clone of itself and assign it to

@@ -38,7 +38,7 @@ module OMF; module Common; end end
 #
 # An extended object class with support for logging
 #
-module OMF::Common
+module OMF::Base
   module Loggable
     @@logger = nil
     @@rootLoggerName = nil
@@ -155,7 +155,7 @@ module OMF::Common
         if category
           cat = "#{cat}-#{category}"
         end
-        @logger = OMF::Common::Loggable.logger(cat)
+        @logger = OMF::Base::Loggable.logger(cat)
       end
       return @logger
     end
@@ -174,13 +174,13 @@ module OMF::Common
 end
 
 if $0 == __FILE__
-  OMF::Common::Loggable.init_log 'foo'
-  #puts OMF::Common::Loggable.logger('test').inspect
-  o = OMF::Common::LObject.new
+  OMF::Base::Loggable.init_log 'foo'
+  #puts OMF::Base::Loggable.logger('test').inspect
+  o = OMF::Base::LObject.new
   #puts (o.methods - Object.new.methods).sort
   o.debug 'Something happened'
   
-  o2 = OMF::Common::LObject.new('fancy')
+  o2 = OMF::Base::LObject.new('fancy')
   o2.debug 'Something happened'
 
 end

@@ -28,8 +28,8 @@ module OMF::SFA::Resource
   # with DataMapper::Resource
   #
   class OResource
-    include OMF::Common::Loggable
-    extend OMF::Common::Loggable
+    include OMF::Base::Loggable
+    extend OMF::Base::Loggable
 
     include DataMapper::Resource
     include DataMapper::Validations
