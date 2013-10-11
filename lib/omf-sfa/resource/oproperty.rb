@@ -28,7 +28,7 @@ class Time
   end
 end
 
-raise "JSON deserialisation no longer working - require 'json' early" unless JSON.load(Time.now.to_json).is_a? Time
+#raise "JSON deserialisation no longer working - require 'json' early" unless JSON.load(Time.now.to_json).is_a? Time
 
 module OMF::SFA::Resource
 

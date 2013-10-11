@@ -91,9 +91,16 @@ module OMF::SFA::AM::Rest
     def call(env)
       begin
         req = ::Rack::Request.new(env)
+        if req.request_method == 'OPTIONS'
+          return [200 ,{
+            'Access-Control-Allow-Origin' => '*' ,
+            'Access-Control-Allow-Methods' => 'GET, POST, OPTIONS',
+            'Access-Control-Allow-Headers' => 'origin, x-csrftoken, content-type, accept'
+          }, ""]
+        end
         content_type, body = dispatch(req)
         #return [200 ,{'Content-Type' => 'application/json'}, JSON.pretty_generate(body)]
-        return [200 ,{'Content-Type' => content_type}, body + "\n"]
+        return [200 ,{ 'Content-Type' => content_type, 'Access-Control-Allow-Origin' => '*' , 'Access-Control-Allow-Methods' => 'GET, POST, OPTIONS' }, body + "\n"]
       rescue RackException => rex
         return rex.reply
       rescue OMF::SFA::AM::AMManagerException => aex
@@ -113,7 +120,7 @@ module OMF::SFA::AM::Rest
         # reason.content = ex.to_s
         # reason = root.add_child(Nokogiri::XML::Element.new('bt', doc))
         # reason.content = ex.backtrace.join("\n\t")
-        return [500, {"Content-Type" => 'application/json'}, JSON.pretty_generate(body)]
+        return [500, { "Content-Type" => 'application/json', 'Access-Control-Allow-Origin' => '*', 'Access-Control-Allow-Methods' => 'GET, POST, OPTIONS' }, JSON.pretty_generate(body)]
       end
     end
 
