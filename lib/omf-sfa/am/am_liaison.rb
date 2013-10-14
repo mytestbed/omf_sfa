@@ -1,5 +1,5 @@
-require 'omf_common'
-require 'omf_common/dsl/xmpp'
+require 'omf_base'
+require 'omf_base/dsl/xmpp'
 
 #require 'omf-sfa/resource'
 require 'omf-sfa/am/am_manager'
@@ -11,7 +11,7 @@ module OMF::SFA::AM
 
   # This class implements the AM Liaison
   #
-  class AMLiaison < OMF::Common::LObject
+  class AMLiaison < OMF::Base::LObject
     
     include OmfCommon::DSL::Xmpp
 
