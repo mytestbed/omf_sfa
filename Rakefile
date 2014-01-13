@@ -1,7 +1,7 @@
 
 require 'rubygems'
 #require 'rake/testtask'
-#require "bundler/gem_tasks"
+require "bundler/gem_tasks"
 require 'rspec/core/rake_task'
 
 desc 'Default: run specs.'

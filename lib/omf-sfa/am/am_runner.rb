@@ -1,5 +1,6 @@
 
 require 'omf-sfa/am'
+require 'thin'
 
 # Add code to Thin::Connection to verify peer certificate
 #

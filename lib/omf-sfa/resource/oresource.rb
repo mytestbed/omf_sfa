@@ -85,18 +85,18 @@ module OMF::SFA::Resource
         define_method pname do
           res = oproperty_get(pname)
           if res == nil
-            oproperty_set(pname, res = [])
+            oproperty_set(pname, [])
             # We make a oproperty_get in order to get the extended Array with
             # the overidden '<<' method. Check module ArrayProxy in oproperty.rb
             res = oproperty_get(pname)
           end
           #puts "PROPERTY_GET(#{pname}) #{res}"
           if rev_m = opts[:inverse]
-            res.on_added do |v, add|
-              if add
-                if v.respond_to?(m = "#{rev_m}=".to_sym)
+            res.on_modified do |v, added|
+              if added
+                if v.respond_to?(m = "#{rev_m}_add".to_sym)
                   v.send(m, self)
-                elsif v.respond_to?(m = rev_m.to_sym)
+                elsif v.respond_to?(m = "#{rev_m}=".to_sym)
                   v.send(m, self)
                 else
                   raise "Can't find any setter '#{rev_m}' on '#{v}'"
@@ -106,21 +106,30 @@ module OMF::SFA::Resource
               end
             end
           end
+          if sf = opts[:set_filter]
+            res.on_set do |v|
+              self.send(sf, v)
+            end
+          end
           res
         end
 
-        # define_method "#{pname}=" do |v|
-          # oproperty_set(pname, v, type)
-          # if rev_m = opts[:reverse]
-            # if v.respond_to?(m = "#{rev_m}=".to_sym)
-              # v.send(m, self)
-            # elsif v.respond_to?(m = rev_m.to_sym)
-              # v.send(m, self)
-            # else
-              # raise "Can't find any setter '#{rev_m}' on '#{v}'"
-            # end
-          # end
-        # end
+        # Add method to add a single element to a non-functional property. This
+        # helps other entities to learn if this property is functional or not.
+        #
+        define_method "#{pname}_add" do |v|
+          self.send(pname.to_sym) << v
+        end
+
+        define_method "#{pname}=" do |v|
+          unless v.is_a? Array
+            raise "Property '#{pname}' in '#{self.class}' requires an Array in setter - #{v.inspect}"
+          end
+          res = self.send(pname.to_sym)
+          res.clear # clear any old values
+          v.each {|it| res << it }
+          res
+        end
       else
         op[name] = opts
 
@@ -136,14 +145,17 @@ module OMF::SFA::Resource
         end
 
         define_method "#{name}=" do |v|
+          if sf = opts[:set_filter]
+            v = self.send(sf, v)
+          end
           return if (old = oproperty_get(name)) == v
           oproperty_set(name, v)
           if rev_m = opts[:inverse]
             if v
-              if v.respond_to?(m = "#{rev_m}=".to_sym)
+              if v.respond_to?(m = "#{rev_m}_add".to_sym)
                 v.send(m, self)
-              elsif v.respond_to?(m = rev_m.to_sym)
-                v.send(m) << self
+              elsif v.respond_to?(m = "#{rev_m}=".to_sym)
+                v.send(m, self)
               else
                 raise "Can't find any setter '#{rev_m}' on '#{v}'"
               end

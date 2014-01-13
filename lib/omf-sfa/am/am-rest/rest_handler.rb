@@ -100,6 +100,11 @@ module OMF::SFA::AM::Rest
       @@html_template =  File::read(fname)
     end
 
+    def self.convert_to_html(body, env, opts = {}, collections = Set.new)
+      self.new().convert_to_html(body, env, opts, collections)
+    end
+
+
     def initialize(opts = {})
       #puts "INIT>>> #{am_manager}::#{self}"
       # @am_manager = am_manager
@@ -112,7 +117,8 @@ module OMF::SFA::AM::Rest
         req = ::Rack::Request.new(env)
         content_type, body = dispatch(req)
         if req['_format'] == 'html'
-          body = self.class.convert_to_html(body, env, Set.new((@coll_handlers || {}).keys))
+          #body = self.class.convert_to_html(body, env, Set.new((@coll_handlers || {}).keys))
+          body = convert_to_html(body, env, {}, Set.new((@coll_handlers || {}).keys))
           content_type = 'text/html'
         elsif content_type == 'application/json'
           body = JSON.pretty_generate(body)
@@ -415,7 +421,8 @@ module OMF::SFA::AM::Rest
     end
 
     def show_resources(resources, resource_name, opts)
-      hopts = {max_level: opts[:max_level], level: 1}
+      #hopts = {max_level: opts[:max_level], level: 1}
+      hopts = {max_level: opts[:max_level], level: 0}
       objs = {}
       res_hash = resources.map do |a|
         a.to_hash(objs, hopts)
@@ -468,32 +475,38 @@ module OMF::SFA::AM::Rest
       h
     end
 
-    def self.convert_to_html(body, env, collections = Set.new)
+    public
+    def convert_to_html(body, env, opts, collections = Set.new)
       req = ::Rack::Request.new(env)
       opts = {
         collections: collections,
         level: 0,
         href_prefix: "#{req.path}/"
-      }
-      tmpl = @@html_template
+      }.merge(opts)
+      tmpl = html_template()
       tmpl = tmpl.gsub('##JS##', JSON.pretty_generate(body))
 
-      h1 = "<h1>#{@@service_name || env["HTTP_HOST"]}</h1>"
+      #h1 = "<h1>#{@@service_name || env["HTTP_HOST"]}</h1>"
       tmpl = tmpl.gsub('##TITLE##', @@service_name || env["HTTP_HOST"])
       path = req.path.split('/').select { |p| !p.empty? }
       h2 = ["<a href='/?_format=html&_level=0'>ROOT</a>"]
       path.each_with_index do |s, i|
-        h2 << "<a href='/#{path[0 .. i].join('/')}?_format=html&_level=#{i % 2 ? 0: 1}'>#{s}</a>"
+        h2 << "<a href='/#{path[0 .. i].join('/')}?_format=html&_level=#{i % 2 ? 0 : 1}'>#{s}</a>"
       end
       tmpl = tmpl.gsub('##SERVICE##', h2.join('/'))
 
       res = []
-      _convert_obj_to_html(body, res, opts)
+      _convert_obj_to_html(body, nil, res, opts)
       tmpl.gsub('##CONTENT##', res.join("\n"))
 
     end
 
-    def self._convert_obj_to_html(obj, res, opts)
+    def html_template()
+      @@html_template
+    end
+
+    protected
+    def _convert_obj_to_html(obj, ref_name, res, opts)
       klass = obj.class
       #puts ">>>> #{obj.class}::#{obj}"
       if obj.is_a? Array
@@ -501,12 +514,12 @@ module OMF::SFA::AM::Rest
           res << '<span class="empty">empty</span>'
         else
           res << '<ul>'
-          _convert_array_to_html(obj, res, opts)
+          _convert_array_to_html(obj, ref_name, res, opts)
           res << '</ul>'
         end
       elsif obj.is_a? Hash
         res << '<ul>'
-        _convert_hash_to_html(obj, res, opts)
+        _convert_hash_to_html(obj, ref_name, res, opts)
         res << '</ul>'
       else
         if obj.to_s.start_with? 'http://'
@@ -517,38 +530,41 @@ module OMF::SFA::AM::Rest
       end
     end
 
-    def self._convert_array_to_html(array, res, opts)
+    def _convert_array_to_html(array, ref_name, res, opts)
       opts = opts.merge(level: opts[:level] + 1)
       array.each do |obj|
+        #puts "AAA>>>> #{obj}::#{opts}"
+        name = nil
         if obj.is_a? Hash
           if name = obj[:name] || obj[:uuid]
-            #res << "<li>#{name}: (#{_convert_link_to_html obj['href']})"
-            res << "<li><span class='key'>#{name}:</span>"
+            res << "<li><span class='key'>#{_convert_link_to_html obj[:href], name}:</span>"
           else
             res << "<li>#{_convert_link_to_html obj['href']}:"
           end
         else
           res << '<li>'
         end
-        _convert_obj_to_html(obj, res, opts)
+        _convert_obj_to_html(obj, ref_name, res, opts)
         res << '</li>'
       end
     end
 
-    def self._convert_hash_to_html(hash, res, opts)
+    def _convert_hash_to_html(hash, ref_name, res, opts)
+      #puts ">>>> #{hash}::#{opts}"
       hash.each do |key, obj|
         #key = "#{key}-#{opts[:level]}-#{opts[:collections].to_a.inspect}"
         if opts[:level] == 0 && opts[:collections].include?(key.to_sym)
           key = _convert_link_to_html "#{opts[:href_prefix]}#{key}", key
         end
         res << "<li><span class='key'>#{key}:</span>"
-        _convert_obj_to_html(obj, res, opts)
+        _convert_obj_to_html(obj, key, res, opts)
         res << '</li>'
       end
     end
 
-    def self._convert_link_to_html(href, text = nil)
-      "<a href='#{href}?_format=html&_level=1'>#{text || href}</a>"
+    def _convert_link_to_html(href, text = nil)
+      h = href.is_a?(URI) ? href.to_s : "#{href}?_format=html&_level=1"
+      "<a href='#{h}'>#{text || href}</a>"
     end
 
   end

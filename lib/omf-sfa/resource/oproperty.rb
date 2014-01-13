@@ -46,13 +46,52 @@ module OMF::SFA::Resource
 
     module ArrayProxy
       def << (val)
+        if @on_set_block
+          val = @on_set_block.call(val)
+          return if val.nil?
+        end
         @oproperty << val
-        @on_add_block.call(val, true) if @on_add_block
+        @on_modified_block.call(val, true) if @on_add_block
         super
       end
 
-      def on_added(&block)
-        @on_add_block = block
+      def clear()
+        _remove { super }
+      end
+
+      def delete(obj)
+        _remove { super }
+      end
+
+      def delete_at(index)
+        _remove { super }
+      end
+
+      def delete_if(&block)
+        _remove { super }
+      end
+
+      # Callback to support 'reverse' operation
+      def on_modified(&block)
+        @on_modified_block = block
+      end
+
+      def on_set(&block)
+        @on_set_block = block
+      end
+
+      private
+      def _remove(&block)
+        old = self.dup
+        r = block.call()
+        removed = old - self
+        unless removed.empty?
+          if @on_remove_block
+            removed.each {|it| @on_modified_block.call(it, false) }
+          end
+          @oproperty.value = self
+        end
+        r
       end
     end
 
@@ -115,6 +154,10 @@ module OMF::SFA::Resource
         return @old_value_ != @value_
       end
       false
+    end
+
+    def to_s()
+      super() + " - name: #{self.name} value: #{self.value}"
     end
 
     #before :save do
