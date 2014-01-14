@@ -100,8 +100,8 @@ module OMF::SFA::AM::Rest
       @@html_template =  File::read(fname)
     end
 
-    def self.convert_to_html(body, env, opts = {}, collections = Set.new)
-      self.new().convert_to_html(body, env, opts, collections)
+    def self.render_html(parts)
+      self.new().render_html(parts)
     end
 
 
@@ -476,6 +476,35 @@ module OMF::SFA::AM::Rest
     end
 
     public
+
+    # Render an HTML page using the resource's template. The
+    # template is populated with information provided in 'parts'
+    #
+    # * :title - HTML title
+    # * :service - Service path (usually a set of <a>)
+    # * :content - Main content
+    # * :footer - Optional footer
+    # * :result - hash or array describing the result (may used by JS to further format)
+    #
+    def render_html(parts = {})
+      tmpl = html_template()
+      if (result = parts[:result])
+        tmpl = tmpl.gsub('##JS##', JSON.pretty_generate(result))
+      end
+      title = parts[:title] || @@service_name
+      tmpl = tmpl.gsub('##TITLE##', title)
+      if (service = parts[:service])
+        tmpl = tmpl.gsub('##SERVICE##', service)
+      end
+      if (content = parts[:content])
+        tmpl = tmpl.gsub('##CONTENT##', content)
+      end
+      if (footer = parts[:footer])
+        tmpl = tmpl.gsub('##FOOTER##', footer)
+      end
+      tmpl
+    end
+
     def convert_to_html(body, env, opts, collections = Set.new)
       req = ::Rack::Request.new(env)
       opts = {
@@ -483,22 +512,28 @@ module OMF::SFA::AM::Rest
         level: 0,
         href_prefix: "#{req.path}/"
       }.merge(opts)
-      tmpl = html_template()
-      tmpl = tmpl.gsub('##JS##', JSON.pretty_generate(body))
+      #tmpl = html_template()
+      #tmpl = tmpl.gsub('##JS##', JSON.pretty_generate(body))
 
       #h1 = "<h1>#{@@service_name || env["HTTP_HOST"]}</h1>"
-      tmpl = tmpl.gsub('##TITLE##', @@service_name || env["HTTP_HOST"])
+      #tmpl = tmpl.gsub('##TITLE##', @@service_name || env["HTTP_HOST"])
       path = req.path.split('/').select { |p| !p.empty? }
       h2 = ["<a href='/?_format=html&_level=0'>ROOT</a>"]
       path.each_with_index do |s, i|
         h2 << "<a href='/#{path[0 .. i].join('/')}?_format=html&_level=#{i % 2 ? 0 : 1}'>#{s}</a>"
       end
-      tmpl = tmpl.gsub('##SERVICE##', h2.join('/'))
+      #tmpl = tmpl.gsub('##SERVICE##', h2.join('/'))
 
       res = []
       _convert_obj_to_html(body, nil, res, opts)
-      tmpl.gsub('##CONTENT##', res.join("\n"))
 
+      #tmpl.gsub('##CONTENT##', res.join("\n"))
+      render_html(
+        result: body,
+        title: @@service_name || env["HTTP_HOST"],
+        service: h2.join('/'),
+        content: res.join("\n")
+      )
     end
 
     def html_template()
