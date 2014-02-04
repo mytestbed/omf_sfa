@@ -1,11 +1,11 @@
 require 'nokogiri'
-require 'omf_common/lobject'
+require 'omf_base/lobject'
 
 module OMF::SFA::AM
-  class Credential < OMF::Common::LObject
+  class Credential < OMF::Base::LObject
 
 
-    @config = OMF::Common::YAML.load('omf-sfa-am', :path => [File.dirname(__FILE__) + '/../../../etc/omf-sfa'])[:omf_sfa_am]
+    @config = OMF::Base::YAML.load('omf-sfa-am', :path => [File.dirname(__FILE__) + '/../../../etc/omf-sfa'])[:omf_sfa_am]
 
     rpc = @config[:endpoints].select { |v| v[:type] == 'xmlrpc' }.first
     trusted_roots = File.expand_path(rpc[:trusted_roots])

@@ -3,8 +3,8 @@ require 'rack'
 require 'rack/showexceptions'
 require 'thin'
 require 'dm-migrations'
-require 'omf_common/lobject'
-require 'omf_common/load_yaml'
+require 'omf_base/lobject'
+require 'omf_base/load_yaml'
 
 require 'omf-sfa/am/am_runner'
 require 'omf-sfa/am/am_manager'
@@ -16,10 +16,10 @@ module OMF::SFA::AM
 
   class AMServer
     # Don't use LObject as we haveb't initialized the logging system yet. Happens in 'init_logger'
-    include OMF::Common::Loggable
-    extend OMF::Common::Loggable
+    include OMF::Base::Loggable
+    extend OMF::Base::Loggable
 
-    @@config = OMF::Common::YAML.load('omf-sfa-am', :path => [File.dirname(__FILE__) + '/../../../etc/omf-sfa'])[:omf_sfa_am]
+    @@config = OMF::Base::YAML.load('omf-sfa-am', :path => [File.dirname(__FILE__) + '/../../../etc/omf-sfa'])[:omf_sfa_am]
     @@rpc = @@config[:endpoints].select { |v| v[:type] == 'xmlrpc' }.first
 
     def self.rpc_config
@@ -27,7 +27,7 @@ module OMF::SFA::AM
     end
 
     def init_logger
-      OMF::Common::Loggable.init_log 'am_server', :searchPath => File.join(File.dirname(__FILE__), 'am_server')
+      OMF::Base::Loggable.init_log 'am_server', :searchPath => File.join(File.dirname(__FILE__), 'am_server')
     end
 
     def check_dependencies
@@ -60,8 +60,8 @@ module OMF::SFA::AM
     end
 
     def init_data_mapper(options)
-      #@logger = OMF::Common::Loggable::_logger('am_server')
-      #OMF::Common::Loggable.debug "options: #{options}"
+      #@logger = OMF::Base::Loggable::_logger('am_server')
+      #OMF::Base::Loggable.debug "options: #{options}"
       debug "options: #{options}"
 
       # Configure the data store
@@ -160,8 +160,8 @@ module OMF::SFA::AM
 
 
       #Thin::Logging.debug = true
-      require 'omf_common/thin/runner'
-      OMF::Common::Thin::Runner.new(ARGV, opts).run!
+      require 'omf_base/thin/runner'
+      OMF::Base::Thin::Runner.new(ARGV, opts).run!
     end
 
   end # class

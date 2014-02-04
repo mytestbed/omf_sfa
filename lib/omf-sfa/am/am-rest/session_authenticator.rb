@@ -1,10 +1,10 @@
 
-require 'omf_common/lobject'
+require 'omf_base/lobject'
 require 'rack'
 
 
 module OMF::SFA::AM::Rest
-  class SessionAuthenticator < OMF::Common::LObject
+  class SessionAuthenticator < OMF::Base::LObject
 
     def self.active?
       @@active

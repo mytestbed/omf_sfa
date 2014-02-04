@@ -8,14 +8,18 @@ module OMF::SFA::Resource
   #
   class Project < OResource
 
-    has 1, :account, :model => 'OAccount', :required => false
-    has n, :project_memberships
-    has n, :users, :through => :project_memberships, :via => :user
+    #has 1, :account, :model => 'OAccount', :required => false
+    oproperty :account, :account, :inverse => :project
+
+    oproperty :users, :user, :functional => false, :inverse => :projects
+    # has n, :project_memberships
+    # has n, :users, :through => :project_memberships, :via => :user
 
     def to_hash_long(h, objs, opts = {})
       super
+      href_only = opts[:level] >= opts[:max_level]
       h[:users] = self.users.map do |p|
-        p.to_hash(objs, opts)
+        href_only ? p.href : p.to_hash(objs, opts)
       end
       h
     end

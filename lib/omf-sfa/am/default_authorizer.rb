@@ -1,10 +1,11 @@
 
 
-require 'omf_common/lobject'
+require 'omf_base/lobject'
+require 'omf-sfa/am/am_manager'
 
 module OMF::SFA::AM
 
-  include OMF::Common
+  include OMF::Base
 
   class InsufficientPrivilegesException < AMManagerException; end
 

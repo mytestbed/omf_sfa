@@ -7,7 +7,7 @@
 module OMF::SFA
   module Model
     
-    class AbstractPropertyDescription < OMF::Common::LObject
+    class AbstractPropertyDescription < OMF::Base::LObject
       
       @@name2inst = {}
       

@@ -6,7 +6,7 @@
 module OMF::SFA
   module Model
     
-    class ModelClassDescription < OMF::Common::LObject
+    class ModelClassDescription < OMF::Base::LObject
       
       @@name2inst = {}
       

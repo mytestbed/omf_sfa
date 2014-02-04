@@ -6,6 +6,7 @@ end
 
 require 'omf-sfa/resource/gurn'
 require 'omf-sfa/resource/oresource'
+require 'omf-sfa/resource/oreference'
 require 'omf-sfa/resource/oproperty'
 require 'omf-sfa/resource/ogroup'
 require 'omf-sfa/resource/group_membership'

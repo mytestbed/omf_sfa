@@ -1,17 +1,11 @@
 
 
 require 'nokogiri'
-
-# require 'omf-sfa/resource/sliver'
-# require 'omf-sfa/resource/node'
-# require 'omf-sfa/resource/link'
-# require 'omf-sfa/resource/interface'
-
+require 'uuid'
 require 'set'
 require 'json'
 
-require 'omf_common/lobject'
-require 'omf-sfa/am/am_manager'
+require 'omf_base/lobject'
 
 
 module OMF::SFA::AM::Rest
@@ -79,17 +73,43 @@ module OMF::SFA::AM::Rest
     end
   end
 
+  class RedirectException < Exception
+    attr_reader :path
 
-  class RestHandler < OMF::Common::LObject
+    def initialize(path)
+      @path = path
+    end
+  end
 
-    def initialize(am_manager, opts = {})
-      #puts "INIT>>> #{am_manager}::#{self}"
-      @am_manager = am_manager
+
+  class RestHandler < OMF::Base::LObject
+    @@service_name = nil
+    @@html_template =  File::read(File.dirname(__FILE__) + '/api_template.html')
+
+    def self.set_service_name(name)
+      @@service_name = name
+    end
+
+    def self.service_name()
+      @@service_name || "Unknown Service"
+    end
+
+    def self.load_api_template(fname)
+      @@html_template =  File::read(fname)
+    end
+
+    def self.render_html(parts)
+      self.new().render_html(parts)
+    end
+
+
+    def initialize(opts = {})
       @opts = opts
     end
 
     def call(env)
       begin
+        Thread.current[:http_host] = env["HTTP_HOST"]
         req = ::Rack::Request.new(env)
         if req.request_method == 'OPTIONS'
           return [200 ,{
@@ -99,12 +119,26 @@ module OMF::SFA::AM::Rest
           }, ""]
         end
         content_type, body = dispatch(req)
+<<<<<<< HEAD
         #return [200 ,{'Content-Type' => 'application/json'}, JSON.pretty_generate(body)]
         return [200 ,{ 'Content-Type' => content_type, 'Access-Control-Allow-Origin' => '*' , 'Access-Control-Allow-Methods' => 'GET, POST, OPTIONS' }, body + "\n"]
+=======
+        if req['_format'] == 'html'
+          #body = self.class.convert_to_html(body, env, Set.new((@coll_handlers || {}).keys))
+          body = convert_to_html(body, env, {}, Set.new((@coll_handlers || {}).keys))
+          content_type = 'text/html'
+        elsif content_type == 'application/json'
+          body = JSON.pretty_generate(body)
+        end
+        return [200 ,{'Content-Type' => content_type}, body + "\n"]
+>>>>>>> ch_exploration
       rescue RackException => rex
         return rex.reply
-      rescue OMF::SFA::AM::AMManagerException => aex
-        return RackException.new(400, aex.to_s).reply
+      rescue RedirectException => rex
+        debug "Redirecting to #{rex.path}"
+        return [301, {'Location' => rex.path, "Content-Type" => ""}, ['Next window!']]
+      # rescue OMF::SFA::AM::AMManagerException => aex
+        # return RackException.new(400, aex.to_s).reply
       rescue Exception => ex
         body = {
           :error => {
@@ -114,6 +148,7 @@ module OMF::SFA::AM::Rest
         }
         warn "ERROR: #{ex}"
         debug ex.backtrace.join("\n")
+<<<<<<< HEAD
         # root = _create_response('error', req = nil)
         # doc = root.document
         # reason = root.add_child(Nokogiri::XML::Element.new('reason', doc))
@@ -121,6 +156,9 @@ module OMF::SFA::AM::Rest
         # reason = root.add_child(Nokogiri::XML::Element.new('bt', doc))
         # reason.content = ex.backtrace.join("\n\t")
         return [500, { "Content-Type" => 'application/json', 'Access-Control-Allow-Origin' => '*', 'Access-Control-Allow-Methods' => 'GET, POST, OPTIONS' }, JSON.pretty_generate(body)]
+=======
+        return [500, {"Content-Type" => 'application/json'}, body]
+>>>>>>> ch_exploration
       end
     end
 
@@ -272,6 +310,8 @@ module OMF::SFA::AM::Rest
     def populate_opts(req, opts)
       path = req.path_info.split('/').select { |p| !p.empty? }
       opts[:target] = find_handler(path, opts)
+      rl = req.params.delete('_level')
+      opts[:max_level] = rl ? rl.to_i : 0
       #opts[:target].inspect
       opts
     end
@@ -315,7 +355,7 @@ module OMF::SFA::AM::Rest
         when 'application/x-www-form-urlencoded'
           raise UnsupportedBodyFormatException.new(:xml) unless allowed_formats.include?(:form)
           fb = req.POST
-          puts "FORM: #{fb.inspect}"
+          #puts "FORM: #{fb.inspect}"
           return [fb, :form]
         end
       rescue Exception => ex
@@ -332,7 +372,6 @@ module OMF::SFA::AM::Rest
       opts = {}
       populate_opts(req, opts)
       opts[:req] = req
-      opts[:format] = req['format'] || 'json'
       #puts "OPTS>>>> #{opts.inspect}"
       method = req.request_method
       target = opts[:target] #|| self
@@ -354,18 +393,17 @@ module OMF::SFA::AM::Rest
     def show_resource_status(resource, opts)
       if resource
         about = opts[:req].path
-        props = resource.to_hash({}, :href_use_class_prefix => true, :max_levels => 1)
+        props = resource.to_hash({}, :max_level => opts[:max_level])
         props.delete(:type)
         res = {
           #:about => about,
           :type => resource.resource_type,
         }.merge!(props)
-        #res = {"#{resource.resource_type}_response" => res}
       else
         res = {:error => 'Unknown resource'}
       end
 
-      ['application/json', JSON.pretty_generate(res)]
+      ['application/json', res]
     end
 
 
@@ -387,9 +425,19 @@ module OMF::SFA::AM::Rest
       @resource_class.first(descr)
     end
 
+    def show_resource_list(opts)
+      # authenticator = Thread.current["authenticator"]
+      resources = @resource_class.all()
+      show_resources(resources, nil, opts)
+    end
+
     def show_resources(resources, resource_name, opts)
+      #hopts = {max_level: opts[:max_level], level: 1}
+      hopts = {max_level: opts[:max_level], level: 0}
+      objs = {}
       res_hash = resources.map do |a|
-        a.to_hash_brief(:href_use_class_prefix => true)
+        a.to_hash(objs, hopts)
+        #a.to_hash_brief(:href_use_class_prefix => true)
       end
       if resource_name
         prefix = about = opts[:req].path
@@ -400,7 +448,7 @@ module OMF::SFA::AM::Rest
       else
         res = res_hash
       end
-      ['application/json', JSON.pretty_generate(res)]
+      ['application/json', res]
     end
 
     def show_deleted_resource(uuid)
@@ -408,7 +456,7 @@ module OMF::SFA::AM::Rest
         uuid: uuid,
         deleted: true
       }
-      ['application/json', JSON.pretty_generate(res)]
+      ['application/json', res]
     end
 
     def show_deleted_resources(uuid_a)
@@ -416,7 +464,7 @@ module OMF::SFA::AM::Rest
         uuids: uuid_a,
         deleted: true
       }
-      ['application/json', JSON.pretty_generate(res)]
+      ['application/json', res]
     end
 
     # Recursively Symbolize keys of hash
@@ -438,7 +486,129 @@ module OMF::SFA::AM::Rest
       h
     end
 
+    public
+
+    # Render an HTML page using the resource's template. The
+    # template is populated with information provided in 'parts'
+    #
+    # * :title - HTML title
+    # * :service - Service path (usually a set of <a>)
+    # * :content - Main content
+    # * :footer - Optional footer
+    # * :result - hash or array describing the result (may used by JS to further format)
+    #
+    def render_html(parts = {})
+      #puts "PP>> #{parts}"
+      tmpl = html_template()
+      if (result = parts[:result])
+        tmpl = tmpl.gsub('##JS##', JSON.pretty_generate(result))
+      end
+      title = parts[:title] || @@service_name || "Unknown Service"
+      tmpl = tmpl.gsub('##TITLE##', title)
+      if (service = parts[:service])
+        tmpl = tmpl.gsub('##SERVICE##', service)
+      end
+      if (content = parts[:content])
+        tmpl = tmpl.gsub('##CONTENT##', content)
+      end
+      if (footer = parts[:footer])
+        tmpl = tmpl.gsub('##FOOTER##', footer)
+      end
+      tmpl
+    end
+
+    def convert_to_html(body, env, opts, collections = Set.new)
+      req = ::Rack::Request.new(env)
+      opts = {
+        collections: collections,
+        level: 0,
+        href_prefix: "#{req.path}/"
+      }.merge(opts)
+
+      path = req.path.split('/').select { |p| !p.empty? }
+      h2 = ["<a href='/?_format=html&_level=0'>ROOT</a>"]
+      path.each_with_index do |s, i|
+        h2 << "<a href='/#{path[0 .. i].join('/')}?_format=html&_level=#{i % 2 ? 0 : 1}'>#{s}</a>"
+      end
+
+      res = []
+      _convert_obj_to_html(body, nil, res, opts)
+
+      render_html(
+        result: body,
+        title: @@service_name || env["HTTP_HOST"],
+        service: h2.join('/'),
+        content: res.join("\n")
+      )
+    end
+
+    def html_template()
+      @@html_template
+    end
+
+    protected
+    def _convert_obj_to_html(obj, ref_name, res, opts)
+      klass = obj.class
+      #puts "CONVERT>>>> #{obj.class}::#{obj}"
+      if (obj.is_a? OMF::SFA::Resource::OPropertyArray) || obj.is_a?(Array)
+        if obj.empty?
+          res << '<span class="empty">empty</span>'
+        else
+          res << '<ul>'
+          _convert_array_to_html(obj, ref_name, res, opts)
+          res << '</ul>'
+        end
+      elsif obj.is_a? Hash
+        res << '<ul>'
+        _convert_hash_to_html(obj, ref_name, res, opts)
+        res << '</ul>'
+      else
+        if obj.to_s.start_with? 'http://'
+          res << _convert_link_to_html(obj)
+        else
+          res << " <span class='value'>#{obj}</span> "
+        end
+      end
+    end
+
+    def _convert_array_to_html(array, ref_name, res, opts)
+      opts = opts.merge(level: opts[:level] + 1)
+      array.each do |obj|
+        #puts "AAA>>>> #{obj}::#{opts}"
+        name = nil
+        if obj.is_a? Hash
+          if name = obj[:name] || obj[:uuid]
+            res << "<li><span class='key'>#{_convert_link_to_html obj[:href], name}:</span>"
+          else
+            res << "<li>#{_convert_link_to_html obj['href']}:"
+          end
+        else
+          res << '<li>'
+        end
+        _convert_obj_to_html(obj, ref_name, res, opts)
+        res << '</li>'
+      end
+    end
+
+    def _convert_hash_to_html(hash, ref_name, res, opts)
+      #puts ">>>> #{hash}::#{opts}"
+      hash.each do |key, obj|
+        #key = "#{key}-#{opts[:level]}-#{opts[:collections].to_a.inspect}"
+        if opts[:level] == 0 && opts[:collections].include?(key.to_sym)
+          key = _convert_link_to_html "#{opts[:href_prefix]}#{key}", key
+        end
+        res << "<li><span class='key'>#{key}:</span>"
+        _convert_obj_to_html(obj, key, res, opts)
+        res << '</li>'
+      end
+    end
+
+    def _convert_link_to_html(href, text = nil)
+      h = href.is_a?(URI) ? href.to_s : "#{href}?_format=html&_level=1"
+      "<a href='#{h}'>#{text || href}</a>"
+    end
 
   end
+
 end
 

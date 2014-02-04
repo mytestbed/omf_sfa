@@ -21,3 +21,4 @@ doc/
 Gemfile.lock
 .project
 .DS_Store
+*.original

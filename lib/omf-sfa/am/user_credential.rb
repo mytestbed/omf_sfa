@@ -2,7 +2,7 @@
 require 'omf-sfa/am/credential'
 
 module OMF::SFA::AM
-  class UserCredential < OMF::Common::LObject
+  class UserCredential < OMF::Base::LObject
 
     include OMF::SFA::Resource
 

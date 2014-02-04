@@ -1,5 +1,5 @@
 
-require 'omf_common/lobject'
+require 'omf_base/lobject'
 require 'omf-sfa/resource'
 require 'omf-sfa/resource/comp_group'
 require 'nokogiri'
@@ -25,7 +25,7 @@ module OMF::SFA::AM
   # ways of dealing with resources and components should only
   # need to extend this class.
   #
-  class AMManager < OMF::Common::LObject
+  class AMManager < OMF::Base::LObject
 
     # Create an instance of this manager
     #

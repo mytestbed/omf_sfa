@@ -123,7 +123,7 @@ res = {}
 case $out_mode.to_sym
 when :dump
   resources = {}
-  opts = {max_levels: 3}
+  opts = {max_level: 3}
   res = OMF::SFA::Resource::OComponent.find_all.map do |r|
     next if resources.include?(r)
     r.to_hash(resources, opts)
@@ -138,7 +138,7 @@ when :monitor
     h.delete(:interfaces)
     h
   end
-  #opts = {max_levels: 3}
+  #opts = {max_level: 3}
   res[:links] = OMF::SFA::Resource::Link.find_all.map do |r|
     from, to = r.interfaces
     puts from.node

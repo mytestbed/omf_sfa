@@ -2,7 +2,7 @@ require 'rubygems'
 require 'dm-core'
 require 'dm-types'
 require 'dm-validations'
-require 'omf_common/lobject'
+require 'omf_base/lobject'
 require 'set'
 require 'active_support/inflector'
 
@@ -28,14 +28,15 @@ module OMF::SFA::Resource
   # with DataMapper::Resource
   #
   class OResource
-    include OMF::Common::Loggable
-    extend OMF::Common::Loggable
+    include OMF::Base::Loggable
+    extend OMF::Base::Loggable
 
     include DataMapper::Resource
     include DataMapper::Validations
 
     #@@default_href_prefix = 'http://somehost/resources/'
     @@default_href_prefix = '/resources'
+    @@href_resolvers = {}
 
     @@oprops = {}
 
@@ -62,8 +63,12 @@ module OMF::SFA::Resource
     has n, :group_memberships, :child_key => [ :o_resource_id ]
     has n, :included_in_groups, 'OGroup', :through => :group_memberships, :via => :o_group
 
-    belongs_to :account, :model => 'OAccount', :child_key  => [ :account_id ], :required => false
 
+    #belongs_to :account, :model => 'OAccount', :child_key  => [ :account_id ], :required => false
+
+    def self.href_resolver(&block)
+      @@href_resolvers[self] = block
+    end
 
     def self.oproperty(name, type, opts = {})
       name = name.to_s
@@ -78,19 +83,54 @@ module OMF::SFA::Resource
         op[pname] = opts
 
         define_method pname do
-          res = oproperty_get(pname)
+          res = oproperty_array_get(pname)
           if res == nil
-            oproperty_set(pname, res = [])
+            oproperty_set(pname, [])
             # We make a oproperty_get in order to get the extended Array with
             # the overidden '<<' method. Check module ArrayProxy in oproperty.rb
             res = oproperty_get(pname)
           end
-          #puts "PROPERTY_GET #{res}"
+          #puts "PROPERTY_GET(#{pname}) #{res}"
+          if rev_m = opts[:inverse]
+            res.on_modified do |v, added|
+              if added
+                if v.respond_to?(m = "#{rev_m}_add".to_sym)
+                  v.send(m, self)
+                elsif v.respond_to?(m = "#{rev_m}=".to_sym)
+                  v.send(m, self)
+                else
+                  raise "Can't find any setter '#{rev_m}' on '#{v}'"
+                end
+              else
+                # TODO: should remove this one form the reverse side
+              end
+            end
+          end
+          if sf = opts[:set_filter]
+            res.on_set do |v|
+              self.send(sf, v)
+            end
+          end
           res
         end
 
+        # Add method to add a single element to a non-functional property. This
+        # helps other entities to learn if this property is functional or not.
+        #
+        define_method "#{pname}_add" do |v|
+          oproperty_array_get(pname) << v
+          #self.send(pname.to_sym) << v
+        end
+
         define_method "#{pname}=" do |v|
-          oproperty_set(pname, v, type)
+          unless v.is_a? Array
+            raise "Property '#{pname}' in '#{self.class}' requires an Array in setter - #{v.inspect}"
+          end
+          #res = self.send(pname.to_sym)
+          res = oproperty_array_get(pname)
+          res.clear # clear any old values
+          v.each {|it| res << it }
+          res
         end
       else
         op[name] = opts
@@ -107,10 +147,31 @@ module OMF::SFA::Resource
         end
 
         define_method "#{name}=" do |v|
+          if sf = opts[:set_filter]
+            v = self.send(sf, v)
+          end
+          return if (old = oproperty_get(name)) == v
           oproperty_set(name, v)
+          if rev_m = opts[:inverse]
+            if v
+              if v.respond_to?(m = "#{rev_m}_add".to_sym)
+                v.send(m, self)
+              elsif v.respond_to?(m = "#{rev_m}=".to_sym)
+                v.send(m, self)
+              else
+                raise "Can't find any setter '#{rev_m}' on '#{v}'"
+              end
+            else
+              # TODO: should remove this one form the reverse side
+            end
+          end
         end
 
       end
+    end
+
+    def self.prop_all(query)
+      OProperty.prop_all(query, self)
     end
 
     # Clone this resource this resource. However, the clone will have a unique UUID
@@ -137,14 +198,25 @@ module OMF::SFA::Resource
     end
 
     def href(opts = {})
-      if prefix = opts[:name_prefix]
-        href = "#{prefix}/#{self.name || self.uuid.to_s}"
-      elsif opts[:href_use_class_prefix]
-        #href = "/#{self.resource_type}/#{self.name || self.uuid.to_s}"
-        href = "/#{self.resource_type.pluralize}/#{self.uuid.to_s}"
-      elsif prefix = opts[:href_prefix] || @@default_href_prefix
-        href = "#{prefix}/#{self.uuid.to_s}"
+      klass = self.class
+      while (resolver = @@href_resolvers[klass]).nil?
+        break if (klass = klass.superclass) == Object
       end
+      if resolver
+        href = resolver.call(self, opts)
+      end
+      unless href
+        href = "/resources/#{self.uuid.to_s}"
+      end
+
+      # if prefix = opts[:name_prefix]
+        # href = "#{prefix}/#{self.name || self.uuid.to_s}"
+      # elsif opts[:href_use_class_prefix]
+        # #href = "/#{self.resource_type}/#{self.name || self.uuid.to_s}"
+        # href = "/#{self.resource_type.pluralize}/#{self.uuid.to_s}"
+      # elsif prefix = opts[:href_prefix] || @@default_href_prefix
+        # href = "#{prefix}/#{self.uuid.to_s}"
+      # end
       href
     end
 
@@ -192,6 +264,11 @@ module OMF::SFA::Resource
       value
     end
     alias_method :[]=, :oproperty_set
+
+    def oproperty_array_get(pname)
+      pname = pname.to_sym
+      ap = (@array_properties ||= {})[pname] ||= OPropertyArray.new(self, pname)
+    end
 
     def oproperties_as_hash
       res = {}
@@ -294,22 +371,25 @@ module OMF::SFA::Resource
     end
 
     def to_json(*a)
-      unless self.id
-        # need an id, means I haven't been saved yet
-        save
-      end
-      {
-        'json_class' => self.class.name,
-        'id'       => self.id
-      }.to_json(*a)
+      to_hash_brief().to_json(*a)
+
+      # unless self.id
+        # # need an id, means I haven't been saved yet
+        # save
+      # end
+      # {
+        # 'json_class' => self.class.name,
+        # 'id'       => self.id
+      # }.to_json(*a)
     end
 
-    def as_json(options = { })
-      {
-        "json_class" => self.class.name,
-        "id" => self.id
-      }
-    end
+    # def as_json(options = { })
+      # raise "DO WE STILL NEED THIS"
+      # {
+        # "json_class" => self.class.name,
+        # "id" => self.id
+      # }
+    # end
 
 
     #def self.from_json(o)
@@ -327,20 +407,20 @@ module OMF::SFA::Resource
     end
 
     def to_hash(objs = {}, opts = {})
+      max_level = opts[:max_level] ||= 0
+      level = opts[:level] ||= 0
+      if level > max_level
+        return self.href
+      end
+
       #debug "to_hash(self):opts: #{opts.keys.inspect}::#{objs.keys.inspect}::"
       h = to_hash_brief(opts)
-
       return h if objs.key?(self)
       objs[self] = true
-      return h if opts[:brief]
+      return h if opts[:brief] || (level >= max_level)
 
-      if max_levels = opts[:max_levels]
-        level = (opts[:level] || 0) + 1
-        opts = opts.merge(level: level)
-        opts[:brief] = true if level > max_levels
-      else
-        opts = opts.merge(brief: true)
-      end
+      opts = opts.merge(level: level + 1)
+      opts[:brief] = true if level > max_level
       #puts ">>>> #{opts}"
       to_hash_long(h, objs, opts)
       h
@@ -349,7 +429,7 @@ module OMF::SFA::Resource
     def to_hash_brief(opts = {})
       h = {}
       uuid = h[:uuid] = self.uuid.to_s
-      h[:href] = self.href(opts)
+      h[:href] = self.href
       name = self.name
       if  name && ! name.start_with?('_')
         h[:name] = self.name
@@ -375,15 +455,20 @@ module OMF::SFA::Resource
             k = k.to_sym
             unless (value = send(k)).nil?
               #puts "OPROPS_TO_HAHS(#{k}): #{value}::#{value.class}--#{oproperty_get(k)}"
+              #puts "OPROPS_TO_HAHS(#{k}): #{opts[:level]} >= #{opts[:max_level]}"
               if value.is_a? OResource
-                value = value.to_hash(objs, opts)
+                href_only = opts[:level] >= opts[:max_level]
+                value = href_only ? value.href : value.to_hash(objs, opts)
+                #value = value.to_hash(objs, opts)
               end
               if value.is_a? Time
                 value = value.iso8601
               end
               if value.kind_of? Array
                 next if value.empty?
+                opts = opts.merge(level: opts[:level] + 1)
                 value = value.collect do |e|
+                  #(e.kind_of? OResource) ? (href_only ? e.href : e.to_hash(objs, opts)) : e
                   (e.kind_of? OResource) ? e.to_hash(objs, opts) : e
                 end
               end

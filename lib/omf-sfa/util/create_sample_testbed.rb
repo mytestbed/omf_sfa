@@ -5,7 +5,7 @@
 require 'rubygems'
 require 'data_mapper'
 require 'nokogiri'
-require 'omf_common/lobject'
+require 'omf_base/lobject'
 
 require 'omf-sfa/resource'
 
@@ -13,7 +13,7 @@ ROUTERS = 3
 NODES_PER_ROUTER = 2
 
 
-OMF::Common::Loggable.init_log 'sample_tb'
+OMF::Base::Loggable.init_log 'sample_tb'
 
 include OMF::SFA::Resource
 

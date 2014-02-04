@@ -20,7 +20,7 @@ end
 
 #am_mgr = opts[:am][:manager]
 #sleep 10
-opts = OMF::Common::Thin::Runner.instance.options
+opts = OMF::Base::Thin::Runner.instance.options
 #puts self.methods.sort.inspect
 am_mgr = opts[:am][:manager]
 if am_mgr.is_a? Proc
@@ -113,7 +113,7 @@ map "/" do
     when '/favicon.ico'
       [301, {'Location' => '/assets/image/favicon.ico', "Content-Type" => ""}, ['Next window!']]
     else
-      OMF::Common::Loggable.logger('rack').warn "Can't handle request '#{req.path_info}'"
+      OMF::Base::Loggable.logger('rack').warn "Can't handle request '#{req.path_info}'"
       [401, {"Content-Type" => ""}, "Sorry!"]
     end
   end

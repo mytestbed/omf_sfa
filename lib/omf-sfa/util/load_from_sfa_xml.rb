@@ -6,7 +6,7 @@
 require 'rubygems'
 require 'dm-core'
 require 'nokogiri'
-require 'omf_common/lobject'
+require 'omf_base/lobject'
 
 require 'omf-sfa/resource/sliver'
 require 'omf-sfa/resource/node'
@@ -24,7 +24,7 @@ require 'omf-sfa/resource/component'
 require 'omf-sfa/resource/abstract_resource'
 require 'omf-sfa/resource/abstract_resource'
 
-OMF::Common::Loggable.init_log 'load_rspec'
+OMF::Base::Loggable.init_log 'load_rspec'
 
 
 

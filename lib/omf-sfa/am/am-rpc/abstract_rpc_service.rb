@@ -3,7 +3,7 @@
 require 'xmlrpc/parser'
 require 'rack/rpc'  
 
-require 'omf_common/lobject'
+require 'omf_base/lobject'
 
 require 'omf-sfa/am'
 
@@ -15,7 +15,7 @@ module OMF::SFA::AM::RPC
   
   class AbstractService < Rack::RPC::Server
 
-    include OMF::Common::Loggable
+    include OMF::Base::Loggable
 
     # This defines a method to declare the service methods and all their 
     # parameters.

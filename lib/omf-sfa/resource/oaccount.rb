@@ -26,8 +26,10 @@ module OMF::SFA::Resource
     oproperty :closed_at, DataMapper::Property::Time
 
 
-    has n, :active_components, :model => 'OResource', :child_key  => [ :account_id ], :required => false
-    belongs_to :project, :required => false
+    oproperty :project, :project, :inverse => :project
+    oproperty :active_components, :ocomponent, :functional => false, :inverse => :account
+    # has n, :active_components, :model => 'OResource', :child_key  => [ :account_id ] #, :required => false
+    # belongs_to :project, :required => false
 
     def active?
       return false unless self.closed_at.nil?
@@ -72,6 +74,21 @@ module OMF::SFA::Resource
       end
       v
     end
+
+    def resource_type()
+      'account'
+    end
+
+    # def to_hash_long(h, objs, opts = {})
+      # super
+      # h[:sub_accounts] = h.delete(:resources)
+      # href_only = opts[:level] >= opts[:max_level]
+      # # h[:active_resources] = self.active_components.map do |r|
+        # # href_only ? r.href : r.to_hash(objs, opts)
+      # # end
+      # h
+    # end
+
 
   end # OAccount
 end # OMF::SFA::Resource

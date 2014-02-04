@@ -24,6 +24,8 @@ module OMF::SFA::Resource
     oproperty :provides, self, :functional => false
     oproperty :provided_by, self
 
+    oproperty :account, :account, :inverse => :active_components
+
     has n, :component_leases, :child_key => [:component_id]
     has n, :leases, :model => 'OLease', :through => :component_leases, :via => :lease
 
