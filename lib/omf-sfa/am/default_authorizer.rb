@@ -1,6 +1,7 @@
 
 
 require 'omf_base/lobject'
+require 'omf-sfa/am/am_manager'
 
 module OMF::SFA::AM
 
