@@ -2,16 +2,10 @@
 
 require 'nokogiri'
 require 'uuid'
-# require 'omf-sfa/resource/sliver'
-# require 'omf-sfa/resource/node'
-# require 'omf-sfa/resource/link'
-# require 'omf-sfa/resource/interface'
-
 require 'set'
 require 'json'
 
 require 'omf_base/lobject'
-require 'omf-sfa/am/am_manager'
 
 
 module OMF::SFA::AM::Rest
@@ -96,6 +90,10 @@ module OMF::SFA::AM::Rest
       @@service_name = name
     end
 
+    def self.service_name()
+      @@service_name || "Unknown Service"
+    end
+
     def self.load_api_template(fname)
       @@html_template =  File::read(fname)
     end
@@ -106,8 +104,6 @@ module OMF::SFA::AM::Rest
 
 
     def initialize(opts = {})
-      #puts "INIT>>> #{am_manager}::#{self}"
-      # @am_manager = am_manager
       @opts = opts
     end
 
@@ -129,8 +125,8 @@ module OMF::SFA::AM::Rest
       rescue RedirectException => rex
         debug "Redirecting to #{rex.path}"
         return [301, {'Location' => rex.path, "Content-Type" => ""}, ['Next window!']]
-      rescue OMF::SFA::AM::AMManagerException => aex
-        return RackException.new(400, aex.to_s).reply
+      # rescue OMF::SFA::AM::AMManagerException => aex
+        # return RackException.new(400, aex.to_s).reply
       rescue Exception => ex
         body = {
           :error => {
@@ -140,12 +136,6 @@ module OMF::SFA::AM::Rest
         }
         warn "ERROR: #{ex}"
         debug ex.backtrace.join("\n")
-        # root = _create_response('error', req = nil)
-        # doc = root.document
-        # reason = root.add_child(Nokogiri::XML::Element.new('reason', doc))
-        # reason.content = ex.to_s
-        # reason = root.add_child(Nokogiri::XML::Element.new('bt', doc))
-        # reason.content = ex.backtrace.join("\n\t")
         return [500, {"Content-Type" => 'application/json'}, body]
       end
     end
@@ -387,7 +377,6 @@ module OMF::SFA::AM::Rest
           #:about => about,
           :type => resource.resource_type,
         }.merge!(props)
-        #res = {"#{resource.resource_type}_response" => res}
       else
         res = {:error => 'Unknown resource'}
       end
@@ -487,11 +476,12 @@ module OMF::SFA::AM::Rest
     # * :result - hash or array describing the result (may used by JS to further format)
     #
     def render_html(parts = {})
+      #puts "PP>> #{parts}"
       tmpl = html_template()
       if (result = parts[:result])
         tmpl = tmpl.gsub('##JS##', JSON.pretty_generate(result))
       end
-      title = parts[:title] || @@service_name
+      title = parts[:title] || @@service_name || "Unknown Service"
       tmpl = tmpl.gsub('##TITLE##', title)
       if (service = parts[:service])
         tmpl = tmpl.gsub('##SERVICE##', service)
@@ -512,22 +502,16 @@ module OMF::SFA::AM::Rest
         level: 0,
         href_prefix: "#{req.path}/"
       }.merge(opts)
-      #tmpl = html_template()
-      #tmpl = tmpl.gsub('##JS##', JSON.pretty_generate(body))
 
-      #h1 = "<h1>#{@@service_name || env["HTTP_HOST"]}</h1>"
-      #tmpl = tmpl.gsub('##TITLE##', @@service_name || env["HTTP_HOST"])
       path = req.path.split('/').select { |p| !p.empty? }
       h2 = ["<a href='/?_format=html&_level=0'>ROOT</a>"]
       path.each_with_index do |s, i|
         h2 << "<a href='/#{path[0 .. i].join('/')}?_format=html&_level=#{i % 2 ? 0 : 1}'>#{s}</a>"
       end
-      #tmpl = tmpl.gsub('##SERVICE##', h2.join('/'))
 
       res = []
       _convert_obj_to_html(body, nil, res, opts)
 
-      #tmpl.gsub('##CONTENT##', res.join("\n"))
       render_html(
         result: body,
         title: @@service_name || env["HTTP_HOST"],
@@ -543,8 +527,8 @@ module OMF::SFA::AM::Rest
     protected
     def _convert_obj_to_html(obj, ref_name, res, opts)
       klass = obj.class
-      #puts ">>>> #{obj.class}::#{obj}"
-      if obj.is_a? Array
+      #puts "CONVERT>>>> #{obj.class}::#{obj}"
+      if (obj.is_a? OMF::SFA::Resource::OPropertyArray) || obj.is_a?(Array)
         if obj.empty?
           res << '<span class="empty">empty</span>'
         else
