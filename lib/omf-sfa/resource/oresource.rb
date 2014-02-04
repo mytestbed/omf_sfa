@@ -371,22 +371,25 @@ module OMF::SFA::Resource
     end
 
     def to_json(*a)
-      unless self.id
-        # need an id, means I haven't been saved yet
-        save
-      end
-      {
-        'json_class' => self.class.name,
-        'id'       => self.id
-      }.to_json(*a)
+      to_hash_brief().to_json(*a)
+
+      # unless self.id
+        # # need an id, means I haven't been saved yet
+        # save
+      # end
+      # {
+        # 'json_class' => self.class.name,
+        # 'id'       => self.id
+      # }.to_json(*a)
     end
 
-    def as_json(options = { })
-      {
-        "json_class" => self.class.name,
-        "id" => self.id
-      }
-    end
+    # def as_json(options = { })
+      # raise "DO WE STILL NEED THIS"
+      # {
+        # "json_class" => self.class.name,
+        # "id" => self.id
+      # }
+    # end
 
 
     #def self.from_json(o)
