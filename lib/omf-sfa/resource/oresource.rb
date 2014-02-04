@@ -83,7 +83,7 @@ module OMF::SFA::Resource
         op[pname] = opts
 
         define_method pname do
-          res = oproperty_get(pname)
+          res = oproperty_array_get(pname)
           if res == nil
             oproperty_set(pname, [])
             # We make a oproperty_get in order to get the extended Array with
@@ -118,14 +118,16 @@ module OMF::SFA::Resource
         # helps other entities to learn if this property is functional or not.
         #
         define_method "#{pname}_add" do |v|
-          self.send(pname.to_sym) << v
+          oproperty_array_get(pname) << v
+          #self.send(pname.to_sym) << v
         end
 
         define_method "#{pname}=" do |v|
           unless v.is_a? Array
             raise "Property '#{pname}' in '#{self.class}' requires an Array in setter - #{v.inspect}"
           end
-          res = self.send(pname.to_sym)
+          #res = self.send(pname.to_sym)
+          res = oproperty_array_get(pname)
           res.clear # clear any old values
           v.each {|it| res << it }
           res
@@ -166,6 +168,10 @@ module OMF::SFA::Resource
         end
 
       end
+    end
+
+    def self.prop_all(query)
+      OProperty.prop_all(query, self)
     end
 
     # Clone this resource this resource. However, the clone will have a unique UUID
@@ -258,6 +264,11 @@ module OMF::SFA::Resource
       value
     end
     alias_method :[]=, :oproperty_set
+
+    def oproperty_array_get(pname)
+      pname = pname.to_sym
+      ap = (@array_properties ||= {})[pname] ||= OPropertyArray.new(self, pname)
+    end
 
     def oproperties_as_hash
       res = {}

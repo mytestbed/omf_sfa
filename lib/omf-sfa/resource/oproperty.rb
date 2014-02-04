@@ -1,6 +1,7 @@
 require 'omf-sfa/resource/oresource'
 require 'json'
 require 'time'
+require 'omf_base/lobject'
 
 # We use the JSON serialization for Time objecs from 'json/add/core' in order to avoid
 # the conflicts with the 'active_support/core_ext' which is included in 'omf_base'
@@ -35,105 +36,192 @@ module OMF::SFA::Resource
   # Each resource will have a few properties.
   #
   #
-  class OProperty
+  class OProperty < OMF::Base::LObject
     include DataMapper::Resource
     property :id,   Serial
 
     property :name, String
-    property :value, String # actually serialized Object
+    property :type, String, length: 2
+    property :s_value, String # actually serialized Object
+    property :n_value, Float
 
     belongs_to :o_resource
 
-    module ArrayProxy
-      def << (val)
-        if @on_set_block
-          val = @on_set_block.call(val)
-          return if val.nil?
+    # module ArrayProxy
+      # def << (val)
+        # if @on_set_block
+          # val = @on_set_block.call(val)
+          # return if val.nil?
+        # end
+        # @oproperty << val
+        # @on_modified_block.call(val, true) if @on_add_block
+        # super
+      # end
+#
+      # def clear()
+        # _remove { super }
+      # end
+#
+      # def delete(obj)
+        # _remove { super }
+      # end
+#
+      # def delete_at(index)
+        # _remove { super }
+      # end
+#
+      # def delete_if(&block)
+        # _remove { super }
+      # end
+#
+      # # Callback to support 'reverse' operation
+      # def on_modified(&block)
+        # @on_modified_block = block
+      # end
+#
+      # def on_set(&block)
+        # @on_set_block = block
+      # end
+#
+      # private
+      # def _remove(&block)
+        # old = self.dup
+        # r = block.call()
+        # removed = old - self
+        # unless removed.empty?
+          # if @on_remove_block
+            # removed.each {|it| @on_modified_block.call(it, false) }
+          # end
+          # @oproperty.value = self
+        # end
+        # r
+      # end
+    # end
+
+    def self.prop_all(query, resource_class = nil)
+      i = 0
+      where = query.map do |pn, v|
+        h = _analyse_value(v)
+        tbl = "p#{i}"
+        i += 1
+        if (val = h[:v]).is_a? String
+          val = "'#{val}'"
         end
-        @oproperty << val
-        @on_modified_block.call(val, true) if @on_add_block
-        super
+        "#{tbl}.#{h[:f]} #{h[:t] == 's' ? 'LIKE' : '='} #{val}"
       end
-
-      def clear()
-        _remove { super }
+      i.times do |j|
+        where << "r.id = p#{j}.o_resource_id"
       end
+      where << "r.type = '#{resource_class}'" if resource_class
 
-      def delete(obj)
-        _remove { super }
-      end
+      table = storage_names[:default]
+      from = i.times.map {|j| "#{table} AS p#{j}" }
+      from << "omf_sfa_resource_o_resources AS r" # TODO: Shouldn't hard-code that
+      q = "SELECT r.id, r.type, r.uuid, r.name FROM #{from.join(', ')} WHERE #{where.join(' AND ')};"
+      debug "prop_all q: #{q}"
+      res = repository(:default).adapter.select(q)
+      puts OMF::JobService::Resource::Job
 
-      def delete_at(index)
-        _remove { super }
-      end
-
-      def delete_if(&block)
-        _remove { super }
-      end
-
-      # Callback to support 'reverse' operation
-      def on_modified(&block)
-        @on_modified_block = block
-      end
-
-      def on_set(&block)
-        @on_set_block = block
-      end
-
-      private
-      def _remove(&block)
-        old = self.dup
-        r = block.call()
-        removed = old - self
-        unless removed.empty?
-          if @on_remove_block
-            removed.each {|it| @on_modified_block.call(it, false) }
-          end
-          @oproperty.value = self
+      ores = res.map do |qr|
+        if resource_class
+          resource_class.first(id: qr.id, uuid: qr.uuid, name: qr.name) # TODO: Does this create a DB call?
+        else
+          _create_resource(qr)
         end
-        r
       end
+      #puts "RES>>> #{ores}"
+      ores
+    end
+
+    @@name2class = {}
+    def self._create_resource(query_result)
+      qr = query_result
+      unless klass = @@name2class[qr.type]
+        begin
+        klass = qr.type.split('::').inject(Object) do |mod, class_name|
+          mod.const_get(class_name)
+        end
+        rescue Exception => ex
+          warn "Can't find class '#{qr.type}' for resource - #{ex}"
+          return nil
+        end
+        @@name2class[qr.type] = klass
+      end
+      klass.first(id: qr.id, uuid: qr.uuid, name: qr.name) # TODO: Does this create a DB call?
     end
 
     def value=(val)
-      attribute_set(:value, JSON.generate([val]))
+      h = self.class._analyse_value(val)
+      attribute_set(h[:f], h[:v])
+      attribute_set(:type, h[:t])
       save
+    end
+
+      # if val.is_a? Numeric
+        # attribute_set(:n_value, val)
+        # attribute_set(:type, (val.is_a? Integer) ? 'i' : 'f')
+      # elsif val.is_a? String
+        # attribute_set(:s_value, val)
+        # attribute_set(:type, 's')
+      # elsif val.is_a? OResource
+        # attribute_set(:s_value, val.uuid.to_s)
+        # attribute_set(:type, 'r')
+      # elsif val.is_a? Time
+        # attribute_set(:n_value, val.to_i)
+        # attribute_set(:type, 't')
+      # else
+        # puts "OOOOO INSETRT (#{attribute_get(:name)})> #{val.class}"
+        # attribute_set(:s_value, JSON.generate([val]))
+        # attribute_set(:type, 'o')
+      # end
+      # save
+    # end
+
+    def self._analyse_value(val)
+
+      if val.is_a? Numeric
+        return {v: val, t: ((val.is_a? Integer) ? 'i' : 'f'), f: :n_value}
+      elsif val.is_a? String
+        return {v: val, t: 's', f: :s_value}
+      elsif val.is_a? Symbol
+        return {v: val.to_s, t: 's', f: :s_value}
+      elsif val.is_a? OResource
+        return {v: val.uuid.to_s, t: 'r', f: :s_value}
+      elsif val.is_a? Time
+        return {v: val.to_i, t: 'r', f: :n_value}
+      else
+        #debug "SETTING VALUE>  Class: #{val.class}"
+        return {v: JSON.generate([val]), t: 'o', f: :s_value}
+      end
     end
 
     def value()
-      js = attribute_get(:value)
-      # http://www.ruby-lang.org/en/news/2013/02/22/json-dos-cve-2013-0269/
-      val = JSON.load(js)[0]
-      #puts "VALUE: #{js.inspect}-#{val.inspect}-#{val.class}"
-      if val.kind_of? Array
-        val.tap {|v| v.extend(ArrayProxy).instance_variable_set(:@oproperty, self) }
+      case type = attribute_get(:type)
+      when 'i'
+        val =  attribute_get(:n_value).to_i
+      when 'f'
+        val =  attribute_get(:n_value)
+      when 's'
+        val = attribute_get(:s_value)
+      when 'r'
+        uuid = attribute_get(:s_value)
+        val = OResource.first(uuid: uuid)
+      when 't'
+        val = Time.at(attribute_get(:n_value))
+      when 'o'
+        js = attribute_get(:s_value)
+        #debug "GET VALUE>  <#{js}>"
+        # http://www.ruby-lang.org/en/news/2013/02/22/json-dos-cve-2013-0269/
+        val = JSON.load(js)[0]
+        #puts "VALUE: #{js.inspect}-#{val.inspect}-#{val.class}"
+        if val.kind_of? Array
+          val.tap {|v| v.extend(ArrayProxy).instance_variable_set(:@oproperty, self) }
+        end
+      else
+        throw "Unknown property type '#{type}'"
       end
-      val
+      return val
     end
-
-    def << (val)
-      v = attribute_get(:value)
-      v = JSON.load(v)[0]
-      v << val
-      attribute_set(:value, JSON.generate([v]))
-      save
-    end
-
-    #def value()
-    #  #puts "VALUE() @value_:'#{@value_.inspect}'"
-    #  unless @value_
-    #    js = attribute_get(:value)
-    #    puts "JS #{js.inspect}"
-    #    if js
-    #      @value_ = JSON.parse(js)[0]
-    #      if @value_.kind_of? Array
-    #        @old_value_ = @value_.dup
-    #      end
-    #    end
-    #  end
-    #  #puts "VALUE()2 @value_:'#{@value_.inspect}'"
-    #  @value_
-    #end
 
     def valid?(context = :default)
       self.name != nil #&& self.value != nil
@@ -156,6 +244,14 @@ module OMF::SFA::Resource
       false
     end
 
+     def to_hash
+      {name: self.name, value: self.value}
+    end
+
+     def to_json(*args)
+      to_hash.to_json(*args)
+    end
+
     def to_s()
       super() + " - name: #{self.name} value: #{self.value}"
     end
@@ -174,5 +270,63 @@ module OMF::SFA::Resource
     #end
 
   end # OProperty
+
+  class OPropertyArray
+    def <<(val)
+      p = OProperty.create(name: @name, o_resource: @resource)
+      p.value = val
+      @on_set_block.call(val) if @on_set_block
+      self
+    end
+
+    # Delete all members
+    def clear
+      OProperty.all(name: @name, o_resource: @resource).destroy
+      self
+    end
+
+    [:each, :each_with_index, :select, :map].each do |n|
+      define_method n do |&block|
+        c = OProperty.all(name: @name, o_resource: @resource)
+        e = Enumerator.new do |y|
+          if prop = c.first
+            val = prop.value
+            val = @on_set_block.call(val) if @on_set_block
+            y << val
+          end
+        end
+        e.send(n, &block)
+      end
+    end
+
+    def empty?
+      OProperty.count(name: @name, o_resource: @resource) == 0
+    end
+
+    # Callback to support 'reverse' operation
+    def on_modified(&block)
+      raise "Not implemented"
+      #@on_modified_block = block
+    end
+
+    def on_set(&block)
+      @on_set_block = block
+    end
+
+    def to_json(*args)
+      OProperty.all(name: @name, o_resource: @resource).map do |p|
+        p.value
+      end.to_json(*args)
+    end
+
+    def to_s
+      "<#{self.class}: name=#{@name} resource=#{@resource.name || @resource.uuid} >"
+    end
+
+    def initialize(resource, name)
+      @resource = resource
+      @name = name
+    end
+  end
 
 end # OMF::SFA::Resource
