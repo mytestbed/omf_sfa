@@ -119,10 +119,6 @@ module OMF::SFA::AM::Rest
           }, ""]
         end
         content_type, body = dispatch(req)
-<<<<<<< HEAD
-        #return [200 ,{'Content-Type' => 'application/json'}, JSON.pretty_generate(body)]
-        return [200 ,{ 'Content-Type' => content_type, 'Access-Control-Allow-Origin' => '*' , 'Access-Control-Allow-Methods' => 'GET, POST, OPTIONS' }, body + "\n"]
-=======
         if req['_format'] == 'html'
           #body = self.class.convert_to_html(body, env, Set.new((@coll_handlers || {}).keys))
           body = convert_to_html(body, env, {}, Set.new((@coll_handlers || {}).keys))
@@ -130,8 +126,8 @@ module OMF::SFA::AM::Rest
         elsif content_type == 'application/json'
           body = JSON.pretty_generate(body)
         end
-        return [200 ,{'Content-Type' => content_type}, body + "\n"]
->>>>>>> ch_exploration
+        #return [200 ,{'Content-Type' => content_type}, body + "\n"]
+        return [200 ,{'Content-Type' => content_type, 'Access-Control-Allow-Origin' => '*' , 'Access-Control-Allow-Methods' => 'GET, POST, OPTIONS' }, body + "\n"]
       rescue RackException => rex
         return rex.reply
       rescue RedirectException => rex
@@ -148,17 +144,7 @@ module OMF::SFA::AM::Rest
         }
         warn "ERROR: #{ex}"
         debug ex.backtrace.join("\n")
-<<<<<<< HEAD
-        # root = _create_response('error', req = nil)
-        # doc = root.document
-        # reason = root.add_child(Nokogiri::XML::Element.new('reason', doc))
-        # reason.content = ex.to_s
-        # reason = root.add_child(Nokogiri::XML::Element.new('bt', doc))
-        # reason.content = ex.backtrace.join("\n\t")
         return [500, { "Content-Type" => 'application/json', 'Access-Control-Allow-Origin' => '*', 'Access-Control-Allow-Methods' => 'GET, POST, OPTIONS' }, JSON.pretty_generate(body)]
-=======
-        return [500, {"Content-Type" => 'application/json'}, body]
->>>>>>> ch_exploration
       end
     end
 
@@ -175,15 +161,15 @@ module OMF::SFA::AM::Rest
     def on_post(resource_uri, opts)
       #debug 'POST: resource_uri "', resource_uri, '" - ', opts.inspect
       description, format = parse_body(opts, [:json, :form])
-      debug 'POST(', resource_uri, '): body(', format, '): "', description, '"'
+      #debug 'POST(', resource_uri, '): body(', format, '): "', description, '"'
 
       if resource = opts[:resource]
         debug 'POST: Modify ', resource
         modify_resource(resource, description, opts)
       else
-        debug 'POST: Create? ', description.class
         if description.is_a? Array
           resources = description.map do |d|
+            debug 'POST: Create? ', d
             create_resource(d, opts)
           end
           return show_resources(resources, nil, opts)
@@ -265,7 +251,7 @@ module OMF::SFA::AM::Rest
 
 
     def create_resource(description, opts, resource_uri = nil)
-      debug "Create: #{description.class}--#{description}"
+      #debug "Create: #{description.class}--#{description}"
 
       if resource_uri
         if UUID.validate(resource_uri)
@@ -284,12 +270,19 @@ module OMF::SFA::AM::Rest
         modify_resource(resource, description, opts)
       else
         resource = @resource_class.create(description)
-        debug "Created: #{resource}"
+        on_new_resource(resource)
       end
       if (context = opts[:context])
         add_resource_to_context(resource, context)
       end
       return resource
+    end
+
+    # Can be used to further customize a newly created
+    # resource.
+    #
+    def on_new_resource(resource)
+      debug "Created: #{resource}"
     end
 
     def add_resource_to_context(user, context)
@@ -324,7 +317,7 @@ module OMF::SFA::AM::Rest
         raise UnsupportedBodyFormatException.new('Send body raw, not as form data')
       end
       (body = body.string) if body.is_a? StringIO
-      debug 'PARSE_BODY(ct: ', req.content_type, '): ', body.inspect
+      #debug 'PARSE_BODY(ct: ', req.content_type, '): ', body.inspect
       unless content_type = req.content_type
         body.strip!
         if ['/', '{', '['].include?(body[0])
