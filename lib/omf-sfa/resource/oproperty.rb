@@ -120,8 +120,6 @@ module OMF::SFA::Resource
       q = "SELECT r.id, r.type, r.uuid, r.name FROM #{from.join(', ')} WHERE #{where.join(' AND ')};"
       debug "prop_all q: #{q}"
       res = repository(:default).adapter.select(q)
-      puts OMF::JobService::Resource::Job
-
       ores = res.map do |qr|
         if resource_class
           resource_class.first(id: qr.id, uuid: qr.uuid, name: qr.name) # TODO: Does this create a DB call?
@@ -253,7 +251,7 @@ module OMF::SFA::Resource
     end
 
     def to_s()
-      super() + " - name: #{self.name} value: #{self.value}"
+      "#<#{self.class} id: #{self.id} subj: #{self.o_resource} name: #{self.name} value: #{self.value}>"
     end
 
     #before :save do
@@ -273,6 +271,7 @@ module OMF::SFA::Resource
 
   class OPropertyArray
     def <<(val)
+      #puts "Adding #{val} to #{@name}"
       p = OProperty.create(name: @name, o_resource: @resource)
       p.value = val
       @on_set_block.call(val) if @on_set_block
@@ -288,14 +287,7 @@ module OMF::SFA::Resource
     [:each, :each_with_index, :select, :map].each do |n|
       define_method n do |&block|
         c = OProperty.all(name: @name, o_resource: @resource)
-        e = Enumerator.new do |y|
-          if prop = c.first
-            val = prop.value
-            val = @on_set_block.call(val) if @on_set_block
-            y << val
-          end
-        end
-        e.send(n, &block)
+        c.send(n, &block)
       end
     end
 
@@ -311,6 +303,10 @@ module OMF::SFA::Resource
 
     def on_set(&block)
       @on_set_block = block
+    end
+
+    def to_a
+      OProperty.all(name: @name, o_resource: @resource).all
     end
 
     def to_json(*args)
