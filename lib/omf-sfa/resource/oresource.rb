@@ -83,7 +83,7 @@ module OMF::SFA::Resource
         op[pname] = opts
 
         define_method pname do
-          res = oproperty_array_get(pname)
+          res = oproperty_array_get(pname, opts[:set_filter])
           if res == nil
             oproperty_set(pname, [])
             # We make a oproperty_get in order to get the extended Array with
@@ -106,11 +106,6 @@ module OMF::SFA::Resource
               end
             end
           end
-          if sf = opts[:set_filter]
-            res.on_set do |v|
-              self.send(sf, v)
-            end
-          end
           res
         end
 
@@ -118,7 +113,7 @@ module OMF::SFA::Resource
         # helps other entities to learn if this property is functional or not.
         #
         define_method "#{pname}_add" do |v|
-          oproperty_array_get(pname) << v
+          oproperty_array_get(pname, opts[:set_filter]) << v
           #self.send(pname.to_sym) << v
         end
 
@@ -127,8 +122,9 @@ module OMF::SFA::Resource
             raise "Property '#{pname}' in '#{self.class}' requires an Array in setter - #{v.inspect}"
           end
           #res = self.send(pname.to_sym)
-          res = oproperty_array_get(pname)
+          res = oproperty_array_get(pname, opts[:set_filter])
           res.clear # clear any old values
+          #puts ">>>> SET: #{v} - #{res}"
           v.each {|it| res << it }
           res
         end
@@ -265,9 +261,19 @@ module OMF::SFA::Resource
     end
     alias_method :[]=, :oproperty_set
 
-    def oproperty_array_get(pname)
+    def oproperty_array_get(pname, set_filter)
       pname = pname.to_sym
-      ap = (@array_properties ||= {})[pname] ||= OPropertyArray.new(self, pname)
+      unless ap = (@array_properties ||= {})[pname]
+        ap = OPropertyArray.new(self, pname)
+        if set_filter
+          # TODO: The following block can most likely be optimised away
+          ap.on_set do |v|
+            self.send(set_filter, v)
+          end
+        end
+        @array_properties[pname] = ap
+      end
+      ap
     end
 
     def oproperties_as_hash

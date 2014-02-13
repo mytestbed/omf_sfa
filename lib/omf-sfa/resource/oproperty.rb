@@ -187,6 +187,9 @@ module OMF::SFA::Resource
         return {v: val.uuid.to_s, t: 'r', f: :s_value}
       elsif val.is_a? Time
         return {v: val.to_i, t: 'r', f: :n_value}
+      elsif val.class.included_modules.include?(DataMapper::Resource)
+        #puts "SET>>>>> #{val}:#{val.class}"
+        return {v: "#{val.class}@#{val.id}", t: 'd', f: :s_value}
       else
         #debug "SETTING VALUE>  Class: #{val.class}"
         return {v: JSON.generate([val]), t: 'o', f: :s_value}
@@ -206,6 +209,12 @@ module OMF::SFA::Resource
         val = OResource.first(uuid: uuid)
       when 't'
         val = Time.at(attribute_get(:n_value))
+      when 'd'
+        v = attribute_get(:s_value)
+        klass_s, id_s = v.split('@')
+        klass = klass_s.split('::').inject(Kernel) {|k, s| k.const_get(s) }
+        val = klass.first(id: id_s.to_i)
+        #puts "GET>>>>> #{v} - #{val}"
       when 'o'
         js = attribute_get(:s_value)
         #debug "GET VALUE>  <#{js}>"
@@ -271,10 +280,12 @@ module OMF::SFA::Resource
 
   class OPropertyArray
     def <<(val)
-      #puts "Adding #{val} to #{@name}"
+      #puts ">>> Adding #{val} to #{@name} - #{@on_set_block}"
       p = OProperty.create(name: @name, o_resource: @resource)
+      if @on_set_block
+        val = @on_set_block.call(val)
+      end
       p.value = val
-      @on_set_block.call(val) if @on_set_block
       self
     end
 
@@ -286,7 +297,8 @@ module OMF::SFA::Resource
 
     [:each, :each_with_index, :select, :map].each do |n|
       define_method n do |&block|
-        c = OProperty.all(name: @name, o_resource: @resource)
+        #c = OProperty.all(name: @name, o_resource: @resource)
+        c = self.to_a()
         c.send(n, &block)
       end
     end
@@ -306,7 +318,7 @@ module OMF::SFA::Resource
     end
 
     def to_a
-      OProperty.all(name: @name, o_resource: @resource).all
+      OProperty.all(name: @name, o_resource: @resource).all.map {|p| p.value }
     end
 
     def to_json(*args)
