@@ -186,7 +186,7 @@ module OMF::SFA::Resource
       elsif val.is_a? OResource
         return {v: val.uuid.to_s, t: 'r', f: :s_value}
       elsif val.is_a? Time
-        return {v: val.to_i, t: 'r', f: :n_value}
+        return {v: val.to_i, t: 't', f: :n_value}
       elsif val.class.included_modules.include?(DataMapper::Resource)
         #puts "SET>>>>> #{val}:#{val.class}"
         return {v: "#{val.class}@#{val.id}", t: 'd', f: :s_value}
