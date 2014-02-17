@@ -166,8 +166,11 @@ module OMF::SFA::Resource
       end
     end
 
-    def self.prop_all(query)
-      OProperty.prop_all(query, self)
+    # param opts :limit
+    # param opts :offset
+    #
+    def self.prop_all(query, opts = {})
+      OProperty.prop_all(query, opts, self)
     end
 
     # Clone this resource this resource. However, the clone will have a unique UUID

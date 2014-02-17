@@ -98,7 +98,7 @@ module OMF::SFA::Resource
       # end
     # end
 
-    def self.prop_all(query, resource_class = nil)
+    def self.prop_all(query, opts = {}, resource_class = nil)
       i = 0
       where = query.map do |pn, v|
         h = _analyse_value(v)
@@ -117,7 +117,10 @@ module OMF::SFA::Resource
       table = storage_names[:default]
       from = i.times.map {|j| "#{table} AS p#{j}" }
       from << "omf_sfa_resource_o_resources AS r" # TODO: Shouldn't hard-code that
-      q = "SELECT r.id, r.type, r.uuid, r.name FROM #{from.join(', ')} WHERE #{where.join(' AND ')};"
+      q = "SELECT DISTINCT r.id, r.type, r.uuid, r.name FROM #{from.join(', ')} WHERE #{where.join(' AND ')};"
+      if l = opts[:limit]
+        q += " LIMIT #{l} OFFSET #{opts[:offset] || 0}"
+      end
       debug "prop_all q: #{q}"
       res = repository(:default).adapter.select(q)
       ores = res.map do |qr|
