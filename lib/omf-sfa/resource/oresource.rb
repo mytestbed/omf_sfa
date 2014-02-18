@@ -145,6 +145,7 @@ module OMF::SFA::Resource
         define_method "#{name}=" do |v|
           if sf = opts[:set_filter]
             v = self.send(sf, v)
+            return if v.nil? #
           end
           return if (old = oproperty_get(name)) == v
           oproperty_set(name, v)

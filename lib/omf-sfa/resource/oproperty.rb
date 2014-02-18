@@ -287,6 +287,7 @@ module OMF::SFA::Resource
       p = OProperty.create(name: @name, o_resource: @resource)
       if @on_set_block
         val = @on_set_block.call(val)
+        return if val.nil? #
       end
       p.value = val
       self
