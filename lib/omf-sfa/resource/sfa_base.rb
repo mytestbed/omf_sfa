@@ -27,6 +27,7 @@ module OMF::SFA
 
         @@sfa_defs = {}
         @@sfa_namespaces = {}
+        @@sfa_namespace2prefix = {}
         @@sfa_classes = {}
         @@sfa_name2class = {}
 
@@ -46,15 +47,21 @@ module OMF::SFA
           end
         end
 
-        def sfa_add_namespace(prefix, urn)
-          @@sfa_namespaces[prefix] = urn
+        def sfa_add_namespace(prefix, urn, options = {})
+          options[:urn] = urn
+          @@sfa_namespaces[prefix] = options
+          @@sfa_namespace2prefix[urn] = prefix
+        end
+
+        def _sfa_prefix_for_namespace(urn)
+          @@sfa_namespace2prefix[urn]
         end
 
         def sfa_add_namespaces_to_document(doc)
           root = doc.root
           root.add_namespace(nil, SFA_NAMESPACE_URI)
-          @@sfa_namespaces.each do |name, uri|
-            root.add_namespace(name.to_s, uri) #'omf', 'http://tenderlovemaking.com')
+          @@sfa_namespaces.each do |name, opts|
+            root.add_namespace(name.to_s, opts[:urn]) #'omf', 'http://tenderlovemaking.com')
           end
         end
 
@@ -92,8 +99,8 @@ module OMF::SFA
             schema = 'ad.xsd'
           end
           root['xsi:schemaLocation'] = "#{SFA_NAMESPACE_URI} #{SFA_NAMESPACE_URI}/#{schema} #{@@sfa_namespaces[:ol]} #{@@sfa_namespaces[:ol]}/ad-reservation.xsd"
-          @@sfa_namespaces.each do |prefix, urn|
-            root.add_namespace(prefix.to_s, urn)
+          @@sfa_namespaces.each do |prefix, opts|
+            root.add_namespace(prefix.to_s, opts[:urn])
           end
 
           root.set_attribute('type', opts[:type])
@@ -107,14 +114,18 @@ module OMF::SFA
           _to_sfa_xml(resources, root, obj2id, opts)
         end
 
-        def from_sfa(resource_el, context = {})
+        def from_sfa(resource_el, context = {}, type = 'manifest')
           resource = nil
           uuid = nil
           comp_gurn = nil
 
-          unless resource_el.namespace.href == SFA_NAMESPACE_URI
-            warn "WARNING: '#{resource_el.name}' Can't handle non-default namespaces '#{resource_el.namespace.href}'"
-            return
+          unless (href = resource_el.namespace.href) == SFA_NAMESPACE_URI
+            unless prefix = _sfa_prefix_for_namespace(href)
+              warn "Ignoring unknown element '#{resource_el.name}' - NS: '#{resource_el.namespace.href}'"
+              return
+            end
+            ns_opts = @@sfa_namespaces[prefix]
+            return if ns_opts[:ignore]
           end
 
           client_id_attr = resource_el.attributes['client_id']
@@ -124,49 +135,63 @@ module OMF::SFA
             uuid = UUIDTools::UUID.parse(uuid_attr.value)
             if resource = OMF::SFA::Resource::OResource.first(:uuid => uuid)
               context[client_id] = resource if client_id
-              return resource.from_sfa(resource_el, context)
+              return resource.from_sfa(resource_el, context, type)
             end
           end
 
-          if comp_id_attr = resource_el.attributes['component_id']
+          # TODO: Clarify the role of 'sliver_id' vs. 'component_id'
+          if comp_id_attr = resource_el.attributes['sliver_id'] || resource_el.attributes['component_id']
             comp_id = comp_id_attr.value
             comp_gurn = OMF::SFA::Resource::GURN.parse(comp_id)
             #begin
             if uuid = comp_gurn.uuid
               resource = OMF::SFA::Resource::OResource.first(:uuid => uuid)
               context[client_id] = resource if client_id
-              return resource.from_sfa(resource_el, context)
+              return resource.from_sfa(resource_el, context, type)
             end
             if resource = OMF::SFA::Resource::OComponent.first(:urn => comp_gurn)
               context[client_id] = resource if client_id
-              return resource.from_sfa(resource_el, context)
+              return resource.from_sfa(resource_el, context, type)
             end
           else
             # need to create a comp_gurn (the link is an example of that)
-            unless sliver_id_attr = resource_el.attributes['sliver_id']
-              raise "Need 'sliver_id' for resource '#{resource_el}'"
-            end
-            sliver_gurn = OMF::SFA::Resource::GURN.parse(sliver_id_attr.value)
             unless client_id
               raise "Need 'client_id' for resource '#{resource_el}'"
             end
-            opts = {
-              :domain => sliver_gurn.domain,
-              :type => resource_el.name  # TODO: This most likely will break with NS
-            }
-            comp_gurn = OMF::SFA::Resource::GURN.create("#{sliver_gurn.short_name}:#{client_id}", opts)
+            if sliver_id_attr = resource_el.attributes['sliver_id']
+              sliver_gurn = OMF::SFA::Resource::GURN.parse(sliver_id_attr.value)
+              #puts "SLIVER_ID name: #{sliver_gurn.name} short: #{sliver_gurn.short_name} uuid: #{sliver_gurn.uuid}"
+            else
+              if type == 'request'
+                sliver_gurn = OMF::SFA::Resource::GURN.create(client_id, type: resource_el.name, domain: 'unknown')
+              else
+                raise "Need 'sliver_id' for resource '#{resource_el}'"
+              end
+            end
+            #puts "TYPE: #{type} - #{sliver_gurn}"
+            # opts = {
+              # :domain => sliver_gurn.domain,
+              # :type => resource_el.name  # TODO: This most likely will break with NS
+            # }
+            # comp_gurn = OMF::SFA::Resource::GURN.create("#{sliver_gurn.short_name}:#{client_id}", opts)
+            comp_gurn = sliver_gurn
             if resource = OMF::SFA::Resource::OComponent.first(:urn => comp_gurn)
               context[client_id] = resource if client_id
-              return resource.from_sfa(resource_el, context)
+              resource.from_sfa(resource_el, context, type)
+              resource.save
+              return
             end
           end
 
           # Appears the resource doesn't exist yet, let's see if we can create one
-          type = comp_gurn.type
+          type = resource_el.name #comp_gurn.type
           if res_class = @@sfa_name2class[type]
-            resource = res_class.new(:name => comp_gurn.short_name)
+            resource = res_class.new(:name => comp_gurn.short_name, :urn => comp_gurn)
+            #puts ">>> #{comp_gurn} - #{resource.to_hash}"
             context[client_id] = resource if client_id
-            return resource.from_sfa(resource_el, context)
+            resource.from_sfa(resource_el, context, type)
+            #puts "22>>> #{resource.to_hash}"
+            return
           end
           raise "Unknown resource type '#{type}' (#{@@sfa_name2class.keys.join(', ')})"
         end
@@ -490,16 +515,20 @@ module OMF::SFA
         #
         # @param context Already defined resources in this context
         #
-        def from_sfa(resource_el, context = {})
+        def from_sfa(resource_el, context = {}, type = 'manifest')
           els = {} # this doesn't work with generic namespaces
           resource_el.children.each do |el|
             next unless el.is_a? Nokogiri::XML::Element
             unless ns = el.namespace
               raise "Missing namespace declaration for '#{el}'"
             end
+            name = el.name
             unless ns.href == SFA_NAMESPACE_URI
-              warn "WARNING: '#{el.name}' Can't handle non-default namespaces '#{ns.href}'"
-              next
+              unless prefix = self.class._sfa_prefix_for_namespace(ns.href)
+                warn "#{resource_el.name}: Ignoring unknown element '#{el.name}' - NS: '#{ns.href}'"
+                next
+              end
+              name = "#{prefix}__#{name}"
             end
             (els[el.name] ||= []) << el
           end

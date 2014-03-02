@@ -12,7 +12,7 @@ require 'rubygems'
 require 'optparse'
 require 'dm-core'
 require 'nokogiri'
-require 'omf_common/lobject'
+require 'omf_base/lobject'
 require 'json'
 
 $verbose = false
@@ -40,7 +40,7 @@ end
 op.on_tail('-h', "--help", "Show this message") { $stderr.puts op; exit }
 rest = op.parse(ARGV) || []
 
-OMF::Common::Loggable.init_log 'parse_rspec'
+OMF::Base::Loggable.init_log 'parse_rspec'
 
 unless in_file_name = (rest || [])[0]
   abort "Missing rspec file"
@@ -69,6 +69,7 @@ DataMapper.finalize
 # Process RSPEC
 resources = []
 context = {}
+rspec_type = rspec.attributes['type'].value
 rspec.children.each do |el|
   next if el.is_a? Nokogiri::XML::Text
   if $verbose
@@ -77,7 +78,7 @@ rspec.children.each do |el|
   end
   n = nil
   begin
-    n = OMF::SFA::Resource::OComponent.from_sfa(el, context)
+    n = OMF::SFA::Resource::OComponent.from_sfa(el, context, rspec_type)
   rescue Exception => ex
     puts "WARN: Couldn't parse '#{el.to_s[0 .. 30]}' - #{ex}"
     puts ex.backtrace
@@ -109,7 +110,7 @@ end
 
 def print_json(resources)
   resources.each do |r|
-    puts '================='
+    puts '=================' if $verbose
     r.urn
     #puts "#{r.type} (#{r.inspect})"\n
     puts "#{r.type}"
@@ -160,7 +161,7 @@ if $out_file_name
   f = File.open($out_file_name, 'w')
   f.write out
 else
-  puts '=========================='
+  puts '==========================' if $verbose
   puts out
 end
 

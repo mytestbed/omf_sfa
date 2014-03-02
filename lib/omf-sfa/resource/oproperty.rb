@@ -299,7 +299,7 @@ module OMF::SFA::Resource
       self
     end
 
-    [:each, :each_with_index, :select, :map].each do |n|
+    [:each, :each_with_index, :select, :map, :find].each do |n|
       define_method n do |&block|
         #c = OProperty.all(name: @name, o_resource: @resource)
         c = self.to_a()

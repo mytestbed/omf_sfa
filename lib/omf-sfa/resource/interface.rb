@@ -8,6 +8,7 @@ module OMF::SFA::Resource
     #property :hardware_type, String
     oproperty :role, String
     oproperty :node, :node
+    oproperty :mac_address, String
     oproperty :channel, :channel
     oproperty :ip_addresses, OMF::SFA::Resource::Ip, :functional => false
 
@@ -23,6 +24,7 @@ module OMF::SFA::Resource
     #sfa :public_ipv4, :ip4, :attribute => true
     sfa :role, :attribute => true
     sfa :ip
+    sfa :mac_address, :attribute => true
 
     # @see IComponent
     #

@@ -341,16 +341,18 @@ module OMF::SFA::Resource
       unless self.name
         self.name = self.urn ? GURN.create(self.urn).short_name : "r#{self.object_id}"
       end
-      unless self.urn
-        # The purpose or function of a URN is to provide a globally unique,
-        # persistent identifier used for recognition, for access to
-        # characteristics of the resource or for access to the resource
-        # itself.
-        # source: http://tools.ietf.org/html/rfc1737
-        #
-        name = self.name
-        self.urn = GURN.create(name, :model => self.class).to_s
-      end
+      # The uuid already provides a unique identifier. The URN is a more readable one, but
+      # it doesn't make sense for each resource, so leave it to the creator to set one or not.
+      # unless self.urn
+        # # The purpose or function of a URN is to provide a globally unique,
+        # # persistent identifier used for recognition, for access to
+        # # characteristics of the resource or for access to the resource
+        # # itself.
+        # # source: http://tools.ietf.org/html/rfc1737
+        # #
+        # name = self.name
+        # self.urn = GURN.create(name, :model => self.class).to_s
+      # end
     end
 
     def destroy
@@ -449,6 +451,7 @@ module OMF::SFA::Resource
     end
 
     def to_hash_long(h, objs = {}, opts = {})
+      h[:urn] = self.urn if self.urn
       _oprops_to_hash(h, objs, opts)
       h
     end

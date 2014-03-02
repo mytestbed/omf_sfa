@@ -10,8 +10,9 @@ module OMF::SFA::Resource
   #
   class OComponent < OResource
 
-    oproperty :domain, String #, readonly => true
-    oproperty :exclusive, DataMapper::Property::Boolean
+    #oproperty :domain, String #, readonly => true
+
+    oproperty :component_gurn, OMF::SFA::Resource::GURN
     oproperty :component_manager_gurn, OMF::SFA::Resource::GURN
 
     # Status of component. Should be any of configuring, ready, failed, and unknown
@@ -26,6 +27,8 @@ module OMF::SFA::Resource
 
     oproperty :account, :account, :inverse => :active_components
 
+    oproperty :expiration_time, Time
+
     has n, :component_leases, :child_key => [:component_id]
     has n, :leases, :model => 'OLease', :through => :component_leases, :via => :lease
 
@@ -33,9 +36,12 @@ module OMF::SFA::Resource
     include OMF::SFA::Resource::Base::InstanceMethods
 
     sfa_add_namespace :omf, 'http://schema.mytestbed.net/sfa/rspec/1'
+    sfa_add_namespace :exo_sliver, "http://groups.geni.net/exogeni/attachment/wiki/RspecExtensions/sliver-info/1"
+    sfa_add_namespace :exo_slice, "http://groups.geni.net/exogeni/attachment/wiki/RspecExtensions/slice-info/1", ignore: true
+
     #sfa_add_namespace :ol, 'http://nitlab.inf.uth.gr/schema/sfa/rspec/1'
 
-    sfa :component_id, :attribute => true, :prop_name => :urn # "urn:publicid:IDN+plc:cornell+node+planetlab3-dsl.cs.cornell.edu"
+    sfa :component_id, :attribute => true, :prop_name => :component_gurn # "urn:publicid:IDN+plc:cornell+node+planetlab3-dsl.cs.cornell.edu"
 
     sfa :client_id, :attribute => true, :prop_name => :name
     alias_method :client_id, :name
@@ -43,6 +49,8 @@ module OMF::SFA::Resource
     sfa :component_manager_id, :attribute => true, :prop_name => :component_manager_gurn # "urn:publicid:IDN+plc+authority+am"
     sfa :component_name, :attribute => true # "plane
     sfa :leases, :inline => true, :has_many => true
+
+    sfa :exo_sliver__geni_sliver_info
 
     #def component_id
     #  res = oproperty_get(:id)
@@ -85,6 +93,17 @@ module OMF::SFA::Resource
       super
     end
 
+    def _from_sfa_exo_sliver__geni_sliver_info_property_xml(resource_el, props, context)
+      resource_el.children.filter("//*[local-name()='geni_sliver_info']").each do |si|
+        #puts ">>>> #{si.attributes}"
+        if value = si["expiration_time"]
+          self.expiration_time = Time.parse(value)
+        end
+        if value = si["state"]
+          self.status = value
+        end
+      end
+    end
 
     def clone
       clone = super
@@ -122,7 +141,7 @@ module OMF::SFA::Resource
     end
 
     before :save do
-      self.urn = GURN.create(self.name, self)
+      #self.urn = GURN.create(self.name, self) unless self.urn
     end
 
     def destroy!

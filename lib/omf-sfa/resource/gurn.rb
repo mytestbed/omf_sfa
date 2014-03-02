@@ -95,11 +95,20 @@ module OMF::SFA::Resource
 
     def uuid
       unless @uuid
-        @uuid = UUIDTools::UUID.parse(short_name)
+        begin
+          @uuid = UUIDTools::UUID.parse(short_name)
+        rescue ArgumentError
+          if (p = short_name.split(':')).length > 1
+            # ExoGeni has short names of the form uuid:short_name
+            # TODO: This turned out to be not a sliver UUID, but something else
+            # begin
+              # @uuid = UUIDTools::UUID.parse(p[0])
+            # rescue ArgumentError
+            # end
+          end
+        end
       end
       @uuid
-    rescue ArgumentError
-      @uuid = nil
     end
 
     def to_s
