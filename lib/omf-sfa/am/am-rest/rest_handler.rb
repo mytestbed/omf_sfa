@@ -4,6 +4,7 @@ require 'nokogiri'
 require 'uuid'
 require 'set'
 require 'json'
+require 'thin/async'
 
 require 'omf_base/lobject'
 
@@ -119,6 +120,9 @@ module OMF::SFA::AM::Rest
           }, ""]
         end
         content_type, body = dispatch(req)
+        if body.is_a? Thin::AsyncResponse
+          return body.finish
+        end
         if req['_format'] == 'html'
           #body = self.class.convert_to_html(body, env, Set.new((@coll_handlers || {}).keys))
           body = convert_to_html(body, env, {}, Set.new((@coll_handlers || {}).keys))
@@ -219,7 +223,7 @@ module OMF::SFA::AM::Rest
       resource_id = opts[:resource_uri] = path.shift
       opts[:resource] = nil
       if resource_id
-        resource = opts[:resource] = find_resource(resource_id)
+        resource = opts[:resource] = find_resource(resource_id, {}, opts)
       end
       return self if path.empty?
 
@@ -402,7 +406,7 @@ module OMF::SFA::AM::Rest
 
 
 
-    def find_resource(resource_uri, description = {})
+    def find_resource(resource_uri, description = {}, opts = {})
       descr = description.dup
       descr.delete(:resource_uri)
       if UUID.validate(resource_uri)

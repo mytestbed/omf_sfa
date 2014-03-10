@@ -24,6 +24,7 @@ Gem::Specification.new do |s|
   s.add_runtime_dependency "erector", "~> 0.8.3"
   s.add_runtime_dependency "rack", "~> 1.3.5"
   s.add_runtime_dependency "thin", "~> 1.3.1"
+  s.add_runtime_dependency 'thin_async'
   s.add_runtime_dependency "log4r", "~> 1.1.10"
   s.add_runtime_dependency "maruku", "~> 0.6.0"
   s.add_runtime_dependency "dm-core", "~> 1.2.0"
