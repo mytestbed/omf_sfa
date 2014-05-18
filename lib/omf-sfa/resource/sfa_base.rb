@@ -30,6 +30,7 @@ module OMF::SFA
         @@sfa_namespace2prefix = {}
         @@sfa_classes = {}
         @@sfa_name2class = {}
+        @@sfa_suppress_id = {}
 
         #
         # @opts
@@ -65,6 +66,14 @@ module OMF::SFA
           end
         end
 
+        def sfa_suppress_id
+          @@sfa_suppress_id[self] = true
+        end
+
+        def sfa_suppress_id?
+          @@sfa_suppress_id[self] == true
+        end
+
         # Define a SFA property
         #
         # @param [Symbol] name name of resource in RSpec
@@ -85,28 +94,33 @@ module OMF::SFA
         # opts:
         #   :valid_for - valid [sec] from now
         #
-        def sfa_advertisement_xml(resources, opts = {})
+        def to_rspec(resources, type, opts = {})
           doc = Nokogiri::XML::Document.new
           #<rspec expires="2011-09-13T09:07:09Z" generated="2011-09-13T09:07:09Z" type="advertisement" xmlns="http://www.geni.net/resources/rspec/3" xmlns:ol="http://nitlab.inf.uth.gr/schema/sfa/rspec/1" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.geni.net/resources/rspec/3 http://www.geni.net/resources/rspec/3/ad.xsd http://nitlab.inf.uth.gr/schema/sfa/rspec/1 http://nitlab.inf.uth.gr/schema/sfa/rspec/1/ad-reservation.xsd">
           root = doc.add_child(Nokogiri::XML::Element.new('rspec', doc))
+
+          root.set_attribute('type', type)
+          now = Time.now
+          root.set_attribute('generated', now.iso8601)
+
+          case opts[:type] = type = type.to_sym
+          when :manifest
+            schema = 'manifest.xsd'
+          when :advertisement
+            schema = 'ad.xsd'
+            root.set_attribute('expires', (now + (opts[:valid_for] || 600)).iso8601)
+          when :request
+            schema = 'request.xsd'
+          else
+            raise "Unnown Rspec type '#{type}'"
+          end
+
           root.add_namespace(nil, SFA_NAMESPACE_URI)
           root.add_namespace('xsi', "http://www.w3.org/2001/XMLSchema-instance")
-
-          opts[:type] = 'advertisement' unless opts[:type]
-          if opts[:type] == 'manifest'
-            schema = 'manifest.xsd'
-          else
-            schema = 'ad.xsd'
-          end
-          root['xsi:schemaLocation'] = "#{SFA_NAMESPACE_URI} #{SFA_NAMESPACE_URI}/#{schema} #{@@sfa_namespaces[:ol]} #{@@sfa_namespaces[:ol]}/ad-reservation.xsd"
+          #root['xsi:schemaLocation'] = "#{SFA_NAMESPACE_URI} #{SFA_NAMESPACE_URI}/#{schema} #{@@sfa_namespaces[:ol]} #{@@sfa_namespaces[:ol]}/ad-reservation.xsd"
           @@sfa_namespaces.each do |prefix, opts|
             root.add_namespace(prefix.to_s, opts[:urn])
           end
-
-          root.set_attribute('type', opts[:type])
-          now = Time.now
-          root.set_attribute('generated', now.iso8601)
-          root.set_attribute('expires', (now + (opts[:valid_for] || 600)).iso8601)
 
           #root = doc.create_element('rspec', doc)
           #doc.add_child root
@@ -443,28 +457,41 @@ module OMF::SFA
             self.class.sfa_add_namespaces_to_document(parent)
           end
           defs = self.class.sfa_defs()
-          if (id = obj2id[self])
+          if (!(opts[:suppress_id] || self.class.sfa_suppress_id?) && id = obj2id[self])
             new_element.set_attribute('idref', id)
             return parent
           end
 
           id = sfa_id()
           obj2id[self] = id
-          new_element.set_attribute('id', id) #if detail_level > 0
+          unless opts[:suppress_id] || self.class.sfa_suppress_id?
+            new_element.set_attribute('id', id) #if detail_level > 0
+          end
           #if href = self.href(opts)
           #  new_element.set_attribute('omf:href', href)
           #end
           level = opts[:level] ? opts[:level] : 0
           opts[:level] = level + 1
+          sfa_type = opts[:type]
+          is_request = sfa_type == :request
           defs.keys.sort.each do |key|
             next if key.start_with?('_')
             pdef = defs[key]
+            #puts ">>>> PDEF(#{key}): #{pdef}"
             if (ilevel = pdef[:include_level])
               #next if level > ilevel
             end
-            #puts ">>>> #{k} <#{self}> #{pdef.inspect}"
-            value = send(key.to_sym)
-            #puts "#{k} <#{v}> #{pdef.inspect}"
+            next if is_request && pdef[:in_request] == false
+
+            if respond_to?(m = "_to_sfa_xml_#{key}".to_sym)
+              send(m, new_element, pdef, obj2id, opts)
+              next
+            end
+            pname = (pdef[:prop_name] || key).to_sym
+            #puts ">>>> #{pname} <#{self}> #{pdef.inspect}"
+            next unless respond_to? pname
+            value = send(pname)
+            #puts "#{key} <#{value} - #{value.class}> #{pdef.inspect}"
             if value.nil?
               value = pdef[:default]
             end
@@ -473,7 +500,7 @@ module OMF::SFA
               if value.is_a?(Time)
                 value = value.xmlschema # xs:dateTime
               end
-                _to_sfa_property_xml(key, value, new_element, pdef, obj2id, opts)
+              _to_sfa_property_xml(key, value, new_element, pdef, obj2id, opts)
               #end
             end
           end
@@ -483,6 +510,11 @@ module OMF::SFA
 
         def _to_sfa_property_xml(pname, value, res_el, pdef, obj2id, opts)
           pname = self.class._sfa_add_ns(pname, pdef)
+          if value.respond_to?(:to_sfa_xml)
+            value.to_sfa_xml(res_el, obj2id, opts)
+            return
+          end
+
           if pdef[:attribute]
             res_el.set_attribute(pname, value.to_s)
           elsif aname = pdef[:attr_value]
@@ -494,7 +526,8 @@ module OMF::SFA
             else
               cel = res_el.add_child(Nokogiri::XML::Element.new(pname, res_el.document))
             end
-            if !value.kind_of?(String) && value.kind_of?(Enumerable)
+            #puts ">>> _to_sfa_property_xml(#{pname}): class: #{value.class} string? #{value.kind_of?(String)} enumerable: #{value.kind_of?(Enumerable)} "
+            if !value.kind_of?(String) && (value.kind_of?(Enumerable) || value.is_a?(OMF::SFA::Resource::OPropertyArray))
               value.each do |v|
                 if v.respond_to?(:to_sfa_xml)
                   v.to_sfa_xml(cel, obj2id, opts)

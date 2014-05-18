@@ -2,6 +2,8 @@ require 'rubygems'
 require 'dm-core'
 require 'dm-types'
 require 'dm-validations'
+require 'dm-aggregates'
+
 require 'omf_base/lobject'
 require 'set'
 require 'active_support/inflector'
@@ -66,12 +68,30 @@ module OMF::SFA::Resource
 
     #belongs_to :account, :model => 'OAccount', :child_key  => [ :account_id ], :required => false
 
+    def self.init(persistence_url = 'sqlite::memory:')
+      DataMapper::Logger.new($stdout, :info) # :note
+
+      DataMapper.setup(:default, persistence_url)
+      DataMapper::Model.raise_on_save_failure = true
+
+      DataMapper.finalize
+      #DataMapper.auto_upgrade!
+      require  'dm-migrations'
+      DataMapper.auto_migrate!
+
+      self
+    end
+
     def self.href_resolver(&block)
       @@href_resolvers[self] = block
     end
 
     def self.oproperty(name, type, opts = {})
       name = name.to_s
+
+      if self.properties.find {|p| p.name.to_s == name }
+        raise "Can't define an oproperty '#{name}' as it is already used as a base property."
+      end
 
       # should check if +name+ is already used
       op = @@oprops[self] ||= {}
@@ -241,7 +261,7 @@ module OMF::SFA::Resource
 
 
     def oproperty_get(pname)
-      #puts "OPROPERTY_GET: pname:'#{pname}'"
+      #puts "OPROPERTY_GET: pname:'#{pname}':#{pname.class}"
       pname = pname.to_sym
       return self.name if pname == :name
 
@@ -251,7 +271,7 @@ module OMF::SFA::Resource
     alias_method :[], :oproperty_get
 
     def oproperty_set(pname, value, type = nil)
-      #puts "OPROPERTY_SET pname:'#{pname}', value:'#{value.class}'-#{type}, self:'#{self.inspect}'"
+      #puts "OPROPERTY_SET pname:'#{pname}', value:'#{value.class}'::#{type}, self:'#{self.inspect}'"
       pname = pname.to_sym
       if pname == :name
         self.name = value
@@ -260,6 +280,7 @@ module OMF::SFA::Resource
         #puts ">>>>>" + @@oprops[self.class][pname.to_s].to_s
         prop = self.oproperties.first_or_create(:name => pname)
         prop.value = value
+        #puts ">> #{prop.inspect}"
       end
       value
     end

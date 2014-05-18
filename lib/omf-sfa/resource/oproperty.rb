@@ -47,57 +47,6 @@ module OMF::SFA::Resource
 
     belongs_to :o_resource
 
-    # module ArrayProxy
-      # def << (val)
-        # if @on_set_block
-          # val = @on_set_block.call(val)
-          # return if val.nil?
-        # end
-        # @oproperty << val
-        # @on_modified_block.call(val, true) if @on_add_block
-        # super
-      # end
-#
-      # def clear()
-        # _remove { super }
-      # end
-#
-      # def delete(obj)
-        # _remove { super }
-      # end
-#
-      # def delete_at(index)
-        # _remove { super }
-      # end
-#
-      # def delete_if(&block)
-        # _remove { super }
-      # end
-#
-      # # Callback to support 'reverse' operation
-      # def on_modified(&block)
-        # @on_modified_block = block
-      # end
-#
-      # def on_set(&block)
-        # @on_set_block = block
-      # end
-#
-      # private
-      # def _remove(&block)
-        # old = self.dup
-        # r = block.call()
-        # removed = old - self
-        # unless removed.empty?
-          # if @on_remove_block
-            # removed.each {|it| @on_modified_block.call(it, false) }
-          # end
-          # @oproperty.value = self
-        # end
-        # r
-      # end
-    # end
-
     def self.prop_all(query, opts = {}, resource_class = nil)
       i = 0
       where = query.map do |pn, v|
@@ -208,7 +157,10 @@ module OMF::SFA::Resource
       when 's'
         val = attribute_get(:s_value)
       when 'r'
-        uuid = attribute_get(:s_value)
+        uuid_s = attribute_get(:s_value)
+        uuid = UUIDTools::UUID.parse(uuid_s)
+        #puts "RRRR >> #{uuid}"
+        #puts "OOOO >> #{OResource.all.to_a}"
         val = OResource.first(uuid: uuid)
       when 't'
         val = Time.at(attribute_get(:n_value))
@@ -225,7 +177,7 @@ module OMF::SFA::Resource
         val = JSON.load(js)[0]
         #puts "VALUE: #{js.inspect}-#{val.inspect}-#{val.class}"
         if val.kind_of? Array
-          val.tap {|v| v.extend(ArrayProxy).instance_variable_set(:@oproperty, self) }
+          #val.tap {|v| v.extend(OPropertyArray).instance_variable_set(:@oproperty, self) }
         end
       else
         throw "Unknown property type '#{type}'"
@@ -307,8 +259,20 @@ module OMF::SFA::Resource
       end
     end
 
+    def [](index)
+      if p = OProperty.all(name: @name, o_resource: @resource).all[index]
+        p.value
+      else
+        nil
+      end
+    end
+
+    def length
+      OProperty.count(name: @name, o_resource: @resource)
+    end
+
     def empty?
-      OProperty.count(name: @name, o_resource: @resource) == 0
+      self.length == 0
     end
 
     # Callback to support 'reverse' operation

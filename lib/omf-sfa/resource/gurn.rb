@@ -5,7 +5,7 @@ module OMF::SFA::Resource
 #
   class GURN #< OMF::Base::MObject
 
-    @@def_domain = 'omf:nitos'
+    @@def_domain = "urn:publicid:IDN+acme.org"
     @@name2obj = {}
 
     # Create a GURN
@@ -18,6 +18,9 @@ module OMF::SFA::Resource
     #
     def self.create(name, opts = {})
       return name if name.kind_of? self
+      unless name
+        raise "No name given"
+      end
       #puts "GUID: #{name}###{opts}"
 
       obj = @@name2obj[name]

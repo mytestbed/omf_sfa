@@ -1,6 +1,8 @@
 
 require 'omf-sfa/resource/ocomponent'
 require 'omf-sfa/resource/interface'
+require 'omf-sfa/resource/abstract_service'
+require 'omf-sfa/resource/sliver_type'
 
 module OMF::SFA::Resource
 
@@ -9,18 +11,21 @@ module OMF::SFA::Resource
 
     oproperty :hardware_type, String, :required => false
     oproperty :available, Boolean, :default => true
-    #oproperty :sliver_type, String, :required => false
+    oproperty :sliver_type, SliverType, :required => false # Is this required?
     oproperty :interfaces, :interface, :functional => false
     oproperty :exclusive, Boolean, :default => true
+    oproperty :services, OMF::SFA::Resource::AbstractService, functional: false
 
     #belongs_to :sliver
 
     sfa_class 'node'
     sfa :hardware_type, :inline => true, :has_many => true
-    sfa :available, :attr_value => 'now'  # <available now="true">
+    sfa :available, attr_value: 'now', in_request: false  # <available now="true">
     #sfa :sliver_type, :attr_value => 'name'
+    sfa :sliver_type
     sfa :interfaces, :inline => true, :has_many => true
     sfa :exclusive, :attribute => true
+    sfa :services, :has_many => true
 
 
     # Override xml serialization of 'interface'

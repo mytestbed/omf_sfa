@@ -41,13 +41,13 @@ module OMF::SFA::Resource
 
     #sfa_add_namespace :ol, 'http://nitlab.inf.uth.gr/schema/sfa/rspec/1'
 
-    sfa :component_id, :attribute => true, :prop_name => :component_gurn # "urn:publicid:IDN+plc:cornell+node+planetlab3-dsl.cs.cornell.edu"
+    sfa :component_id, attribute: true, prop_name: :component_gurn, in_request: false
 
     sfa :client_id, :attribute => true, :prop_name => :name
     alias_method :client_id, :name
 
-    sfa :component_manager_id, :attribute => true, :prop_name => :component_manager_gurn # "urn:publicid:IDN+plc+authority+am"
-    sfa :component_name, :attribute => true # "plane
+    sfa :component_manager_id, attribute: true, prop_name: :component_manager_gurn, in_request: false
+    sfa :component_name, attribute: true, in_request: false
     sfa :leases, :inline => true, :has_many => true
 
     sfa :exo_sliver__geni_sliver_info
