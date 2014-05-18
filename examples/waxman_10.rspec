@@ -1,0 +1,333 @@
+<?xml version="1.0"?>
+<rspec xmlns="http://www.geni.net/resources/rspec/3" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:ol="http://nitlab.inf.uth.gr/schema/sfa/rspec/1" xmlns:omf="http://schema.mytestbed.net/sfa/rspec/1" xmlns:exo_sliver="http://groups.geni.net/exogeni/attachment/wiki/RspecExtensions/sliver-info/1" xmlns:exo_slice="http://groups.geni.net/exogeni/attachment/wiki/RspecExtensions/slice-info/1" type="request" generated="2014-05-18T20:37:12+10:00">
+  <node client_id="n0" exclusive="false">
+    <interface client_id="n0:if0">
+      <ip_address address="10.0.0.2" type="ipv4" netmask="255.255.255.0"/>
+    </interface>
+    <interface client_id="n0:if1">
+      <ip_address address="10.0.16.1" type="ipv4" netmask="255.255.255.0"/>
+    </interface>
+    <interface client_id="n0:if2">
+      <ip_address address="10.0.17.1" type="ipv4" netmask="255.255.255.0"/>
+    </interface>
+    <services>
+      <execute command="sudo sh /local/postboot_script.sh" shell="sh"/>
+      <install install_path="/local" url="http://emmy9.casa.umass.edu/InstaGENI_Images/install-script.tar.gz"/>
+    </services>
+    <sliver_type name="emulab-openvz">
+      <disk_image name="urn:publicid:IDN+utah.geniracks.net+image+emulab-ops:OPENVZ-STD"/>
+    </sliver_type>
+  </node>
+  <node client_id="n1" exclusive="false">
+    <interface client_id="n1:if0">
+      <ip_address address="10.0.1.2" type="ipv4" netmask="255.255.255.0"/>
+    </interface>
+    <interface client_id="n1:if1">
+      <ip_address address="10.0.3.2" type="ipv4" netmask="255.255.255.0"/>
+    </interface>
+    <interface client_id="n1:if2">
+      <ip_address address="10.0.5.2" type="ipv4" netmask="255.255.255.0"/>
+    </interface>
+    <interface client_id="n1:if3">
+      <ip_address address="10.0.18.1" type="ipv4" netmask="255.255.255.0"/>
+    </interface>
+    <interface client_id="n1:if4">
+      <ip_address address="10.0.19.1" type="ipv4" netmask="255.255.255.0"/>
+    </interface>
+    <services>
+      <execute command="sudo sh /local/postboot_script.sh" shell="sh"/>
+      <install install_path="/local" url="http://emmy9.casa.umass.edu/InstaGENI_Images/install-script.tar.gz"/>
+    </services>
+    <sliver_type name="emulab-openvz">
+      <disk_image name="urn:publicid:IDN+utah.geniracks.net+image+emulab-ops:OPENVZ-STD"/>
+    </sliver_type>
+  </node>
+  <node client_id="n2" exclusive="false">
+    <interface client_id="n2:if0">
+      <ip_address address="10.0.0.1" type="ipv4" netmask="255.255.255.0"/>
+    </interface>
+    <interface client_id="n2:if1">
+      <ip_address address="10.0.1.1" type="ipv4" netmask="255.255.255.0"/>
+    </interface>
+    <interface client_id="n2:if2">
+      <ip_address address="10.0.2.2" type="ipv4" netmask="255.255.255.0"/>
+    </interface>
+    <interface client_id="n2:if3">
+      <ip_address address="10.0.4.2" type="ipv4" netmask="255.255.255.0"/>
+    </interface>
+    <interface client_id="n2:if4">
+      <ip_address address="10.0.6.2" type="ipv4" netmask="255.255.255.0"/>
+    </interface>
+    <services>
+      <execute command="sudo sh /local/postboot_script.sh" shell="sh"/>
+      <install install_path="/local" url="http://emmy9.casa.umass.edu/InstaGENI_Images/install-script.tar.gz"/>
+    </services>
+    <sliver_type name="emulab-openvz">
+      <disk_image name="urn:publicid:IDN+utah.geniracks.net+image+emulab-ops:OPENVZ-STD"/>
+    </sliver_type>
+  </node>
+  <node client_id="n3" exclusive="false">
+    <interface client_id="n3:if0">
+      <ip_address address="10.0.2.1" type="ipv4" netmask="255.255.255.0"/>
+    </interface>
+    <interface client_id="n3:if1">
+      <ip_address address="10.0.3.1" type="ipv4" netmask="255.255.255.0"/>
+    </interface>
+    <interface client_id="n3:if2">
+      <ip_address address="10.0.9.2" type="ipv4" netmask="255.255.255.0"/>
+    </interface>
+    <interface client_id="n3:if3">
+      <ip_address address="10.0.10.2" type="ipv4" netmask="255.255.255.0"/>
+    </interface>
+    <interface client_id="n3:if4">
+      <ip_address address="10.0.14.2" type="ipv4" netmask="255.255.255.0"/>
+    </interface>
+    <services>
+      <execute command="sudo sh /local/postboot_script.sh" shell="sh"/>
+      <install install_path="/local" url="http://emmy9.casa.umass.edu/InstaGENI_Images/install-script.tar.gz"/>
+    </services>
+    <sliver_type name="emulab-openvz">
+      <disk_image name="urn:publicid:IDN+utah.geniracks.net+image+emulab-ops:OPENVZ-STD"/>
+    </sliver_type>
+  </node>
+  <node client_id="n4" exclusive="false">
+    <interface client_id="n4:if0">
+      <ip_address address="10.0.4.1" type="ipv4" netmask="255.255.255.0"/>
+    </interface>
+    <interface client_id="n4:if1">
+      <ip_address address="10.0.5.1" type="ipv4" netmask="255.255.255.0"/>
+    </interface>
+    <interface client_id="n4:if2">
+      <ip_address address="10.0.7.2" type="ipv4" netmask="255.255.255.0"/>
+    </interface>
+    <services>
+      <execute command="sudo sh /local/postboot_script.sh" shell="sh"/>
+      <install install_path="/local" url="http://emmy9.casa.umass.edu/InstaGENI_Images/install-script.tar.gz"/>
+    </services>
+    <sliver_type name="emulab-openvz">
+      <disk_image name="urn:publicid:IDN+utah.geniracks.net+image+emulab-ops:OPENVZ-STD"/>
+    </sliver_type>
+  </node>
+  <node client_id="n5" exclusive="false">
+    <interface client_id="n5:if0">
+      <ip_address address="10.0.6.1" type="ipv4" netmask="255.255.255.0"/>
+    </interface>
+    <interface client_id="n5:if1">
+      <ip_address address="10.0.7.1" type="ipv4" netmask="255.255.255.0"/>
+    </interface>
+    <interface client_id="n5:if2">
+      <ip_address address="10.0.8.2" type="ipv4" netmask="255.255.255.0"/>
+    </interface>
+    <interface client_id="n5:if3">
+      <ip_address address="10.0.16.2" type="ipv4" netmask="255.255.255.0"/>
+    </interface>
+    <interface client_id="n5:if4">
+      <ip_address address="10.0.18.2" type="ipv4" netmask="255.255.255.0"/>
+    </interface>
+    <services>
+      <execute command="sudo sh /local/postboot_script.sh" shell="sh"/>
+      <install install_path="/local" url="http://emmy9.casa.umass.edu/InstaGENI_Images/install-script.tar.gz"/>
+    </services>
+    <sliver_type name="emulab-openvz">
+      <disk_image name="urn:publicid:IDN+utah.geniracks.net+image+emulab-ops:OPENVZ-STD"/>
+    </sliver_type>
+  </node>
+  <node client_id="n6" exclusive="false">
+    <interface client_id="n6:if0">
+      <ip_address address="10.0.8.1" type="ipv4" netmask="255.255.255.0"/>
+    </interface>
+    <interface client_id="n6:if1">
+      <ip_address address="10.0.9.1" type="ipv4" netmask="255.255.255.0"/>
+    </interface>
+    <interface client_id="n6:if2">
+      <ip_address address="10.0.11.2" type="ipv4" netmask="255.255.255.0"/>
+    </interface>
+    <interface client_id="n6:if3">
+      <ip_address address="10.0.13.2" type="ipv4" netmask="255.255.255.0"/>
+    </interface>
+    <interface client_id="n6:if4">
+      <ip_address address="10.0.17.2" type="ipv4" netmask="255.255.255.0"/>
+    </interface>
+    <interface client_id="n6:if5">
+      <ip_address address="10.0.19.2" type="ipv4" netmask="255.255.255.0"/>
+    </interface>
+    <services>
+      <execute command="sudo sh /local/postboot_script.sh" shell="sh"/>
+      <install install_path="/local" url="http://emmy9.casa.umass.edu/InstaGENI_Images/install-script.tar.gz"/>
+    </services>
+    <sliver_type name="emulab-openvz">
+      <disk_image name="urn:publicid:IDN+utah.geniracks.net+image+emulab-ops:OPENVZ-STD"/>
+    </sliver_type>
+  </node>
+  <node client_id="n7" exclusive="false">
+    <interface client_id="n7:if0">
+      <ip_address address="10.0.10.1" type="ipv4" netmask="255.255.255.0"/>
+    </interface>
+    <interface client_id="n7:if1">
+      <ip_address address="10.0.11.1" type="ipv4" netmask="255.255.255.0"/>
+    </interface>
+    <interface client_id="n7:if2">
+      <ip_address address="10.0.12.2" type="ipv4" netmask="255.255.255.0"/>
+    </interface>
+    <services>
+      <execute command="sudo sh /local/postboot_script.sh" shell="sh"/>
+      <install install_path="/local" url="http://emmy9.casa.umass.edu/InstaGENI_Images/install-script.tar.gz"/>
+    </services>
+    <sliver_type name="emulab-openvz">
+      <disk_image name="urn:publicid:IDN+utah.geniracks.net+image+emulab-ops:OPENVZ-STD"/>
+    </sliver_type>
+  </node>
+  <node client_id="n8" exclusive="false">
+    <interface client_id="n8:if0">
+      <ip_address address="10.0.12.1" type="ipv4" netmask="255.255.255.0"/>
+    </interface>
+    <interface client_id="n8:if1">
+      <ip_address address="10.0.13.1" type="ipv4" netmask="255.255.255.0"/>
+    </interface>
+    <interface client_id="n8:if2">
+      <ip_address address="10.0.15.2" type="ipv4" netmask="255.255.255.0"/>
+    </interface>
+    <services>
+      <execute command="sudo sh /local/postboot_script.sh" shell="sh"/>
+      <install install_path="/local" url="http://emmy9.casa.umass.edu/InstaGENI_Images/install-script.tar.gz"/>
+    </services>
+    <sliver_type name="emulab-openvz">
+      <disk_image name="urn:publicid:IDN+utah.geniracks.net+image+emulab-ops:OPENVZ-STD"/>
+    </sliver_type>
+  </node>
+  <node client_id="n9" exclusive="false">
+    <interface client_id="n9:if0">
+      <ip_address address="10.0.14.1" type="ipv4" netmask="255.255.255.0"/>
+    </interface>
+    <interface client_id="n9:if1">
+      <ip_address address="10.0.15.1" type="ipv4" netmask="255.255.255.0"/>
+    </interface>
+    <services>
+      <execute command="sudo sh /local/postboot_script.sh" shell="sh"/>
+      <install install_path="/local" url="http://emmy9.casa.umass.edu/InstaGENI_Images/install-script.tar.gz"/>
+    </services>
+    <sliver_type name="emulab-openvz">
+      <disk_image name="urn:publicid:IDN+utah.geniracks.net+image+emulab-ops:OPENVZ-STD"/>
+    </sliver_type>
+  </node>
+  <link client_id="l0">
+    <interface_ref client_id="n2:if0"/>
+    <interface_ref client_id="n0:if0"/>
+    <property source_id="n2:if0" dest_id_id="n0:if0" capacity="10"/>
+    <property source_id="n0:if0" dest_id_id="n2:if0" capacity="10"/>
+  </link>
+  <link client_id="l1">
+    <interface_ref client_id="n2:if1"/>
+    <interface_ref client_id="n1:if0"/>
+    <property source_id="n2:if1" dest_id_id="n1:if0" capacity="10"/>
+    <property source_id="n1:if0" dest_id_id="n2:if1" capacity="10"/>
+  </link>
+  <link client_id="l2">
+    <interface_ref client_id="n3:if0"/>
+    <interface_ref client_id="n2:if2"/>
+    <property source_id="n3:if0" dest_id_id="n2:if2" capacity="10"/>
+    <property source_id="n2:if2" dest_id_id="n3:if0" capacity="10"/>
+  </link>
+  <link client_id="l3">
+    <interface_ref client_id="n3:if1"/>
+    <interface_ref client_id="n1:if1"/>
+    <property source_id="n3:if1" dest_id_id="n1:if1" capacity="10"/>
+    <property source_id="n1:if1" dest_id_id="n3:if1" capacity="10"/>
+  </link>
+  <link client_id="l4">
+    <interface_ref client_id="n4:if0"/>
+    <interface_ref client_id="n2:if3"/>
+    <property source_id="n4:if0" dest_id_id="n2:if3" capacity="10"/>
+    <property source_id="n2:if3" dest_id_id="n4:if0" capacity="10"/>
+  </link>
+  <link client_id="l5">
+    <interface_ref client_id="n4:if1"/>
+    <interface_ref client_id="n1:if2"/>
+    <property source_id="n4:if1" dest_id_id="n1:if2" capacity="10"/>
+    <property source_id="n1:if2" dest_id_id="n4:if1" capacity="10"/>
+  </link>
+  <link client_id="l6">
+    <interface_ref client_id="n5:if0"/>
+    <interface_ref client_id="n2:if4"/>
+    <property source_id="n5:if0" dest_id_id="n2:if4" capacity="10"/>
+    <property source_id="n2:if4" dest_id_id="n5:if0" capacity="10"/>
+  </link>
+  <link client_id="l7">
+    <interface_ref client_id="n5:if1"/>
+    <interface_ref client_id="n4:if2"/>
+    <property source_id="n5:if1" dest_id_id="n4:if2" capacity="10"/>
+    <property source_id="n4:if2" dest_id_id="n5:if1" capacity="10"/>
+  </link>
+  <link client_id="l8">
+    <interface_ref client_id="n6:if0"/>
+    <interface_ref client_id="n5:if2"/>
+    <property source_id="n6:if0" dest_id_id="n5:if2" capacity="10"/>
+    <property source_id="n5:if2" dest_id_id="n6:if0" capacity="10"/>
+  </link>
+  <link client_id="l9">
+    <interface_ref client_id="n6:if1"/>
+    <interface_ref client_id="n3:if2"/>
+    <property source_id="n6:if1" dest_id_id="n3:if2" capacity="10"/>
+    <property source_id="n3:if2" dest_id_id="n6:if1" capacity="10"/>
+  </link>
+  <link client_id="l10">
+    <interface_ref client_id="n7:if0"/>
+    <interface_ref client_id="n3:if3"/>
+    <property source_id="n7:if0" dest_id_id="n3:if3" capacity="10"/>
+    <property source_id="n3:if3" dest_id_id="n7:if0" capacity="10"/>
+  </link>
+  <link client_id="l11">
+    <interface_ref client_id="n7:if1"/>
+    <interface_ref client_id="n6:if2"/>
+    <property source_id="n7:if1" dest_id_id="n6:if2" capacity="10"/>
+    <property source_id="n6:if2" dest_id_id="n7:if1" capacity="10"/>
+  </link>
+  <link client_id="l12">
+    <interface_ref client_id="n8:if0"/>
+    <interface_ref client_id="n7:if2"/>
+    <property source_id="n8:if0" dest_id_id="n7:if2" capacity="10"/>
+    <property source_id="n7:if2" dest_id_id="n8:if0" capacity="10"/>
+  </link>
+  <link client_id="l13">
+    <interface_ref client_id="n8:if1"/>
+    <interface_ref client_id="n6:if3"/>
+    <property source_id="n8:if1" dest_id_id="n6:if3" capacity="10"/>
+    <property source_id="n6:if3" dest_id_id="n8:if1" capacity="10"/>
+  </link>
+  <link client_id="l14">
+    <interface_ref client_id="n9:if0"/>
+    <interface_ref client_id="n3:if4"/>
+    <property source_id="n9:if0" dest_id_id="n3:if4" capacity="10"/>
+    <property source_id="n3:if4" dest_id_id="n9:if0" capacity="10"/>
+  </link>
+  <link client_id="l15">
+    <interface_ref client_id="n9:if1"/>
+    <interface_ref client_id="n8:if2"/>
+    <property source_id="n9:if1" dest_id_id="n8:if2" capacity="10"/>
+    <property source_id="n8:if2" dest_id_id="n9:if1" capacity="10"/>
+  </link>
+  <link client_id="l16">
+    <interface_ref client_id="n0:if1"/>
+    <interface_ref client_id="n5:if3"/>
+    <property source_id="n0:if1" dest_id_id="n5:if3" capacity="10"/>
+    <property source_id="n5:if3" dest_id_id="n0:if1" capacity="10"/>
+  </link>
+  <link client_id="l17">
+    <interface_ref client_id="n0:if2"/>
+    <interface_ref client_id="n6:if4"/>
+    <property source_id="n0:if2" dest_id_id="n6:if4" capacity="10"/>
+    <property source_id="n6:if4" dest_id_id="n0:if2" capacity="10"/>
+  </link>
+  <link client_id="l18">
+    <interface_ref client_id="n1:if3"/>
+    <interface_ref client_id="n5:if4"/>
+    <property source_id="n1:if3" dest_id_id="n5:if4" capacity="10"/>
+    <property source_id="n5:if4" dest_id_id="n1:if3" capacity="10"/>
+  </link>
+  <link client_id="l19">
+    <interface_ref client_id="n1:if4"/>
+    <interface_ref client_id="n6:if5"/>
+    <property source_id="n1:if4" dest_id_id="n6:if5" capacity="10"/>
+    <property source_id="n6:if5" dest_id_id="n1:if4" capacity="10"/>
+  </link>
+</rspec>
