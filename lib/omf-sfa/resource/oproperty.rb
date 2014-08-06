@@ -8,26 +8,26 @@ require 'omf_base/lobject'
 # and overrides Time objects serialization. We want 'JSON.load' to return actual Time
 # objects instead of Strings.
 #
-class Time
-  def to_json(*args)
-    {
-      JSON.create_id => self.class.name,
-      's' => tv_sec,
-      'n' => respond_to?(:tv_nsec) ? tv_nsec : tv_usec * 1000
-    }.to_json(*args)
-  end
-
-  def self.json_create(object)
-    if usec = object.delete('u') # used to be tv_usec -> tv_nsec
-      object['n'] = usec * 1000
-    end
-    if instance_methods.include?(:tv_nsec)
-      at(object['s'], Rational(object['n'], 1000))
-    else
-      at(object['s'], object['n'] / 1000)
-    end
-  end
-end
+# class Time
+  # def to_json(*args)
+    # {
+      # JSON.create_id => self.class.name,
+      # 's' => tv_sec,
+      # 'n' => respond_to?(:tv_nsec) ? tv_nsec : tv_usec * 1000
+    # }.to_json(*args)
+  # end
+#
+  # def self.json_create(object)
+    # if usec = object.delete('u') # used to be tv_usec -> tv_nsec
+      # object['n'] = usec * 1000
+    # end
+    # if instance_methods.include?(:tv_nsec)
+      # at(object['s'], Rational(object['n'], 1000))
+    # else
+      # at(object['s'], object['n'] / 1000)
+    # end
+  # end
+# end
 
 #raise "JSON deserialisation no longer working - require 'json' early" unless JSON.load(Time.now.to_json).is_a? Time
 
@@ -42,35 +42,27 @@ module OMF::SFA::Resource
 
     property :name, String
     property :type, String, length: 2
-    property :s_value, String # actually serialized Object
+    property :s_value, Text, :lazy => false # actually serialized Object
     property :n_value, Float
 
     belongs_to :o_resource
 
-    def self.prop_all(query, opts = {}, resource_class = nil)
-      i = 0
-      where = query.map do |pn, v|
-        h = _analyse_value(v)
-        tbl = "p#{i}"
-        i += 1
-        if (val = h[:v]).is_a? String
-          val = "'#{val}'"
-        end
-        "#{tbl}.#{h[:f]} #{h[:t] == 's' ? 'LIKE' : '='} #{val}"
+    def self.create(attr = {})
+      if (value = attr.delete(:value))
+        h = self._analyse_value(value)
+        attr[h[:f]] = h[:v]
+        attr[:type] = h[:t]
       end
-      i.times do |j|
-        where << "r.id = p#{j}.o_resource_id"
-      end
-      where << "r.type = '#{resource_class}'" if resource_class
+      super
+    end
 
-      table = storage_names[:default]
-      from = i.times.map {|j| "#{table} AS p#{j}" }
-      from << "omf_sfa_resource_o_resources AS r" # TODO: Shouldn't hard-code that
+    def self.prop_all(query, opts = {}, resource_class = nil)
+      from, where = self._build_query(query, resource_class)
       q = "SELECT DISTINCT r.id, r.type, r.uuid, r.name FROM #{from.join(', ')} WHERE #{where.join(' AND ')};"
       if l = opts[:limit]
         q += " LIMIT #{l} OFFSET #{opts[:offset] || 0}"
       end
-      debug "prop_all q: #{q}"
+      #debug "prop_all q: #{q}"
       res = repository(:default).adapter.select(q)
       ores = res.map do |qr|
         if resource_class
@@ -81,6 +73,63 @@ module OMF::SFA::Resource
       end
       #puts "RES>>> #{ores}"
       ores
+    end
+
+    def self.count(query)
+      from, where = self._build_query(query)
+      q = "SELECT COUNT(r.id) FROM #{from.join(', ')} WHERE #{where.join(' AND ')};"
+      res = repository(:default).adapter.select(q)
+      #debug "count res: #{res} q: #{query} sql: #{q}"
+      res[0]
+    end
+
+    # Query:
+    #    resource: Resource to find properties for
+    #    name: Name of property
+    #    value: Value of property
+    #
+    # Return the FROM and WHERE elements for 'query'
+    #
+    # TODO: THIS IS REALLY BROKEN! Need to define what a query is in this context
+    #
+    def self._build_query(query, resource_class = nil)
+      i = 0
+      where = query.map do |pn, v|
+        tbl = "p#{i}"
+        case pn.to_sym
+        when :resource
+          unless v.is_a? OResource
+            raise "Expected type OResource for :resource, but got '#{v}::#{v.class}'"
+          end
+          "#{tbl}.o_resource_id = #{v.id}"
+        when :name
+          "#{tbl}.name = '#{v}'"
+        else
+          h = _analyse_value(v)
+          i += 1
+          if (val = h[:v]).is_a? String
+            val = "'#{val}'"
+          end
+          "#{tbl}.#{h[:f]} #{h[:t] == 's' ? 'LIKE' : '='} #{val}"
+        end
+      end
+
+      # TODO: Hack!!!
+      unless i <= 1
+        raise "Are you using the query facility on OProperties correctly? (#{i})"
+      else
+        i = 1
+      end
+
+      i.times do |j|
+        where << "r.id = p#{j}.o_resource_id"
+      end
+      where << "r.type = '#{resource_class}'" if resource_class
+
+      table = storage_names[:default]
+      from = i.times.map {|j| "#{table} AS p#{j}" }
+      from << "omf_sfa_resource_o_resources AS r" # TODO: Shouldn't hard-code that
+      [from, where]
     end
 
     @@name2class = {}
@@ -102,30 +151,11 @@ module OMF::SFA::Resource
 
     def value=(val)
       h = self.class._analyse_value(val)
+      #puts "VALUE>>> #{h}"
       attribute_set(h[:f], h[:v])
       attribute_set(:type, h[:t])
       save
     end
-
-      # if val.is_a? Numeric
-        # attribute_set(:n_value, val)
-        # attribute_set(:type, (val.is_a? Integer) ? 'i' : 'f')
-      # elsif val.is_a? String
-        # attribute_set(:s_value, val)
-        # attribute_set(:type, 's')
-      # elsif val.is_a? OResource
-        # attribute_set(:s_value, val.uuid.to_s)
-        # attribute_set(:type, 'r')
-      # elsif val.is_a? Time
-        # attribute_set(:n_value, val.to_i)
-        # attribute_set(:type, 't')
-      # else
-        # puts "OOOOO INSETRT (#{attribute_get(:name)})> #{val.class}"
-        # attribute_set(:s_value, JSON.generate([val]))
-        # attribute_set(:type, 'o')
-      # end
-      # save
-    # end
 
     def self._analyse_value(val)
 
@@ -233,16 +263,39 @@ module OMF::SFA::Resource
 
   end # OProperty
 
+
   class OPropertyArray
+
     def <<(val)
-      #puts ">>> Adding #{val} to #{@name} - #{@on_set_block}"
-      p = OProperty.create(name: @name, o_resource: @resource)
+      #puts "------------------ Checking #{@resource.name} => #{@name}"
       if @on_set_block
         val = @on_set_block.call(val)
         return if val.nil? #
       end
-      p.value = val
+      if val.is_a? OResource
+        # Make sure we only have a single reference
+        return if OProperty.count(name: @name, resource: @resource, value: val) > 0
+      end
+      #puts ">>> Adding #{val} to #{@name} - #{@on_set_block}"
+      p = OProperty.create(name: @name, o_resource: @resource, value: val)
+      if @on_modified_block
+        @on_modified_block.call(val, true)
+      end
+      #p.value = val
       self
+    end
+
+    def delete(val)
+      # this is rather inefficient
+      p = OProperty.all(name: @name, o_resource: @resource).find do |p|
+        p.value == val
+      end
+      return nil unless p
+      p.destroy
+      if @on_removed_block
+        @on_removed_block.call(val)
+      end
+      val
     end
 
     # Delete all members
@@ -268,7 +321,8 @@ module OMF::SFA::Resource
     end
 
     def length
-      OProperty.count(name: @name, o_resource: @resource)
+      #raise "LENGTH"
+      OProperty.count(name: @name, resource: @resource)
     end
 
     def empty?
@@ -277,8 +331,12 @@ module OMF::SFA::Resource
 
     # Callback to support 'reverse' operation
     def on_modified(&block)
-      raise "Not implemented"
-      #@on_modified_block = block
+      #raise "Not implemented"
+      @on_modified_block = block
+    end
+
+    def on_removed(&block)
+      @on_removed_block = block
     end
 
     def on_set(&block)
@@ -297,6 +355,10 @@ module OMF::SFA::Resource
 
     def to_s
       "<#{self.class}: name=#{@name} resource=#{@resource.name || @resource.uuid} >"
+    end
+
+    def method_missing(m, *args, &block)
+      self.to_a().send(m, &block)
     end
 
     def initialize(resource, name)

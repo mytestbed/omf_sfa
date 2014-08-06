@@ -32,6 +32,7 @@ Gem::Specification.new do |s|
   s.add_runtime_dependency "dm-validations", "~> 1.2.0"
   s.add_runtime_dependency "dm-migrations", "~> 1.2.0"
   s.add_runtime_dependency "dm-sqlite-adapter", "~> 1.2.0"
+  s.add_runtime_dependency 'dm-noisy-failures'
   s.add_runtime_dependency "uuid", "~> 2.3.5"
   s.add_runtime_dependency "json", "~> 1.7.7"
 #
@@ -45,4 +46,7 @@ Gem::Specification.new do |s|
   s.add_runtime_dependency "omf_base", "~> 1.0.3"
   s.add_runtime_dependency "eventmachine", "~> 1.0.3"
   s.add_runtime_dependency "em-minitest-spec", "~> 1.1.1"
+  s.add_runtime_dependency "ruby-ip"
+
+
 end

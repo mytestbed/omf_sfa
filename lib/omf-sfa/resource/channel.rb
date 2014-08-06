@@ -15,7 +15,7 @@ module OMF::SFA::Resource
     sfa_class 'channel', :namespace => :ol
     sfa :number, :attribute => true
     sfa :frequency, :attribute => true
-    sfa :interfaces, :inline => true, :has_many => true
+    sfa :interfaces, :inline => true, :has_many => true, :inverse => :channel
 
     def _from_sfa_interfaces_property_xml(resource_el, props, context)
       resource_el.children.each do |el|

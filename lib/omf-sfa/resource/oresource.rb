@@ -3,6 +3,7 @@ require 'dm-core'
 require 'dm-types'
 require 'dm-validations'
 require 'dm-aggregates'
+require 'dm_noisy_failures'
 
 require 'omf_base/lobject'
 require 'set'
@@ -271,7 +272,7 @@ module OMF::SFA::Resource
     alias_method :[], :oproperty_get
 
     def oproperty_set(pname, value, type = nil)
-      #puts "OPROPERTY_SET pname:'#{pname}', value:'#{value.class}'::#{type}, self:'#{self.inspect}'"
+      #puts "OPROPERTY_SET pname:'#{pname}', value:'#{value}'::#{value.class}::#{type}, self:'#{self.inspect}'"
       pname = pname.to_sym
       if pname == :name
         self.name = value

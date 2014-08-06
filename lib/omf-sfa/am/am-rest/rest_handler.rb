@@ -5,6 +5,7 @@ require 'uuid'
 require 'set'
 require 'json'
 require 'thin/async'
+require 'cgi'
 
 require 'omf_base/lobject'
 
@@ -57,8 +58,8 @@ module OMF::SFA::AM::Rest
   end
 
   class UnsupportedMethodException < RackException
-    def initialize()
-      super 403, "Unsupported Method"
+    def initialize(method_name = nil, class_name = nil)
+      super 403, "Unsupported Method '#{class_name || 'Unknown'}::#{method_name || 'Unknown'}'"
     end
   end
 
@@ -82,6 +83,18 @@ module OMF::SFA::AM::Rest
     end
   end
 
+  # Raised when a request triggers an async call whose
+  # result we need before answering the request
+  #
+  class RetryLaterException < Exception
+    attr_reader :delay
+
+    def initialize(delay = 3)
+      @delay = delay
+    end
+  end
+
+
 
   class RestHandler < OMF::Base::LObject
     @@service_name = nil
@@ -103,6 +116,19 @@ module OMF::SFA::AM::Rest
       self.new().render_html(parts)
     end
 
+    # Parse format of 'resource_uri' and (re)turn into a
+    # description hash (optionally provided).
+    #
+    def self.parse_resource_uri(resource_uri, description = {})
+      if UUID.validate(resource_uri)
+        description[:uuid] = resource_uri
+      elsif resource_uri.start_with? 'urn:'
+        description[:urn] = resource_uri
+      else
+        description[:name] = resource_uri
+      end
+      description
+    end
 
     def initialize(opts = {})
       @opts = opts
@@ -112,12 +138,13 @@ module OMF::SFA::AM::Rest
       begin
         Thread.current[:http_host] = env["HTTP_HOST"]
         req = ::Rack::Request.new(env)
+        headers = {
+          'Access-Control-Allow-Origin' => '*',
+          'Access-Control-Allow-Methods' => 'GET, POST, OPTIONS',
+          'Access-Control-Allow-Headers' => 'origin, x-csrftoken, content-type, accept'
+        }
         if req.request_method == 'OPTIONS'
-          return [200 ,{
-            'Access-Control-Allow-Origin' => '*' ,
-            'Access-Control-Allow-Methods' => 'GET, POST, OPTIONS',
-            'Access-Control-Allow-Headers' => 'origin, x-csrftoken, content-type, accept'
-          }, ""]
+          return [200 , headers, ""]
         end
         content_type, body = dispatch(req)
         if body.is_a? Thin::AsyncResponse
@@ -131,7 +158,8 @@ module OMF::SFA::AM::Rest
           body = JSON.pretty_generate(body)
         end
         #return [200 ,{'Content-Type' => content_type}, body + "\n"]
-        return [200 ,{'Content-Type' => content_type, 'Access-Control-Allow-Origin' => '*' , 'Access-Control-Allow-Methods' => 'GET, POST, OPTIONS' }, body + "\n"]
+        headers['Content-Type'] = content_type
+        return [200 , headers, body + "\n"]
       rescue RackException => rex
         return rex.reply
       rescue RedirectException => rex
@@ -139,16 +167,33 @@ module OMF::SFA::AM::Rest
         return [301, {'Location' => rex.path, "Content-Type" => ""}, ['Next window!']]
       # rescue OMF::SFA::AM::AMManagerException => aex
         # return RackException.new(400, aex.to_s).reply
+      rescue RetryLaterException => rex
+        body = {
+          type: 'retry',
+          delay: rex.delay
+        }
+        debug "Retry later request"
+        if req['_format'] == 'html'
+          headers['Refresh'] = rex.delay.to_s
+          opts = {} #{html_header: "<META HTTP-EQUIV='refresh' CONTENT='#{rex.delay}'>"}
+          body = convert_to_html(body, env, opts)
+          return [200 , headers, body + "\n"]
+        end
+        headers['Content-Type'] = 'application/json'
+        return [504, headers, JSON.pretty_generate(body)]
+
       rescue Exception => ex
         body = {
-          :error => {
-            :reason => ex.to_s,
-            :bt => ex.backtrace #.select {|l| !l.start_with?('/') }
+          type: 'error',
+          error: {
+            reason: ex.to_s,
+            bt: ex.backtrace #.select {|l| !l.start_with?('/') }
           }
         }
         warn "ERROR: #{ex}"
         debug ex.backtrace.join("\n")
-        return [500, { "Content-Type" => 'application/json', 'Access-Control-Allow-Origin' => '*', 'Access-Control-Allow-Methods' => 'GET, POST, OPTIONS' }, JSON.pretty_generate(body)]
+        headers['Content-Type'] = 'application/json'
+        return [500, headers, JSON.pretty_generate(body)]
       end
     end
 
@@ -168,7 +213,7 @@ module OMF::SFA::AM::Rest
       #debug 'POST(', resource_uri, '): body(', format, '): "', description, '"'
 
       if resource = opts[:resource]
-        debug 'POST: Modify ', resource
+        debug 'POST: Modify ', resource, ' --- ', resource.class
         modify_resource(resource, description, opts)
       else
         if description.is_a? Array
@@ -179,13 +224,13 @@ module OMF::SFA::AM::Rest
           return show_resources(resources, nil, opts)
         else
           debug 'POST: Create ', resource_uri
-          if resource_uri
-            if UUID.validate(resource_uri)
-              description[:uuid] = resource_uri
-            else
-              description[:name] = resource_uri
-            end
-          end
+          # if resource_uri
+            # if UUID.validate(resource_uri)
+              # description[:uuid] = resource_uri
+            # else
+              # description[:name] = resource_uri
+            # end
+          # end
           resource = create_resource(description, opts, resource_uri)
         end
       end
@@ -200,6 +245,7 @@ module OMF::SFA::AM::Rest
     end
 
     def on_delete(resource_uri, opts)
+      res = ['application/json', {}]
       if resource = opts[:resource]
         if (context = opts[:context])
           remove_resource_from_context(resource, context)
@@ -210,17 +256,21 @@ module OMF::SFA::AM::Rest
           resource.destroy
         end
       else
-        # Delete ALL resources of this type
-        raise OMF::SFA::AM::Rest::BadRequestException.new "I'm sorry, Dave. I'm afraid I can't do that."
+        res = on_delete_all(opts) || res
       end
-      resource.reload
-      return res
+      res
     end
 
+    def on_delete_all(opts)
+      # Delete ALL resources of this type
+      raise OMF::SFA::AM::Rest::BadRequestException.new "I'm sorry, Dave. I'm afraid I can't do that."
+    end
 
     def find_handler(path, opts)
-      debug "find_handler: path; '#{path}' opts: #{opts}"
-      resource_id = opts[:resource_uri] = path.shift
+      #debug "find_handler: path; '#{path}' opts: #{opts}"
+      debug "find_handler: path; '#{path}'"
+      rid = path.shift
+      resource_id = opts[:resource_uri] = (rid ? URI.decode(rid) : nil) # make sure we get rid of any URI encoding
       opts[:resource] = nil
       if resource_id
         resource = opts[:resource] = find_resource(resource_id, {}, opts)
@@ -231,7 +281,8 @@ module OMF::SFA::AM::Rest
       opts[:context] = resource
       comp = path.shift
       if (handler = @coll_handlers[comp.to_sym])
-        opts[:resource_uri] = path.join('/')
+        opts[:context_name] = comp
+        opts[:resource_uri] = URI.decode(path.join('/'))
         if handler.is_a? Proc
           return handler.call(path, opts)
         end
@@ -250,30 +301,38 @@ module OMF::SFA::AM::Rest
       end
       description.delete(:href)
       resource.update(description) ? resource : nil
-      #raise UnsupportedMethodException.new
     end
 
 
     def create_resource(description, opts, resource_uri = nil)
-      #debug "Create: #{description.class}--#{description}"
+      debug "Create: uri: '#{resource_uri.inspect}' class: #{description.class}--#{description}"
 
-      if resource_uri
-        if UUID.validate(resource_uri)
-          description[:uuid] = resource_uri
-        else
-          description[:name] = resource_uri
+      query = {}
+      unless (resource_uri || '').empty?
+        query = self.class.parse_resource_uri(resource_uri, query)
+        description.merge!(query)
+      else
+        [:uuid, :urn, :name].each do |k|
+          if v = description[k]
+            query[k] = v
+          end
         end
       end
 
       # Let's find if the resource already exists. If yes, just modify it
-      if uuid = description[:uuid]
-        debug 'Trying to find resource ', uuid, "'"
-        resource = @resource_class.first(uuid: uuid)
+      # if description[:uuid] || descri
+        # debug 'Trying to find resource ', uuid, "'"
+        # resource = @resource_class.first(uuid: uuid)
+      # end
+      unless query.empty?
+        debug 'Trying to find "', @resource_class, '" ', query, "'"
+        resource = @resource_class.first(query)
       end
       if resource
         modify_resource(resource, description, opts)
       else
-        resource = @resource_class.create(description)
+        debug 'Trying to create resource ', @resource_class, ' - ', description
+        resource = _really_create_resource(description, opts)
         on_new_resource(resource)
       end
       if (context = opts[:context])
@@ -282,6 +341,25 @@ module OMF::SFA::AM::Rest
       return resource
     end
 
+    def _really_create_resource(description, opts)
+      @resource_class.create(description)
+    end
+
+    # Parse format of 'resource_uri' and (re)turn into a
+    # description hash (optionally provided).
+    #
+    def _parse_resource_uri(resource_uri, description = {})
+      if UUID.validate(resource_uri)
+        description[:uuid] = resource_uri
+      elsif resource_uri.start_with? 'urn:'
+        description[:urn] = resource_uri
+      else
+        description[:name] = resource_uri
+      end
+      description
+    end
+
+
     # Can be used to further customize a newly created
     # resource.
     #
@@ -289,12 +367,12 @@ module OMF::SFA::AM::Rest
       debug "Created: #{resource}"
     end
 
-    def add_resource_to_context(user, context)
-      raise UnsupportedMethodException.new
+    def add_resource_to_context(resource, context)
+      raise UnsupportedMethodException.new(:add_resource_to_context, self.class)
     end
 
-    def remove_resource_from_context(user, context)
-      raise UnsupportedMethodException.new
+    def remove_resource_from_context(resource, context)
+      raise UnsupportedMethodException.new(:remove_resource_from_context, self.class)
     end
 
 
@@ -305,6 +383,7 @@ module OMF::SFA::AM::Rest
     # store them in +opts+.
     #
     def populate_opts(req, opts)
+      opts[:req] = req
       path = req.path_info.split('/').select { |p| !p.empty? }
       opts[:target] = find_handler(path, opts)
       rl = req.params.delete('_level')
@@ -411,12 +490,12 @@ module OMF::SFA::AM::Rest
       descr.delete(:resource_uri)
       if UUID.validate(resource_uri)
         descr[:uuid] = resource_uri
+      elsif resource_uri.start_with?('urn')
+        descr[:urn] = resource_uri
       else
         descr[:name] = resource_uri
       end
-      if resource_uri.start_with?('urn')
-        descr[:urn] = resource_uri
-      end
+
       #authenticator = Thread.current["authenticator"]
       debug "Finding #{@resource_class}.first(#{descr})"
       @resource_class.first(descr)
@@ -424,7 +503,11 @@ module OMF::SFA::AM::Rest
 
     def show_resource_list(opts)
       # authenticator = Thread.current["authenticator"]
-      resources = @resource_class.all()
+      if (context = opts[:context])
+        resources = context.send(opts[:context_name].to_sym)
+      else
+        resources = @resource_class.all()
+      end
       show_resources(resources, nil, opts)
     end
 
@@ -433,9 +516,10 @@ module OMF::SFA::AM::Rest
       hopts = {max_level: opts[:max_level], level: 0}
       objs = {}
       res_hash = resources.map do |a|
+        next unless a # TODO: This seems to be a bug in OProperty (removing objects)
         a.to_hash(objs, hopts)
         #a.to_hash_brief(:href_use_class_prefix => true)
-      end
+      end.compact
       if resource_name
         prefix = about = opts[:req].path
         res = {
@@ -488,6 +572,7 @@ module OMF::SFA::AM::Rest
     # Render an HTML page using the resource's template. The
     # template is populated with information provided in 'parts'
     #
+    # * :header - HTML header additions
     # * :title - HTML title
     # * :service - Service path (usually a set of <a>)
     # * :content - Main content
@@ -497,6 +582,9 @@ module OMF::SFA::AM::Rest
     def render_html(parts = {})
       #puts "PP>> #{parts}"
       tmpl = html_template()
+      if (header = parts[:header])
+        tmpl = tmpl.gsub('##HEADER##', header)
+      end
       if (result = parts[:result])
         tmpl = tmpl.gsub('##JS##', JSON.pretty_generate(result))
       end
@@ -532,6 +620,7 @@ module OMF::SFA::AM::Rest
       _convert_obj_to_html(body, nil, res, opts)
 
       render_html(
+        header: opts[:html_header] || '',
         result: body,
         title: @@service_name || env["HTTP_HOST"],
         service: h2.join('/'),
@@ -546,7 +635,7 @@ module OMF::SFA::AM::Rest
     protected
     def _convert_obj_to_html(obj, ref_name, res, opts)
       klass = obj.class
-      #puts "CONVERT>>>> #{obj.class}::#{obj}"
+      #puts "CONVERT>>>> #{ref_name} ... #{obj.class}::#{obj.to_s[0 .. 80]}"
       if (obj.is_a? OMF::SFA::Resource::OPropertyArray) || obj.is_a?(Array)
         if obj.empty?
           res << '<span class="empty">empty</span>'
@@ -563,6 +652,9 @@ module OMF::SFA::AM::Rest
         if obj.to_s.start_with? 'http://'
           res << _convert_link_to_html(obj)
         else
+          if obj.is_a? String
+            obj = CGI.escapeHTML obj
+          end
           res << " <span class='value'>#{obj}</span> "
         end
       end
@@ -573,6 +665,9 @@ module OMF::SFA::AM::Rest
       array.each do |obj|
         #puts "AAA>>>> #{obj}::#{opts}"
         name = nil
+        if (obj.is_a? OMF::SFA::Resource::OResource)
+          obj = obj.to_hash()
+        end
         if obj.is_a? Hash
           if name = obj[:name] || obj[:uuid]
             res << "<li><span class='key'>#{_convert_link_to_html obj[:href], name}:</span>"

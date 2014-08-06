@@ -31,6 +31,7 @@ module OMF::SFA
         @@sfa_classes = {}
         @@sfa_name2class = {}
         @@sfa_suppress_id = {}
+        @@sfa_suppress_uuid = {}
 
         #
         # @opts
@@ -72,6 +73,14 @@ module OMF::SFA
 
         def sfa_suppress_id?
           @@sfa_suppress_id[self] == true
+        end
+
+        def sfa_suppress_uuid
+          @@sfa_suppress_uuid[self] = true
+        end
+
+        def sfa_suppress_uuid?
+          @@sfa_suppress_uuid[self] == true
         end
 
         # Define a SFA property
@@ -467,6 +476,11 @@ module OMF::SFA
           unless opts[:suppress_id] || self.class.sfa_suppress_id?
             new_element.set_attribute('id', id) #if detail_level > 0
           end
+
+          unless opts[:suppress_uuid] || self.class.sfa_suppress_uuid?
+            new_element.set_attribute('uuid', self.uuid) #if detail_level > 0
+          end
+
           #if href = self.href(opts)
           #  new_element.set_attribute('omf:href', href)
           #end

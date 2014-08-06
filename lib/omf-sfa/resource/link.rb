@@ -1,5 +1,5 @@
 
-
+require 'set'
 require 'omf-sfa/resource/channel'
 #require 'omf-sfa/resource/link_property'
 
@@ -21,9 +21,24 @@ module OMF::SFA::Resource
     oproperty :packet_loss, Float # 0 .. 1
 
     sfa_class 'link'
-    sfa :link_type, :content_attribute => :name
+    sfa :link_type, attr_value: 'name' #:content_attribute => :name
+    sfa :component_manager
     sfa :property # sets capacity, latency and packet_loss
     #sfa :properties, LinkProperty, :inline => true, :has_many => true
+
+    #Override xml serialization of 'component_manager'
+    def _to_sfa_xml_component_manager(res_el, pdef, obj2id, opts)
+      cms = Set.new
+      self.interfaces.each do |ifs|
+        cms << ifs.node.component_manager
+      end
+      cms.each do |cm|
+        next unless cm # not sure if 'nil' could show up her
+        el = res_el.add_child(Nokogiri::XML::Element.new('component_manager', res_el.document))
+        el.set_attribute('name', cm)
+      end
+
+    end
 
     #Override xml serialization of 'property'
     def _to_sfa_xml_property(res_el, pdef, obj2id, opts)
