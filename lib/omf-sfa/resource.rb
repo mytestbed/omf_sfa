@@ -1,7 +1,9 @@
 
 require 'omf_sfa'
 module OMF::SFA
-  module Resource; end
+  module Resource
+    class ResourceException < Exception; end
+  end
 end
 
 require 'omf-sfa/resource/gurn'

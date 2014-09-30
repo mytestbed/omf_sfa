@@ -12,7 +12,7 @@ module OMF::SFA::Util
   end
 
 
-  # This class handles the convertion between GraphJson
+  # This class handles the conversion between GraphJson
   # and a set of resources.
   #
   # Usage:
@@ -23,6 +23,17 @@ module OMF::SFA::Util
     def self.parse_file(file_name, opts = {})
       content = File.open(file_name).read()
       self.new.parse(JSON.parse(content, symbolize_names: true), opts)
+    end
+
+    # Parse a hash following the GraphJSON format and return a
+    # list od resources.
+    #
+    # * opts
+    #   - :node_services Services to add to each node (default: [])
+    #   - :create_new_uuids Don't use '_id' for UUID, create new ones
+    #
+    def self.parse(descr_hash, opts = {})
+      self.new.parse(descr_hash, opts)
     end
 
     # Parse a hash following the GraphJSON format and return a
@@ -145,6 +156,7 @@ module OMF::SFA::Util
         next unless n_descr[:_type] == "node"
         node_id = n_descr[:_id]
         if_a = n_descr[:__ifs]
+        next unless if_a
 
         # Add names to all interfaces
         names = if_a.map {|ifd| ifd[:name] }.compact

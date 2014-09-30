@@ -3,6 +3,8 @@ require 'omf_base/lobject'
 
 module OMF::SFA::Resource
 #
+  class GurnMalformedException < ResourceException; end
+
   class GURN #< OMF::Base::MObject
 
     @@def_domain = "urn:publicid:IDN+acme.org"
@@ -19,7 +21,7 @@ module OMF::SFA::Resource
     def self.create(name, opts = {})
       return name if name.kind_of? self
       unless name
-        raise "No name given"
+        raise GurnMalformedException.new "No name given"
       end
       #puts "GUID: #{name}###{opts}"
 
@@ -58,11 +60,11 @@ module OMF::SFA::Resource
           prefix, name = a
           type = nil
         else
-          raise "unknown format '#{urn_str}' for GURN (#{a.inspect})."
+          raise GurnMalformedException.new "unknown format '#{urn_str}' for GURN (#{a.inspect})."
         end
         @@name2obj[urn_str] = self.new(name, type, prefix)
       else
-        raise "unknown format '#{urn_str}' for GURN - expected it to start with 'urn:publicid:IDN'."
+        raise GurnMalformedException.new "unknown format '#{urn_str}' for GURN - expected it to start with 'urn:publicid:IDN'."
       end
     end
 

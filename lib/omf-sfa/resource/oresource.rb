@@ -177,7 +177,7 @@ module OMF::SFA::Resource
               elsif v.respond_to?(m = "#{rev_m}=".to_sym)
                 v.send(m, self)
               else
-                raise "Can't find any setter '#{rev_m}' on '#{v}'"
+                raise "Can't find any setter '#{rev_m}' on '#{v}:#{v.class}'"
               end
             else
               # TODO: should remove this one form the reverse side

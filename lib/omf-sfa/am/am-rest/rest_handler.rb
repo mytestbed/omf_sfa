@@ -75,11 +75,26 @@ module OMF::SFA::AM::Rest
     end
   end
 
+  class TemporaryUnavailableException < RackException
+    def initialize()
+      super 504, "Upstream servers haven't responded yet, please try again a bit later"
+    end
+  end
+
   class RedirectException < Exception
     attr_reader :path
 
     def initialize(path)
       @path = path
+    end
+  end
+
+  class PromiseDeferException < Exception
+    attr_reader :uuid, :promise
+
+    def initialize(promise)
+      @uuid = UUIDTools::UUID.random_create
+      @promise = promise
     end
   end
 
@@ -89,10 +104,18 @@ module OMF::SFA::AM::Rest
   class RetryLaterException < Exception
     attr_reader :delay
 
-    def initialize(delay = 3)
+    def initialize(delay = 10)
       @delay = delay
     end
   end
+
+  # class FoundUnresolvedPromiseException < Exception
+  #   attr_reader :promise
+  #
+  #   def initialize(promise)
+  #     @promise = promise
+  #   end
+  # end
 
 
 
@@ -147,40 +170,56 @@ module OMF::SFA::AM::Rest
           return [200 , headers, ""]
         end
         content_type, body = dispatch(req)
+        #puts "BODY(#{body.class}) - #{content_type}) >>>>> #{body}"
         if body.is_a? Thin::AsyncResponse
           return body.finish
         end
-        if req['_format'] == 'html'
-          #body = self.class.convert_to_html(body, env, Set.new((@coll_handlers || {}).keys))
-          body = convert_to_html(body, env, {}, Set.new((@coll_handlers || {}).keys))
-          content_type = 'text/html'
-        elsif content_type == 'application/json'
-          body = JSON.pretty_generate(body)
-        end
+        content_type, body  = _format_body(body, content_type, req, env)
+        # if req['_format'] == 'html'
+        #   #body = self.class.convert_to_html(body, env, Set.new((@coll_handlers || {}).keys))
+        #   body = convert_to_html(body, env, {}, Set.new((@coll_handlers || {}).keys))
+        #   content_type = 'text/html'
+        # elsif content_type == 'application/json'
+        #   body = JSON.pretty_generate(body)
+        # end
         #return [200 ,{'Content-Type' => content_type}, body + "\n"]
         headers['Content-Type'] = content_type
-        return [200 , headers, body + "\n"]
+        return [200 , headers, (body || '') + "\n"]
       rescue RackException => rex
         return rex.reply
-      rescue RedirectException => rex
-        debug "Redirecting to #{rex.path}"
-        return [301, {'Location' => rex.path, "Content-Type" => ""}, ['Next window!']]
+      rescue PromiseDeferException => pex
+        uuid = 1 #pex.uuid
+        path = "/promises/#{uuid}"
+        require 'omf-sfa/am/am-rest/promise_handler' # delay loading as PromiseHandler sub classes this class
+        OMF::SFA::AM::Rest::PromiseHandler.register_promise(pex.promise,
+                                                            uuid,
+                                                            req['_format'] == 'html',
+                                                            Set.new((@coll_handlers || {}).keys))
+        debug "Redirecting to #{path}"
+        return [302, {'Location' => path}, ['Promised, but not ready yet.']]
+
       # rescue OMF::SFA::AM::AMManagerException => aex
         # return RackException.new(400, aex.to_s).reply
-      rescue RetryLaterException => rex
-        body = {
-          type: 'retry',
-          delay: rex.delay
-        }
-        debug "Retry later request"
-        if req['_format'] == 'html'
-          headers['Refresh'] = rex.delay.to_s
-          opts = {} #{html_header: "<META HTTP-EQUIV='refresh' CONTENT='#{rex.delay}'>"}
-          body = convert_to_html(body, env, opts)
-          return [200 , headers, body + "\n"]
-        end
-        headers['Content-Type'] = 'application/json'
-        return [504, headers, JSON.pretty_generate(body)]
+      # rescue RetryLaterException => rex
+      #   body = {
+      #     type: 'retry',
+      #     delay: rex.delay,
+      #     request_id: Thread.current[:request_context_id] || 'unknown'
+      #   }
+      #   debug "Retry later request - #{req.url}"
+      #   if req['_format'] == 'html'
+      #     refresh = rex.delay.to_s
+      #     if (req_id = Thread.current[:request_context_id])
+      #       refresh += "; url=#{req.url}&_request_id=#{req_id}"
+      #     end
+      #     headers['Refresh'] = refresh # 10; url=
+      #     headers['X-Request-ID'] = req_id
+      #     opts = {} #{html_header: "<META HTTP-EQUIV='refresh' CONTENT='#{rex.delay}'>"}
+      #     body = convert_to_html(body, env, opts)
+      #     return [200 , headers, body + "\n"]
+      #   end
+      #   headers['Content-Type'] = 'application/json'
+      #   return [504, headers, JSON.pretty_generate(body)]
 
       rescue Exception => ex
         body = {
@@ -196,6 +235,37 @@ module OMF::SFA::AM::Rest
         return [500, headers, JSON.pretty_generate(body)]
       end
     end
+
+    def _format_body(body, content_type, req, env, proxy_promise = nil)
+      begin
+        if req['_format'] == 'html'
+          #body = self.class.convert_to_html(body, env, Set.new((@coll_handlers || {}).keys))
+          content_type = 'text/html'
+          body = convert_to_html(body, env, {}, Set.new((@coll_handlers || {}).keys))
+        elsif content_type == 'application/json'
+          body = JSON.pretty_generate(body)
+        end
+        [content_type, body]
+      rescue OMF::SFA::Util::PromiseUnresolvedException => pex
+        proxy = OMF::SFA::Util::Promise.new
+        pex.promise.on_success do |d|
+          proxy.resolve [content_type, body]
+        end.on_error(proxy)
+        raise PromiseDeferException.new proxy
+      end
+    end
+
+    # def _x(promise, req)
+    #   uuid = 1 #pex.uuid
+    #   path = "/promises/#{uuid}"
+    #   require 'omf-sfa/am/am-rest/promise_handler' # delay loading as PromiseHandler sub classes this class
+    #   OMF::SFA::AM::Rest::PromiseHandler.register_promise(promise,
+    #                                                       uuid,
+    #                                                       req['_format'] == 'html',
+    #                                                       Set.new((@coll_handlers || {}).keys))
+    #   debug "Redirecting to #{path}"
+    #   return [302, {'Location' => path}, ['Promised, but not ready yet.']]
+    # end
 
     def on_get(resource_uri, opts)
       debug 'get: resource_uri: "', resource_uri, '"'
@@ -214,7 +284,7 @@ module OMF::SFA::AM::Rest
 
       if resource = opts[:resource]
         debug 'POST: Modify ', resource, ' --- ', resource.class
-        modify_resource(resource, description, opts)
+        resource = modify_resource(resource, description, opts)
       else
         if description.is_a? Array
           resources = description.map do |d|
@@ -268,7 +338,7 @@ module OMF::SFA::AM::Rest
 
     def find_handler(path, opts)
       #debug "find_handler: path; '#{path}' opts: #{opts}"
-      debug "find_handler: path; '#{path}'"
+      debug "find_handler: path: '#{path}'"
       rid = path.shift
       resource_id = opts[:resource_uri] = (rid ? URI.decode(rid) : nil) # make sure we get rid of any URI encoding
       opts[:resource] = nil
@@ -279,6 +349,7 @@ module OMF::SFA::AM::Rest
 
       raise OMF::SFA::AM::Rest::UnknownResourceException.new "Unknown resource '#{resource_id}'." unless resource
       opts[:context] = resource
+      opts[:contexts][opts[:context_name].to_sym] = resource
       comp = path.shift
       if (handler = @coll_handlers[comp.to_sym])
         opts[:context_name] = comp
@@ -292,7 +363,6 @@ module OMF::SFA::AM::Rest
     end
 
 
-
     protected
 
     def modify_resource(resource, description, opts)
@@ -301,6 +371,7 @@ module OMF::SFA::AM::Rest
       end
       description.delete(:href)
       resource.update(description) ? resource : nil
+      resource
     end
 
 
@@ -384,12 +455,29 @@ module OMF::SFA::AM::Rest
     #
     def populate_opts(req, opts)
       opts[:req] = req
+      opts[:context_name] = (req.env['REQUEST_PATH'].split('/') - req.path_info.split('/'))[-1]
+      opts[:contexts] ||= {}
       path = req.path_info.split('/').select { |p| !p.empty? }
       opts[:target] = find_handler(path, opts)
       rl = req.params.delete('_level')
       opts[:max_level] = rl ? rl.to_i : 0
       #opts[:target].inspect
       opts
+    end
+
+    # Return a named context resource. If it is a promise and not yet
+    # available, a TemporaryUnavailableException is being thrown.
+    #
+    # For instance if we have a path /users/xxx/friends/yyy/favorites
+    # by the time we get to the 'favorites' handler, we can access
+    # the respective 'users', 'friends' object through this method.
+    # PLEASE note the plurals 'users', 'friends'.
+    #
+    def get_context_resource(name, opts)
+      resource = opts[:contexts][name]
+      if resource.is_a? OMF::SFA::Util::Promise
+        resource = resource.value(OMF::SFA::AM::Rest::TemporaryUnavailableException)
+      end
     end
 
     def parse_body(opts, allowed_formats = [:json, :xml])
@@ -447,11 +535,15 @@ module OMF::SFA::AM::Rest
     def dispatch(req)
       opts = {}
       populate_opts(req, opts)
-      opts[:req] = req
+      #opts[:req] = req
       #puts "OPTS>>>> #{opts.inspect}"
       method = req.request_method
       target = opts[:target] #|| self
       resource_uri = opts[:resource_uri]
+      _dispatch(method, target, resource_uri, opts)
+    end
+
+    def _dispatch(method, target, resource_uri, opts)
       case method
       when 'GET'
         res = target.on_get(resource_uri, opts)
@@ -468,22 +560,30 @@ module OMF::SFA::AM::Rest
 
     def show_resource_status(resource, opts)
       if resource
+        resource = resolve_promise(resource) do |r|
+          show_resource_status(r, opts)
+        end
         about = opts[:req].path
-        props = resource.to_hash({}, :max_level => opts[:max_level])
+        refresh = ['', '1', 't', 'T', 'true', 'TRUE'].include?(opts[:req].params['_refresh'])
+        props = resource.to_hash({}, max_level: opts[:max_level], refresh: refresh)
         props.delete(:type)
-        res = {
+        res = after_resource_to_hash_hook({
           #:about => about,
           :type => resource.resource_type,
-        }.merge!(props)
+        }.merge!(props))
       else
         res = {:error => 'Unknown resource'}
       end
-
-      ['application/json', res]
+      check_for_promises 'application/json', res
     end
 
+    def after_resource_to_hash_hook(res_hash)
+      res_hash
+    end
 
-
+    def absolute_path(rel_path)
+      "http://#{Thread.current[:http_host]}#{rel_path.start_with?('/') ? '' : '/'}#{rel_path}"
+    end
 
     def find_resource(resource_uri, description = {}, opts = {})
       descr = description.dup
@@ -497,8 +597,14 @@ module OMF::SFA::AM::Rest
       end
 
       #authenticator = Thread.current["authenticator"]
+      descr = _find_resource_before_hook(descr, opts)
       debug "Finding #{@resource_class}.first(#{descr})"
       @resource_class.first(descr)
+    end
+
+    # Allow sub class to override search criteria for resource
+    def _find_resource_before_hook(descr, opts)
+      descr
     end
 
     def show_resource_list(opts)
@@ -512,10 +618,17 @@ module OMF::SFA::AM::Rest
     end
 
     def show_resources(resources, resource_name, opts)
+      resources = resolve_promise(resources) do |r|
+        show_resources(r, resource_name, opts)
+      end
       #hopts = {max_level: opts[:max_level], level: 1}
       hopts = {max_level: opts[:max_level], level: 0}
       objs = {}
       res_hash = resources.map do |a|
+        a = resolve_promise(a) do |r|
+          # The resolved promise was embeded, so we need to start afresh from the top
+          show_resources(resources, resource_name, opts)
+        end
         next unless a # TODO: This seems to be a bug in OProperty (removing objects)
         a.to_hash(objs, hopts)
         #a.to_hash_brief(:href_use_class_prefix => true)
@@ -529,8 +642,81 @@ module OMF::SFA::AM::Rest
       else
         res = res_hash
       end
-      ['application/json', res]
+      check_for_promises 'application/json', res
     end
+
+    # Check if 'value' is a promise. If not, return it immediately. If it is
+    # a promise, return it's value if it has been already resolved. Otherwise
+    # throw a PromiseDeferException. If the promise gets resolved at some later
+    # stage the 'block' is called and is expected to return the same result as
+    # the caller of this function would have returned if this function would have
+    # returned immediately.
+    #
+    def resolve_promise(value, &block)
+      if (promise = value).is_a? OMF::SFA::Util::Promise
+        case promise.status
+        when :pending
+          proxy = OMF::SFA::Util::Promise.new
+          promise.on_success do |d|
+            proxy.resolve block.call(d)
+          end.on_error(proxy)
+          raise PromiseDeferException.new proxy
+        when :rejected
+          raise promise.error_msg
+        else
+          value = promise.value
+        end
+      end
+      #puts "RESOLVE PROMISE(#{value.class}>>> #{value}"
+      value
+    end
+
+    # Check if any elements in res, which is either an array
+    # or hash, is a promise. If one is found, and can't be resolved,
+    # a PromiseDeferException is thrown. The proxy promise in the exception
+    # will monitor the unresolved promises and after all of them are resolved
+    # will resolve the associated promise with a 'clean' res.
+    #
+    def check_for_promises(mime_type, res, proxy = nil)
+      begin
+        res = _scan_for_promises(res)
+      rescue OMF::SFA::Util::PromiseUnresolvedException => pex
+        proxy ||= OMF::SFA::Util::Promise.new
+        pex.promise.on_success do |x|
+          check_for_promises(mime_type, res, proxy)
+        end.on_error {|ec, em|
+          proxy.reject(ec, em)
+        }
+        raise PromiseDeferException.new proxy
+      end
+      if proxy
+        proxy.resolve [mime_type, res]
+      end
+      [mime_type, res]
+    end
+
+    def _scan_for_promises(res)
+      if res.is_a? Array
+        res = res.map do |el|
+          _scan_for_promises(el)
+        end
+      elsif res.is_a? Hash
+        res.each do |key, val|
+          res[key] = _scan_for_promises(val)
+        end
+      elsif res.is_a? OMF::SFA::Util::Promise
+        case res.status
+        when :resolved
+          return res.value
+        when :rejected
+          raise res.err_message
+        else
+          raise OMF::SFA::Util::PromiseUnresolvedException.new(res)
+        end
+      end
+      res # seems to be 'normal' value
+    end
+
 
     def show_deleted_resource(uuid)
       res = {
@@ -602,12 +788,13 @@ module OMF::SFA::AM::Rest
       tmpl
     end
 
-    def convert_to_html(body, env, opts, collections = Set.new)
+    def convert_to_html(obj, env, opts, collections = Set.new)
       req = ::Rack::Request.new(env)
       opts = {
         collections: collections,
         level: 0,
-        href_prefix: "#{req.path}/"
+        href_prefix: "#{req.path}/",
+        env: env
       }.merge(opts)
 
       path = req.path.split('/').select { |p| !p.empty? }
@@ -617,11 +804,11 @@ module OMF::SFA::AM::Rest
       end
 
       res = []
-      _convert_obj_to_html(body, nil, res, opts)
+      _convert_obj_to_html(obj, nil, res, opts)
 
       render_html(
         header: opts[:html_header] || '',
-        result: body,
+        result: obj,
         title: @@service_name || env["HTTP_HOST"],
         service: h2.join('/'),
         content: res.join("\n")
@@ -636,6 +823,9 @@ module OMF::SFA::AM::Rest
     def _convert_obj_to_html(obj, ref_name, res, opts)
       klass = obj.class
       #puts "CONVERT>>>> #{ref_name} ... #{obj.class}::#{obj.to_s[0 .. 80]}"
+      if obj.is_a? OMF::SFA::Util::Promise
+        obj = obj.to_html()
+      end
       if (obj.is_a? OMF::SFA::Resource::OPropertyArray) || obj.is_a?(Array)
         if obj.empty?
           res << '<span class="empty">empty</span>'
@@ -661,7 +851,7 @@ module OMF::SFA::AM::Rest
     end
 
     def _convert_array_to_html(array, ref_name, res, opts)
-      opts = opts.merge(level: opts[:level] + 1)
+      opts = opts.merge(level: opts[:level] + 1, context: array)
       array.each do |obj|
         #puts "AAA>>>> #{obj}::#{opts}"
         name = nil
@@ -684,6 +874,7 @@ module OMF::SFA::AM::Rest
 
     def _convert_hash_to_html(hash, ref_name, res, opts)
       #puts ">>>> #{hash}::#{opts}"
+      opts = opts.merge(context: hash)
       hash.each do |key, obj|
         #key = "#{key}-#{opts[:level]}-#{opts[:collections].to_a.inspect}"
         if opts[:level] == 0 && opts[:collections].include?(key.to_sym)
