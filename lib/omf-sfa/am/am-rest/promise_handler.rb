@@ -100,7 +100,11 @@ module OMF::SFA::AM::Rest
     def retry_later(req, context)
       body = {
         type: 'retry',
-        delay: 10 # rex.delay,
+        delay: 10, # rex.delay,
+        url: absolute_path(req.env['REQUEST_PATH']),
+        progress: context[:promise].progress.map do |ts, msg|
+          "#{ts.utc.iso8601}: #{msg}"
+        end
       }
       debug "Retry later request - #{req.url}"
       headers = {'Content-Type' => 'application/json'}

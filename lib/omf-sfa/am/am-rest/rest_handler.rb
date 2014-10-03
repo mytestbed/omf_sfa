@@ -89,14 +89,14 @@ module OMF::SFA::AM::Rest
     end
   end
 
-  class PromiseDeferException < Exception
-    attr_reader :uuid, :promise
-
-    def initialize(promise)
-      @uuid = UUIDTools::UUID.random_create
-      @promise = promise
-    end
-  end
+  # class PromiseUnresolvedException < Exception
+  #   attr_reader :uuid, :promise
+  #
+  #   def initialize(promise)
+  #     @uuid = UUIDTools::UUID.random_create
+  #     @promise = promise
+  #   end
+  # end
 
   # Raised when a request triggers an async call whose
   # result we need before answering the request
@@ -186,8 +186,12 @@ module OMF::SFA::AM::Rest
         headers['Content-Type'] = content_type
         return [200 , headers, (body || '') + "\n"]
       rescue RackException => rex
+        unless rex.is_a? TemporaryUnavailableException
+          info "Caught #{rex}"
+          debug rex.backtrace.join("\n")
+        end
         return rex.reply
-      rescue PromiseDeferException => pex
+      rescue OMF::SFA::Util::PromiseUnresolvedException => pex
         uuid = 1 #pex.uuid
         path = "/promises/#{uuid}"
         require 'omf-sfa/am/am-rest/promise_handler' # delay loading as PromiseHandler sub classes this class
@@ -197,6 +201,9 @@ module OMF::SFA::AM::Rest
                                                             Set.new((@coll_handlers || {}).keys))
         debug "Redirecting to #{path}"
         return [302, {'Location' => path}, ['Promised, but not ready yet.']]
+      rescue OMF::SFA::AM::Rest::RedirectException => rex
+        debug "Redirecting to #{rex.path}"
+        return [302, {'Location' => rex.path}, ['Next window, please.']]
 
       # rescue OMF::SFA::AM::AMManagerException => aex
         # return RackException.new(400, aex.to_s).reply
@@ -250,8 +257,8 @@ module OMF::SFA::AM::Rest
         proxy = OMF::SFA::Util::Promise.new
         pex.promise.on_success do |d|
           proxy.resolve [content_type, body]
-        end.on_error(proxy)
-        raise PromiseDeferException.new proxy
+        end.on_error(proxy).on_progress(proxy)
+        raise OMF::SFA::Util::PromiseUnresolvedException.new proxy
       end
     end
 
@@ -275,6 +282,11 @@ module OMF::SFA::AM::Rest
       else
         show_resource_list(opts)
       end
+    end
+
+    def on_put(resource_uri, opts)
+      debug '>>> PUT NOT IMPLEMENTED'
+      raise UnsupportedMethodException.new('on_put', @resource_class)
     end
 
     def on_post(resource_uri, opts)
@@ -478,6 +490,7 @@ module OMF::SFA::AM::Rest
       if resource.is_a? OMF::SFA::Util::Promise
         resource = resource.value(OMF::SFA::AM::Rest::TemporaryUnavailableException)
       end
+      resource
     end
 
     def parse_body(opts, allowed_formats = [:json, :xml])
@@ -659,8 +672,8 @@ module OMF::SFA::AM::Rest
           proxy = OMF::SFA::Util::Promise.new
           promise.on_success do |d|
             proxy.resolve block.call(d)
-          end.on_error(proxy)
-          raise PromiseDeferException.new proxy
+          end.on_error(proxy).on_progress(proxy)
+          raise OMF::SFA::Util::PromiseUnresolvedException.new proxy
         when :rejected
           raise promise.error_msg
         else
@@ -681,13 +694,15 @@ module OMF::SFA::AM::Rest
       begin
         res = _scan_for_promises(res)
       rescue OMF::SFA::Util::PromiseUnresolvedException => pex
-        proxy ||= OMF::SFA::Util::Promise.new
-        pex.promise.on_success do |x|
-          check_for_promises(mime_type, res, proxy)
-        end.on_error {|ec, em|
-          proxy.reject(ec, em)
-        }
-        raise PromiseDeferException.new proxy
+        unless proxy
+          proxy = OMF::SFA::Util::Promise.new
+          pex.promise.on_success do |x|
+            check_for_promises(mime_type, res, proxy)
+          end.on_error do |ec, em|
+            proxy.reject(ec, em)
+          end.on_progress(proxy)
+          raise OMF::SFA::Util::PromiseUnresolvedException.new proxy
+        end
       end
       if proxy
         proxy.resolve [mime_type, res]
