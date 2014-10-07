@@ -489,6 +489,9 @@ module OMF::SFA::Resource
           op.each do |k, v|
             k = k.to_sym
             unless (value = send(k)).nil?
+              if value.is_a?(OMF::SFA::Util::Promise) && value.resolved?
+                value = value.value
+              end
               #puts "OPROPS_TO_HAHS(#{k}): #{value}::#{value.class}--#{oproperty_get(k)}"
               #puts "OPROPS_TO_HAHS(#{k}): #{opts[:level]} >= #{opts[:max_level]}"
               if value.is_a? OResource
@@ -501,13 +504,19 @@ module OMF::SFA::Resource
               end
               if value.kind_of? Array
                 next if value.empty?
-                opts = opts.merge(level: opts[:level] + 1)
                 value = value.collect do |e|
-                  #(e.kind_of? OResource) ? (href_only ? e.href : e.to_hash(objs, opts)) : e
-                  (e.kind_of? OResource) ? e.to_hash(objs, opts) : e
+                  #puts "LEVLE: #{opts[:level]} - #{opts[:max_level]}"
+                  if e.kind_of? OResource
+                    if opts[:level] >= opts[:max_level]
+                      e.href
+                    else
+                      e.to_hash(objs, opts.merge(level: opts[:level] + 2))
+                    end
+                  else
+                    e
+                  end
                 end
               end
-
               h[k] = value
             end
           end

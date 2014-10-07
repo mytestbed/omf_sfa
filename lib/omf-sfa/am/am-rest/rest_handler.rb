@@ -89,6 +89,38 @@ module OMF::SFA::AM::Rest
     end
   end
 
+  class ContentFoundException < Exception
+    def initialize(content, type = nil, &block)
+      @type = case
+              when :json
+                'application/json'
+              when :xml
+                'text/xml'
+              else
+                'text'
+              end
+      if content.is_a? OMF::SFA::Util::Promise
+        @content = OMF::SFA::Util::Promise.new
+        content.on_success do |pv|
+          v = block ? block.call(pv) : pv
+          @content.resolve [@type, v]
+        end.on_error(@content).on_progress(@content)
+      else
+        @content = content
+      end
+    end
+
+    def reply
+      if @content.is_a? OMF::SFA::Util::Promise
+        require 'omf-sfa/am/am-rest/promise_handler' # delay loading as PromiseHandler sub classes this class
+        OMF::SFA::AM::Rest::PromiseHandler.register_promise(@content)
+      else
+        headers = {'Content-Type' => @type}
+        [200 , headers, @content]
+      end
+    end
+  end
+
   # class PromiseUnresolvedException < Exception
   #   attr_reader :uuid, :promise
   #
@@ -185,22 +217,22 @@ module OMF::SFA::AM::Rest
         #return [200 ,{'Content-Type' => content_type}, body + "\n"]
         headers['Content-Type'] = content_type
         return [200 , headers, (body || '') + "\n"]
+      rescue ContentFoundException => cex
+        return cex.reply
       rescue RackException => rex
         unless rex.is_a? TemporaryUnavailableException
-          info "Caught #{rex}"
-          debug rex.backtrace.join("\n")
+          warn "Caught #{rex} - #{env['REQUEST_METHOD']} - #{env['REQUEST_PATH']}"
+          debug "#{rex.class} - #{req.inspect}"
+          #debug rex.backtrace.join("\n")
         end
         return rex.reply
       rescue OMF::SFA::Util::PromiseUnresolvedException => pex
-        uuid = 1 #pex.uuid
-        path = "/promises/#{uuid}"
         require 'omf-sfa/am/am-rest/promise_handler' # delay loading as PromiseHandler sub classes this class
         OMF::SFA::AM::Rest::PromiseHandler.register_promise(pex.promise,
-                                                            uuid,
+                                                            pex.uuid,
                                                             req['_format'] == 'html',
                                                             Set.new((@coll_handlers || {}).keys))
-        debug "Redirecting to #{path}"
-        return [302, {'Location' => path}, ['Promised, but not ready yet.']]
+        #return [302, {'Location' => path}, ['Promised, but not ready yet.']]
       rescue OMF::SFA::AM::Rest::RedirectException => rex
         debug "Redirecting to #{rex.path}"
         return [302, {'Location' => rex.path}, ['Next window, please.']]
@@ -472,7 +504,7 @@ module OMF::SFA::AM::Rest
       path = req.path_info.split('/').select { |p| !p.empty? }
       opts[:target] = find_handler(path, opts)
       rl = req.params.delete('_level')
-      opts[:max_level] = rl ? rl.to_i : 0
+      opts[:max_level] = rl ? rl.to_i : 1
       #opts[:target].inspect
       opts
     end
@@ -552,6 +584,9 @@ module OMF::SFA::AM::Rest
       #puts "OPTS>>>> #{opts.inspect}"
       method = req.request_method
       target = opts[:target] #|| self
+      if target.is_a? OMF::SFA::AM::Rest::ContentFoundException
+        raise target
+      end
       resource_uri = opts[:resource_uri]
       _dispatch(method, target, resource_uri, opts)
     end
@@ -635,7 +670,7 @@ module OMF::SFA::AM::Rest
         show_resources(r, resource_name, opts)
       end
       #hopts = {max_level: opts[:max_level], level: 1}
-      hopts = {max_level: opts[:max_level], level: 0}
+      hopts = {max_level: opts[:max_level] - 1, level: 0}
       objs = {}
       res_hash = resources.map do |a|
         a = resolve_promise(a) do |r|

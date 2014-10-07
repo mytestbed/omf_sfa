@@ -18,7 +18,7 @@ module OMF::SFA::Util
   end
 
   class PromiseUnresolvedException < PromiseException
-    attr_reader :promise
+    attr_reader :promise, :uuid
 
     def initialize(promise)
       @promise = promise
@@ -217,6 +217,10 @@ module OMF::SFA::Util
       self
     end
 
+    def resolved?
+      (@status == :proxy) ? @proxy.resolved? : (@status == :resolved)
+    end
+
     def pending?
       (@status == :proxy) ? @proxy.pending? : (@status == :pending)
     end
@@ -241,7 +245,7 @@ module OMF::SFA::Util
     # end
 
     def to_json(*a)
-      puts ">>> JSONIFY PROMISE - #{self.to_s}"
+      puts ">>> JSONIFY PROMISE - #{self.to_s} - #{@value}"
       if @status == :resolved
         @value.to_json(*a)
       else

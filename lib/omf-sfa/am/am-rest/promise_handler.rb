@@ -5,14 +5,19 @@ module OMF::SFA::AM::Rest
 
     @@contexts = {}
 
-    def self.register_promise(promise, uuid, html_reply, collection_set)
+    def self.register_promise(promise, uuid = nil, html_reply = false, collection_set = nil)
       debug "Registering promise '#{uuid}' - #{promise}"
+      uuid ||= UUIDTools::UUID.random_create
+      uuid = 1 # TODO: REMOVE
       @@contexts[uuid.to_s] = {
         promise: promise,
         html_reply: html_reply,
-        collection_set: collection_set,
+        collection_set: collection_set || Set.new,
         timestamp: Time.now
       }
+      path = "/promises/#{uuid}"
+      debug "Redirecting to #{path}"
+      return [302, {'Location' => path}, ['Promised, but not ready yet.']]
     end
 
     def call(env)
