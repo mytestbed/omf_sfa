@@ -8,6 +8,7 @@ require 'thin/async'
 require 'cgi'
 
 require 'omf_base/lobject'
+require 'omf-sfa/util/promise'
 
 
 module OMF::SFA::AM::Rest
