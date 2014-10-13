@@ -79,12 +79,17 @@ module OMF::SFA::Util
       @defaults = {node: {}, interface: {}, network: {}}
       (graph[:defaults] || {}).each do |type, h|
         type_def = @defaults[type.to_sym] ||= {}
-        h.each do |name, id|
-          unless ref = @id2descr[id]
-            raise GraphJSONException.new "Defaults refer to unknown id '#{id}'"
-          end
-          unless val = ref[name]
-            raise GraphJSONException.new "Defaults refer to unspecified property '#{name}' in '#{id}' - #{ref}"
+        h.each do |name, vh|
+          puts "DEFAULTS>>> #{type} - #{name} => #{vh}"
+          if ref_id = vh[:ref]
+            unless ref = @id2descr[ref_id]
+              raise GraphJSONException.new "Defaults refer to unknown id '#{id}' - #{@id2descr.keys}"
+            end
+            unless val = ref[name]
+              raise GraphJSONException.new "Defaults refer to unspecified property '#{name}' in '#{ref_id}' - #{ref}"
+            end
+          elsif (val = vh[:value]).nil?
+            raise GraphJSONException.new "Default '#{name}' for '#{type}' has no value defined - #{vh}"
           end
           type_def[name] = val
           #puts "#{type}::#{name} ===> #{val}"
@@ -116,7 +121,7 @@ module OMF::SFA::Util
       end
       opts[:uuid] = id unless @create_new_uuids
       opts[:name] = node[:name]
-      parse_value(node, :component_manager, el_defaults, opts, false)
+      parse_value(node, :am_urn, el_defaults, opts, true, :component_manager)
       parse_value(node, :urn, el_defaults, opts, false)
       opts[:sliver_type] = parse_sliver_type(node, el_defaults)
 
@@ -238,23 +243,26 @@ module OMF::SFA::Util
 
     def parse_sliver_type(node, el_defaults)
       sliver_type = parse_value(node, :sliver_type, el_defaults, nil, true)
-      disk_image_url = parse_value(node, :disk_image, el_defaults, nil, true)
-      id = "#{sliver_type}-#{disk_image_url}"
+      disk_image_url = parse_value(node, :disk_image, el_defaults, nil, false)
+      id = "#{sliver_type}-#{disk_image_url || '__none'}"
       unless st_res = @sliver_types[id]
-        di = DiskImage.create(url: disk_image_url)
-        st_res = @sliver_types[id] = SliverType.create(name: sliver_type, disk_image: di)
+        opts = {name: sliver_type}
+        if disk_image_url
+          opts[:disk_image] = DiskImage.create(url: disk_image_url)
+        end
+        st_res = @sliver_types[id] = SliverType.create(opts)
       end
       st_res
     end
 
 
-    def parse_value(el, name, defaults, opts, is_mandatory = false)
+    def parse_value(el, name, defaults, opts, is_mandatory = false, opts_name = nil)
       val = el[name] || defaults[name]
       if is_mandatory && val.nil?
         raise GraphJSONException.new "Can't find value for mandatory property '#{name}' in '#{el}'"
       end
       if opts && !val.nil?
-        opts[name.to_sym] = val
+        opts[(opts_name || name).to_sym] = val
       end
       val
     end

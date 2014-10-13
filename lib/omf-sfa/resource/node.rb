@@ -14,7 +14,7 @@ module OMF::SFA::Resource
     oproperty :available, Boolean, :default => true
     oproperty :sliver_type, SliverType, :required => false # Is this required?
     oproperty :interfaces, :interface, :functional => false, :inverse => :node
-    oproperty :exclusive, Boolean, :default => true
+    oproperty :exclusive, Boolean, :default => false
     oproperty :services, OMF::SFA::Resource::AbstractService, functional: false
 
     #belongs_to :sliver

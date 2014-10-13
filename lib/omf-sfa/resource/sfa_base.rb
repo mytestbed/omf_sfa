@@ -14,6 +14,7 @@ module OMF::SFA
     module Base
 
       SFA_NAMESPACE_URI = "http://www.geni.net/resources/rspec/3"
+      OMF_NAMESPACE_URI = "http://schema.mytestbed.net/rspec/3"
 
       module ClassMethods
 
@@ -62,6 +63,7 @@ module OMF::SFA
         def sfa_add_namespaces_to_document(doc)
           root = doc.root
           root.add_namespace(nil, SFA_NAMESPACE_URI)
+          root.add_namespace('omf', OMF_NAMESPACE_URI)
           @@sfa_namespaces.each do |name, opts|
             root.add_namespace(name.to_s, opts[:urn]) #'omf', 'http://tenderlovemaking.com')
           end
@@ -478,7 +480,7 @@ module OMF::SFA
           end
 
           unless opts[:suppress_uuid] || self.class.sfa_suppress_uuid?
-            new_element.set_attribute('uuid', self.uuid) #if detail_level > 0
+            new_element.set_attribute('omf:uuid', self.uuid) #if detail_level > 0
           end
 
           #if href = self.href(opts)

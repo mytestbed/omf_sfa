@@ -224,7 +224,7 @@ module OMF::SFA::AM::Rest
         unless rex.is_a? TemporaryUnavailableException
           warn "Caught #{rex} - #{env['REQUEST_METHOD']} - #{env['REQUEST_PATH']}"
           debug "#{rex.class} - #{req.inspect}"
-          #debug rex.backtrace.join("\n")
+          debug rex.backtrace.join("\n")
         end
         return rex.reply
       rescue OMF::SFA::Util::PromiseUnresolvedException => pex
@@ -527,6 +527,7 @@ module OMF::SFA::AM::Rest
     end
 
     def parse_body(opts, allowed_formats = [:json, :xml])
+      puts "ALLOWD>>>> #{allowed_formats}"
       req = opts[:req]
       body = req.body #req.POST
       raise EmptyBodyException.new unless body
@@ -558,6 +559,10 @@ module OMF::SFA::AM::Rest
           raise UnsupportedBodyFormatException.new(:json) unless allowed_formats.include?(:json)
           jb = JSON.parse(body)
           return [_rec_sym_keys(jb), :json]
+        when 'application/gjson'
+          raise UnsupportedBodyFormatException.new(:gjson) unless allowed_formats.include?(:gjson)
+          jb = JSON.parse(body)
+          return [_rec_sym_keys(jb), :gjson]
         when 'text/xml'
           xb = Nokogiri::XML(body)
           raise UnsupportedBodyFormatException.new(:xml) unless allowed_formats.include?(:xml)
@@ -619,14 +624,14 @@ module OMF::SFA::AM::Rest
         res = after_resource_to_hash_hook({
           #:about => about,
           :type => resource.resource_type,
-        }.merge!(props))
+        }.merge!(props), resource)
       else
         res = {:error => 'Unknown resource'}
       end
       check_for_promises 'application/json', res
     end
 
-    def after_resource_to_hash_hook(res_hash)
+    def after_resource_to_hash_hook(res_hash, resource)
       res_hash
     end
 
@@ -679,7 +684,9 @@ module OMF::SFA::AM::Rest
           show_resources(resources, resource_name, opts)
         end
         next unless a # TODO: This seems to be a bug in OProperty (removing objects)
-        a.to_hash(objs, hopts)
+        #puts ">>>>>>>>> #{a.to_hash({}, hopts.dup)}"
+        #a.to_hash(objs, hopts.dup)
+        after_resource_to_hash_hook(a.to_hash(objs, hopts), a)
         #a.to_hash_brief(:href_use_class_prefix => true)
       end.compact
       if resource_name
