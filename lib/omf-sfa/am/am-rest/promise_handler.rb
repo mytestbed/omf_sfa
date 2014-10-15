@@ -8,7 +8,7 @@ module OMF::SFA::AM::Rest
     def self.register_promise(promise, uuid = nil, html_reply = false, collection_set = nil)
       debug "Registering promise '#{uuid}' - #{promise}"
       uuid ||= UUIDTools::UUID.random_create
-      uuid = 1 # TODO: REMOVE
+      #uuid = 1 # TODO: REMOVE
       @@contexts[uuid.to_s] = {
         promise: promise,
         html_reply: html_reply,
@@ -75,7 +75,7 @@ module OMF::SFA::AM::Rest
           pex.promise.on_success do |d|
             proxy.resolve [content_type, body]
           end.on_error(proxy)
-          uuid = 1 #pex.uuid
+          uuid = pex.uuid
           path = "/promises/#{uuid}"
           require 'omf-sfa/am/am-rest/promise_handler' # delay loading as PromiseHandler sub classes this class
           self.class.register_promise(proxy, uuid, context[:html_reply], context[:collection_set])
