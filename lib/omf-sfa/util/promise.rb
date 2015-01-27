@@ -286,6 +286,10 @@ module OMF::SFA::Util
 
     def _reject(err_code, msg)
       @status = :rejected
+      #puts ">>>> REJECT MSG - #{msg.inspect} -- #{msg.respond_to? :pretty_print}"
+      if msg.respond_to? :pretty_print
+        msg = msg.pretty_print
+      end
       @value = msg
       @err_code = err_code
       progress("#{@pretty_name} rejected") if @pretty_name

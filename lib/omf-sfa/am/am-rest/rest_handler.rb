@@ -568,7 +568,7 @@ module OMF::SFA::AM::Rest
           raise UnsupportedBodyFormatException.new(:xml) unless allowed_formats.include?(:xml)
           return [xb, :xml]
         when 'application/x-www-form-urlencoded'
-          raise UnsupportedBodyFormatException.new(:xml) unless allowed_formats.include?(:form)
+          raise UnsupportedBodyFormatException.new(:form) unless allowed_formats.include?(:form)
           fb = req.POST
           #puts "FORM: #{fb.inspect}"
           return [fb, :form]
@@ -652,6 +652,11 @@ module OMF::SFA::AM::Rest
 
       #authenticator = Thread.current["authenticator"]
       descr = _find_resource_before_hook(descr, opts)
+      _find_resource(descr)
+    end
+
+    # Allow sub class to override actual finding of resource - may create it on the fly
+    def _find_resource(descr)
       debug "Finding #{@resource_class}.first(#{descr})"
       @resource_class.first(descr)
     end
