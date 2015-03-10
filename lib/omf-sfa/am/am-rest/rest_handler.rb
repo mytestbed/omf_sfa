@@ -91,14 +91,16 @@ module OMF::SFA::AM::Rest
   end
 
   class ContentFoundException < Exception
-    def initialize(content, type = nil, &block)
-      @type = case
+    def initialize(content, type = 'text', &block)
+      @type = case type.to_sym
               when :json
                 'application/json'
               when :xml
                 'text/xml'
-              else
+              when :text
                 'text'
+              else
+                (type || 'text').to_s
               end
       if content.is_a? OMF::SFA::Util::Promise
         @content = OMF::SFA::Util::Promise.new
