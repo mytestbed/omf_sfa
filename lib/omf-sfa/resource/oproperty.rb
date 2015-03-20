@@ -62,7 +62,7 @@ module OMF::SFA::Resource
       if l = opts[:limit]
         q += " LIMIT #{l} OFFSET #{opts[:offset] || 0}"
       end
-      #debug "prop_all q: #{q}"
+      #debug ">>>>>prop_all q: #{q}"
       res = repository(:default).adapter.select(q)
       ores = res.map do |qr|
         if resource_class
@@ -93,6 +93,7 @@ module OMF::SFA::Resource
     # TODO: THIS IS REALLY BROKEN! Need to define what a query is in this context
     #
     def self._build_query(query, resource_class = nil)
+      #puts ">>>QUERY>>> #{query}"
       i = 0
       where = query.map do |pn, v|
         tbl = "p#{i}"
@@ -102,8 +103,9 @@ module OMF::SFA::Resource
             raise "Expected type OResource for :resource, but got '#{v}::#{v.class}'"
           end
           "#{tbl}.o_resource_id = #{v.id}"
-        when :name
-          "#{tbl}.name = '#{v}'"
+        # NOT SURE WHAT THAT MEANS HERE
+        # when :name
+        #   "#{tbl}.name = '#{v}'"
         else
           h = _analyse_value(v)
           i += 1
@@ -115,11 +117,11 @@ module OMF::SFA::Resource
       end
 
       # TODO: Hack!!!
-      unless i <= 1
-        raise "Are you using the query facility on OProperties correctly? (#{i})"
-      else
-        i = 1
-      end
+      # unless i <= 1
+      #   raise "Are you using the query facility on OProperties correctly? (#{i})"
+      # else
+      #   i = 1
+      # end
 
       i.times do |j|
         where << "r.id = p#{j}.o_resource_id"
