@@ -62,7 +62,7 @@ module OMF::SFA::Resource
       if l = opts[:limit]
         q += " LIMIT #{l} OFFSET #{opts[:offset] || 0}"
       end
-      #debug ">>>>>prop_all q: #{q}"
+      debug "prop_all q: #{q}"
       res = repository(:default).adapter.select(q)
       ores = res.map do |qr|
         if resource_class
@@ -95,6 +95,7 @@ module OMF::SFA::Resource
     def self._build_query(query, resource_class = nil)
       #puts ">>>QUERY>>> #{query}"
       i = 0
+      resource = nil
       where = query.map do |pn, v|
         tbl = "p#{i}"
         case pn.to_sym
@@ -102,35 +103,31 @@ module OMF::SFA::Resource
           unless v.is_a? OResource
             raise "Expected type OResource for :resource, but got '#{v}::#{v.class}'"
           end
-          "#{tbl}.o_resource_id = #{v.id}"
-        # NOT SURE WHAT THAT MEANS HERE
+          resource = v
+          "r.id = #{resource.id}"
+          #"#{tbl}.o_resource_id = #{v.id}"
+        # resource property 'name' is not stored as a property but as a column in the resource
         # when :name
-        #   "#{tbl}.name = '#{v}'"
+        #   "r.name = '#{v}'"
         else
           h = _analyse_value(v)
           i += 1
           if (val = h[:v]).is_a? String
             val = "'#{val}'"
           end
-          "#{tbl}.#{h[:f]} #{h[:t] == 's' ? 'LIKE' : '='} #{val}"
+          op = (h[:t] == 's' ? 'LIKE' : '=')
+          # TODO: Would also need to add a where clause "#{tbl}.name = #{pn} "
+          "#{tbl}.#{h[:f]} #{op} #{val}"
         end
       end
-
-      # TODO: Hack!!!
-      # unless i <= 1
-      #   raise "Are you using the query facility on OProperties correctly? (#{i})"
-      # else
-      #   i = 1
-      # end
 
       i.times do |j|
         where << "r.id = p#{j}.o_resource_id"
       end
       where << "r.type = '#{resource_class}'" if resource_class
-
       table = storage_names[:default]
       from = i.times.map {|j| "#{table} AS p#{j}" }
-      from << "omf_sfa_resource_o_resources AS r" # TODO: Shouldn't hard-code that
+      from << "omf_sfa_resource_o_resources AS r" # TODO: Shouldn't hard-code that (why not?)
       [from, where]
     end
 

@@ -34,7 +34,7 @@ Gem::Specification.new do |s|
   s.add_runtime_dependency "dm-sqlite-adapter", "~> 1.2.0"
   s.add_runtime_dependency 'dm-noisy-failures'
   s.add_runtime_dependency "uuid", "~> 2.3.5"
-  s.add_runtime_dependency "json", "~> 1.7.7"
+  s.add_runtime_dependency "json", "~> 1.8.3"
 #
   s.add_runtime_dependency "equivalent-xml", "~> 0.2.9"
   s.add_runtime_dependency "rspec", "~> 2.11.0"
